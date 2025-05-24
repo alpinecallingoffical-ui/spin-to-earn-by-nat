@@ -1,88 +1,107 @@
 
-import React, { useState, useEffect } from 'react';
-import { SpinWheel } from '@/components/SpinWheel';
-import { WalletDisplay } from '@/components/WalletDisplay';
-import { UserProfile } from '@/components/UserProfile';
-import { SpinHistory } from '@/components/SpinHistory';
+import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { AuthModal } from '@/components/AuthModal';
+import { SpinWheelConnected } from '@/components/SpinWheelConnected';
+import { WalletDisplayConnected } from '@/components/WalletDisplayConnected';
+import { UserProfileConnected } from '@/components/UserProfileConnected';
+import { SpinHistoryConnected } from '@/components/SpinHistoryConnected';
+import { useAuth } from '@/hooks/useAuth';
 
 const Index = () => {
-  const [coins, setCoins] = useState(0);
-  const [spinsToday, setSpinsToday] = useState(0);
-  const [spinHistory, setSpinHistory] = useState<Array<{id: string, amount: number, timestamp: Date}>>([]);
-  const maxSpinsPerDay = 5;
+  const { user, loading } = useAuth();
+  const [showAuth, setShowAuth] = useState(false);
+  const [referralCode, setReferralCode] = useState<string>('');
 
-  const handleSpinWin = (amount: number) => {
-    setCoins(prev => prev + amount);
-    setSpinsToday(prev => prev + 1);
-    
-    // Add to spin history
-    const newSpin = {
-      id: Date.now().toString(),
-      amount,
-      timestamp: new Date()
-    };
-    setSpinHistory(prev => [newSpin, ...prev.slice(0, 9)]); // Keep last 10 spins
-  };
+  useEffect(() => {
+    // Check for referral code in URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const refCode = urlParams.get('ref');
+    if (refCode) {
+      setReferralCode(refCode);
+    }
+  }, []);
 
-  const canSpin = spinsToday < maxSpinsPerDay;
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-600 via-pink-600 to-orange-500 flex items-center justify-center">
+        <div className="text-white text-2xl font-bold">🎰 Loading...</div>
+      </div>
+    );
+  }
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-400 via-pink-500 to-purple-600">
-      <div className="container mx-auto px-4 py-6 max-w-md">
-        {/* Header */}
-        <div className="text-center mb-6">
-          <h1 className="text-3xl font-bold text-white mb-2">🎰 Spin to Earn</h1>
-          <p className="text-white/80">Spin the wheel and earn coins!</p>
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-600 via-pink-600 to-orange-500 flex flex-col items-center justify-center p-4">
+        <div className="text-center mb-8">
+          <h1 className="text-6xl font-bold text-white mb-4">🎰 Spin to Earn</h1>
+          <p className="text-xl text-white/80 mb-6">Spin the wheel daily and earn coins!</p>
+          
+          {referralCode && (
+            <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 mb-6">
+              <p className="text-white font-semibold">🎁 You've been invited!</p>
+              <p className="text-white/80">Join now and get 50 bonus coins!</p>
+            </div>
+          )}
+          
+          <button
+            onClick={() => setShowAuth(true)}
+            className="bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-white font-bold py-4 px-8 rounded-2xl text-xl shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all"
+          >
+            🚀 Get Started
+          </button>
         </div>
 
-        {/* Wallet Display */}
-        <WalletDisplay coins={coins} />
+        <AuthModal 
+          isOpen={showAuth} 
+          onClose={() => setShowAuth(false)}
+          referralCode={referralCode}
+        />
+      </div>
+    );
+  }
 
-        {/* Tabs */}
-        <Tabs defaultValue="spin" className="mt-6">
-          <TabsList className="grid w-full grid-cols-3 bg-white/20 backdrop-blur-sm">
-            <TabsTrigger value="spin" className="text-white data-[state=active]:bg-white data-[state=active]:text-purple-600">
-              Spin
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-purple-600 via-pink-600 to-orange-500">
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold text-white mb-2">🎰 Spin to Earn</h1>
+          <p className="text-white/80">Welcome back! Ready to spin and win?</p>
+        </div>
+
+        <Tabs defaultValue="spin" className="max-w-4xl mx-auto">
+          <TabsList className="grid w-full grid-cols-4 bg-white/20 backdrop-blur-sm">
+            <TabsTrigger value="spin" className="text-white data-[state=active]:bg-white/30">
+              🎰 Spin
             </TabsTrigger>
-            <TabsTrigger value="profile" className="text-white data-[state=active]:bg-white data-[state=active]:text-purple-600">
-              Profile
+            <TabsTrigger value="wallet" className="text-white data-[state=active]:bg-white/30">
+              💰 Wallet
             </TabsTrigger>
-            <TabsTrigger value="history" className="text-white data-[state=active]:bg-white data-[state=active]:text-purple-600">
-              History
+            <TabsTrigger value="history" className="text-white data-[state=active]:bg-white/30">
+              📊 History
+            </TabsTrigger>
+            <TabsTrigger value="profile" className="text-white data-[state=active]:bg-white/30">
+              👤 Profile
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="spin" className="mt-6">
-            <div className="space-y-6">
-              {/* Spin Counter */}
-              <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 text-center">
-                <p className="text-white/80 text-sm">Daily Spins</p>
-                <p className="text-white text-xl font-bold">
-                  {spinsToday}/{maxSpinsPerDay}
-                </p>
-              </div>
+          <div className="mt-6">
+            <TabsContent value="spin" className="space-y-6">
+              <SpinWheelConnected />
+            </TabsContent>
 
-              {/* Spin Wheel */}
-              <SpinWheel onSpinComplete={handleSpinWin} canSpin={canSpin} />
+            <TabsContent value="wallet" className="space-y-6">
+              <WalletDisplayConnected />
+            </TabsContent>
 
-              {!canSpin && (
-                <div className="bg-red-500/20 backdrop-blur-sm rounded-2xl p-4 text-center">
-                  <p className="text-white">
-                    🚫 Daily spin limit reached! Come back tomorrow.
-                  </p>
-                </div>
-              )}
-            </div>
-          </TabsContent>
+            <TabsContent value="history" className="space-y-6">
+              <SpinHistoryConnected />
+            </TabsContent>
 
-          <TabsContent value="profile" className="mt-6">
-            <UserProfile coins={coins} />
-          </TabsContent>
-
-          <TabsContent value="history" className="mt-6">
-            <SpinHistory history={spinHistory} />
-          </TabsContent>
+            <TabsContent value="profile" className="space-y-6">
+              <UserProfileConnected />
+            </TabsContent>
+          </div>
         </Tabs>
       </div>
     </div>

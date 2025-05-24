@@ -9,13 +9,159 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      referrals: {
+        Row: {
+          bonus_given: number
+          created_at: string
+          id: string
+          referred_user_id: string
+          referrer_id: string
+        }
+        Insert: {
+          bonus_given?: number
+          created_at?: string
+          id?: string
+          referred_user_id: string
+          referrer_id: string
+        }
+        Update: {
+          bonus_given?: number
+          created_at?: string
+          id?: string
+          referred_user_id?: string
+          referrer_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referrals_referred_user_id_fkey"
+            columns: ["referred_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referrals_referrer_id_fkey"
+            columns: ["referrer_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      spins: {
+        Row: {
+          id: string
+          reward: number
+          spun_at: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          reward: number
+          spun_at?: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          reward?: number
+          spun_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "spins_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      users: {
+        Row: {
+          coins: number
+          created_at: string
+          email: string | null
+          id: string
+          name: string
+          phone: string | null
+          referral_code: string
+          referred_by: string | null
+        }
+        Insert: {
+          coins?: number
+          created_at?: string
+          email?: string | null
+          id: string
+          name: string
+          phone?: string | null
+          referral_code: string
+          referred_by?: string | null
+        }
+        Update: {
+          coins?: number
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string
+          phone?: string | null
+          referral_code?: string
+          referred_by?: string | null
+        }
+        Relationships: []
+      }
+      withdrawals: {
+        Row: {
+          coin_amount: number
+          esewa_number: string
+          id: string
+          requested_at: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          coin_amount: number
+          esewa_number: string
+          id?: string
+          requested_at?: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          coin_amount?: number
+          esewa_number?: string
+          id?: string
+          requested_at?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "withdrawals_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      can_spin_today: {
+        Args: { user_uuid: string }
+        Returns: boolean
+      }
+      generate_referral_code: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      record_spin: {
+        Args: { user_uuid: string; reward_amount: number }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
