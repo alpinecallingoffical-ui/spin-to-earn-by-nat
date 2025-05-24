@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -45,14 +45,26 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, referralC
             },
           },
         });
-        if (error) throw error;
-        toast({ title: 'Account created successfully!' });
+        if (error) {
+          // Handle specific database errors
+          if (error.message.includes('Database error saving new user') || 
+              error.message.includes('generate_referral_code') ||
+              error.message.includes('function') && error.message.includes('does not exist')) {
+            throw new Error('Registration is temporarily unavailable. Please try again later or contact support.');
+          }
+          throw error;
+        }
+        toast({ 
+          title: 'Account created successfully!',
+          description: 'Please check your email to verify your account.'
+        });
       }
       onClose();
     } catch (error: any) {
+      console.error('Auth error:', error);
       toast({
         title: 'Error',
-        description: error.message,
+        description: error.message || 'An unexpected error occurred. Please try again.',
         variant: 'destructive',
       });
     } finally {
@@ -67,6 +79,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, referralC
           <DialogTitle className="text-2xl font-bold text-center">
             {isLogin ? '🎰 Welcome Back!' : '🎯 Join the Fun!'}
           </DialogTitle>
+          <DialogDescription className="text-white/80 text-center">
+            {isLogin ? 'Sign in to start spinning and earning coins!' : 'Create your account and start earning coins today!'}
+          </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleAuth} className="space-y-4">
