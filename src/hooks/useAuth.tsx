@@ -21,9 +21,9 @@ export const useAuth = () => {
         setUser(session?.user ?? null);
         setLoading(false);
         
-        // Handle new user registration
-        if (event === 'SIGNED_UP' && session?.user) {
-          console.log('New user signed up, checking if profile exists...');
+        // Handle new user registration - check if this is a new signup
+        if (event === 'SIGNED_IN' && session?.user) {
+          console.log('User signed in, checking if profile exists...');
           
           // Check if user profile already exists
           const { data: existingUser } = await supabase
@@ -32,12 +32,12 @@ export const useAuth = () => {
             .eq('id', session.user.id)
             .single();
           
-          // If no profile exists, create one manually
+          // If no profile exists, create one manually (this means it's a new user)
           if (!existingUser) {
             console.log('Creating user profile manually...');
             try {
               const userData = {
-                name: session.user.user_metadata?.name || 'User',
+                name: session.user.user_metadata?.name || session.user.user_metadata?.full_name || 'User',
                 email: session.user.email,
                 phone: session.user.user_metadata?.phone,
                 referredBy: session.user.user_metadata?.referred_by,

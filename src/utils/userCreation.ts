@@ -57,15 +57,15 @@ export const createUserProfile = async (userId: string, userData: {
     if (userData.referredBy) {
       const { data: referrer } = await supabase
         .from('users')
-        .select('id')
+        .select('id, coins')
         .eq('referral_code', userData.referredBy)
         .single();
 
       if (referrer) {
-        // Give bonus to referrer
+        // Give bonus to referrer - update coins by adding 100
         await supabase
           .from('users')
-          .update({ coins: supabase.raw('coins + 100') })
+          .update({ coins: referrer.coins + 100 })
           .eq('id', referrer.id);
 
         // Record the referral
