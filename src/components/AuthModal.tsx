@@ -27,15 +27,34 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, referralC
 
     try {
       if (isLogin) {
-        const { error } = await supabase.auth.signInWithPassword({
+        console.log('Attempting login with email:', email);
+        const { data, error } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
-        if (error) throw error;
+        
+        if (error) {
+          console.error('Login error:', error);
+          throw error;
+        }
+        
+        console.log('Login successful:', data);
         toast({ title: 'Welcome back!' });
         onClose();
       } else {
-        // For signup, create user with metadata
+        console.log('Attempting signup with email:', email);
+        
+        // First check if user already exists
+        const { data: existingUser } = await supabase.auth.signInWithPassword({
+          email,
+          password: 'dummy', // This will fail but tell us if user exists
+        });
+        
+        // If we get here without error, user might already exist
+        if (existingUser?.user) {
+          throw new Error('User with this email already exists. Please try logging in instead.');
+        }
+
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
@@ -53,34 +72,43 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, referralC
           throw error;
         }
         
+        console.log('Signup response:', data);
+        
         if (data.user) {
+          // Wait a moment for the trigger to process
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          
           toast({ 
             title: 'Account created successfully!',
-            description: 'You can now start using the app!'
+            description: 'Welcome to Spin to Earn!'
           });
           onClose();
         }
       }
     } catch (error: any) {
-      console.error('Auth error:', error);
+      console.error('Auth error details:', error);
+      
       let errorMessage = 'An unexpected error occurred. Please try again.';
       
-      if (error.message?.includes('User already registered')) {
-        errorMessage = 'This email is already registered. Try logging in instead.';
-      } else if (error.message?.includes('Invalid login credentials')) {
+      // Handle specific error cases
+      if (error.message?.includes('Invalid login credentials')) {
         errorMessage = 'Invalid email or password. Please check your credentials.';
+      } else if (error.message?.includes('User already registered')) {
+        errorMessage = 'This email is already registered. Please try logging in instead.';
       } else if (error.message?.includes('Password should be')) {
         errorMessage = 'Password should be at least 6 characters long.';
       } else if (error.message?.includes('Invalid email')) {
         errorMessage = 'Please enter a valid email address.';
-      } else if (error.message?.includes('Database error saving new user')) {
-        errorMessage = 'Registration is temporarily unavailable. Please try again later or contact support.';
+      } else if (error.message?.includes('User with this email already exists')) {
+        errorMessage = 'This email is already registered. Please try logging in instead.';
       } else if (error.message?.includes('temporarily unavailable')) {
-        errorMessage = 'Service temporarily unavailable. Please try again in a few minutes.';
+        errorMessage = 'Service is temporarily unavailable. Please try again in a few minutes.';
+      } else if (error.message?.includes('Database error')) {
+        errorMessage = 'There was a database error. Please try again or contact support.';
       }
       
       toast({
-        title: 'Error',
+        title: isLogin ? 'Login Error' : 'Signup Error',
         description: errorMessage,
         variant: 'destructive',
       });
@@ -92,6 +120,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, referralC
   const handleGoogleAuth = async () => {
     try {
       setLoading(true);
+      console.log('Attempting Google auth...');
+      
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
@@ -102,12 +132,19 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, referralC
           },
         },
       });
-      if (error) throw error;
+      
+      if (error) {
+        console.error('Google auth error:', error);
+        throw error;
+      }
     } catch (error: any) {
       console.error('Google auth error:', error);
+      
       let errorMessage = 'Failed to sign in with Google. Please try again.';
       
       if (error.message?.includes('redirect_uri_mismatch')) {
+        errorMessage = 'Google authentication configuration error. Please contact support.';
+      } else if (error.message?.includes('invalid_request')) {
         errorMessage = 'Google authentication is not properly configured. Please contact support.';
       }
       
@@ -124,19 +161,26 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, referralC
   const handleFacebookAuth = async () => {
     try {
       setLoading(true);
+      console.log('Attempting Facebook auth...');
+      
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'facebook',
         options: {
           redirectTo: `${window.location.origin}/`,
         },
       });
-      if (error) throw error;
+      
+      if (error) {
+        console.error('Facebook auth error:', error);
+        throw error;
+      }
     } catch (error: any) {
       console.error('Facebook auth error:', error);
+      
       let errorMessage = 'Failed to sign in with Facebook. Please try again.';
       
       if (error.message?.includes('redirect_uri_mismatch')) {
-        errorMessage = 'Facebook authentication is not properly configured. Please contact support.';
+        errorMessage = 'Facebook authentication configuration error. Please contact support.';
       }
       
       toast({
@@ -161,7 +205,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, referralC
           </DialogDescription>
         </DialogHeader>
 
-        {/* Email/Password Form - Primary Method */}
         <form onSubmit={handleAuth} className="space-y-4">
           {!isLogin && (
             <>
@@ -194,10 +237,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, referralC
           
           <Input
             type="password"
-            placeholder="Password"
+            placeholder="Password (min 6 characters)"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
+            minLength={6}
             className="bg-white/20 border-white/30 text-white placeholder-white/70"
           />
 
@@ -228,7 +272,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, referralC
           </div>
         </div>
 
-        {/* Social Login Buttons - Alternative Methods */}
         <div className="space-y-3">
           <Button
             onClick={handleGoogleAuth}
@@ -261,6 +304,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, referralC
             type="button"
             onClick={() => setIsLogin(!isLogin)}
             className="text-white/80 hover:text-white underline"
+            disabled={loading}
           >
             {isLogin ? "Don't have an account? Sign up" : 'Already have an account? Login'}
           </button>

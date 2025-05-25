@@ -2,15 +2,17 @@
 import { useState, useEffect } from 'react';
 import { User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-import { createUserProfile } from '@/utils/userCreation';
 
 export const useAuth = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    console.log('Setting up auth listener...');
+    
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('Initial session:', session);
       setUser(session?.user ?? null);
       setLoading(false);
     });
@@ -18,37 +20,42 @@ export const useAuth = () => {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log('Auth state changed:', event, session);
         setUser(session?.user ?? null);
         setLoading(false);
         
-        // Handle new user registration - check if this is a new signup
+        // Handle successful sign in
         if (event === 'SIGNED_IN' && session?.user) {
           console.log('User signed in, checking if profile exists...');
           
-          // Check if user profile already exists
-          const { data: existingUser } = await supabase
-            .from('users')
-            .select('id')
-            .eq('id', session.user.id)
-            .single();
-          
-          // If no profile exists, create one manually (this means it's a new user)
-          if (!existingUser) {
-            console.log('Creating user profile manually...');
+          // Wait a moment to allow trigger to process
+          setTimeout(async () => {
             try {
-              const userData = {
-                name: session.user.user_metadata?.name || session.user.user_metadata?.full_name || 'User',
-                email: session.user.email,
-                phone: session.user.user_metadata?.phone,
-                referredBy: session.user.user_metadata?.referred_by,
-              };
+              // Check if user profile exists
+              const { data: existingUser, error } = await supabase
+                .from('users')
+                .select('id, name, email, coins')
+                .eq('id', session.user.id)
+                .maybeSingle();
               
-              await createUserProfile(session.user.id, userData);
-              console.log('User profile created successfully');
+              if (error) {
+                console.error('Error checking user profile:', error);
+                return;
+              }
+              
+              console.log('Existing user check result:', existingUser);
+              
+              // If no profile exists and this looks like a new signup, the trigger should have handled it
+              // But if it failed, we don't want to create duplicate users here
+              if (!existingUser) {
+                console.log('No user profile found - trigger may have failed or this is a returning user');
+              } else {
+                console.log('User profile found:', existingUser);
+              }
             } catch (error) {
-              console.error('Failed to create user profile:', error);
+              console.error('Error in auth state change handler:', error);
             }
-          }
+          }, 2000); // Wait 2 seconds for trigger to complete
         }
       }
     );
@@ -57,7 +64,11 @@ export const useAuth = () => {
   }, []);
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    console.log('Signing out...');
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      console.error('Sign out error:', error);
+    }
   };
 
   return { user, loading, signOut };

@@ -8,6 +8,8 @@ export const createUserProfile = async (userId: string, userData: {
   referredBy?: string;
 }) => {
   try {
+    console.log('Creating user profile for:', userId, userData);
+    
     // Generate a unique referral code
     const generateReferralCode = () => {
       const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -22,19 +24,24 @@ export const createUserProfile = async (userId: string, userData: {
     
     // Ensure referral code is unique
     let isUnique = false;
-    while (!isUnique) {
+    let attempts = 0;
+    while (!isUnique && attempts < 10) {
       const { data: existing } = await supabase
         .from('users')
         .select('id')
         .eq('referral_code', referralCode)
-        .single();
+        .maybeSingle();
       
       if (!existing) {
         isUnique = true;
       } else {
         referralCode = generateReferralCode();
+        attempts++;
       }
     }
+
+    // Calculate initial coins (50 if referred, 0 otherwise)
+    const initialCoins = userData.referredBy ? 50 : 0;
 
     // Insert user profile
     const { data: newUser, error: insertError } = await supabase
@@ -46,36 +53,66 @@ export const createUserProfile = async (userId: string, userData: {
         phone: userData.phone,
         referral_code: referralCode,
         referred_by: userData.referredBy,
-        coins: userData.referredBy ? 50 : 0, // Welcome bonus if referred
+        coins: initialCoins,
       })
       .select()
       .single();
 
-    if (insertError) throw insertError;
+    if (insertError) {
+      console.error('Error inserting user:', insertError);
+      throw insertError;
+    }
+
+    console.log('User profile created:', newUser);
 
     // Handle referral bonus
     if (userData.referredBy) {
-      const { data: referrer } = await supabase
-        .from('users')
-        .select('id, coins')
-        .eq('referral_code', userData.referredBy)
-        .single();
-
-      if (referrer) {
-        // Give bonus to referrer - update coins by adding 100
-        await supabase
+      try {
+        console.log('Processing referral bonus for code:', userData.referredBy);
+        
+        // Find the referrer
+        const { data: referrer, error: referrerError } = await supabase
           .from('users')
-          .update({ coins: referrer.coins + 100 })
-          .eq('id', referrer.id);
+          .select('id, coins')
+          .eq('referral_code', userData.referredBy)
+          .maybeSingle();
 
-        // Record the referral
-        await supabase
-          .from('referrals')
-          .insert({
-            referrer_id: referrer.id,
-            referred_user_id: userId,
-            bonus_given: 100,
-          });
+        if (referrerError) {
+          console.error('Error finding referrer:', referrerError);
+        } else if (referrer) {
+          console.log('Found referrer:', referrer);
+          
+          // Give bonus to referrer using a direct update
+          const { error: updateError } = await supabase
+            .from('users')
+            .update({ coins: referrer.coins + 100 })
+            .eq('id', referrer.id);
+
+          if (updateError) {
+            console.error('Error updating referrer coins:', updateError);
+          } else {
+            console.log('Referrer bonus applied successfully');
+            
+            // Record the referral
+            const { error: referralError } = await supabase
+              .from('referrals')
+              .insert({
+                referrer_id: referrer.id,
+                referred_user_id: userId,
+                bonus_given: 100,
+              });
+
+            if (referralError) {
+              console.error('Error recording referral:', referralError);
+            } else {
+              console.log('Referral recorded successfully');
+            }
+          }
+        } else {
+          console.log('Referrer not found for code:', userData.referredBy);
+        }
+      } catch (referralError) {
+        console.error('Error processing referral:', referralError);
       }
     }
 
