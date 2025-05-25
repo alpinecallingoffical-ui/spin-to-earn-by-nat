@@ -33,38 +33,51 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, referralC
         });
         if (error) throw error;
         toast({ title: 'Welcome back!' });
+        onClose();
       } else {
-        const { error } = await supabase.auth.signUp({
+        // For signup, create user with metadata
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
             data: {
-              name,
-              phone,
-              referred_by: referralCode,
+              name: name || 'User',
+              phone: phone || null,
+              referred_by: referralCode || null,
             },
           },
         });
+        
         if (error) {
-          // Handle specific database errors
-          if (error.message.includes('Database error saving new user') || 
-              error.message.includes('generate_referral_code') ||
-              error.message.includes('function') && error.message.includes('does not exist')) {
-            throw new Error('Registration is temporarily unavailable. Please try again later or contact support.');
-          }
+          console.error('Signup error:', error);
           throw error;
         }
-        toast({ 
-          title: 'Account created successfully!',
-          description: 'Please check your email to verify your account.'
-        });
+        
+        if (data.user) {
+          toast({ 
+            title: 'Account created successfully!',
+            description: 'You can now start using the app!'
+          });
+          onClose();
+        }
       }
-      onClose();
     } catch (error: any) {
       console.error('Auth error:', error);
+      let errorMessage = 'An unexpected error occurred. Please try again.';
+      
+      if (error.message?.includes('User already registered')) {
+        errorMessage = 'This email is already registered. Try logging in instead.';
+      } else if (error.message?.includes('Invalid login credentials')) {
+        errorMessage = 'Invalid email or password. Please check your credentials.';
+      } else if (error.message?.includes('Password should be')) {
+        errorMessage = 'Password should be at least 6 characters long.';
+      } else if (error.message?.includes('Invalid email')) {
+        errorMessage = 'Please enter a valid email address.';
+      }
+      
       toast({
         title: 'Error',
-        description: error.message || 'An unexpected error occurred. Please try again.',
+        description: errorMessage,
         variant: 'destructive',
       });
     } finally {
