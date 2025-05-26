@@ -7,6 +7,7 @@ import { useUserData } from '@/hooks/useUserData';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { WithdrawalHistory } from '@/components/WithdrawalHistory';
 
 interface WalletDisplayConnectedProps {
   onSwitchToHistory?: () => void;
@@ -17,6 +18,7 @@ export const WalletDisplayConnected: React.FC<WalletDisplayConnectedProps> = ({ 
   const { user } = useAuth();
   const { toast } = useToast();
   const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [esewaNumber, setEsewaNumber] = useState('');
   const [withdrawAmount, setWithdrawAmount] = useState('');
   const [loading, setLoading] = useState(false);
@@ -93,7 +95,7 @@ export const WalletDisplayConnected: React.FC<WalletDisplayConnectedProps> = ({ 
           </Button>
           
           <Button
-            onClick={onSwitchToHistory}
+            onClick={() => setIsHistoryOpen(true)}
             variant="outline"
             className="py-3 rounded-xl font-semibold bg-white/20 border-white/30 text-white hover:bg-white/30"
           >
@@ -158,6 +160,16 @@ export const WalletDisplayConnected: React.FC<WalletDisplayConnectedProps> = ({ 
               {loading ? '⏳ Processing...' : '💸 Submit Request'}
             </Button>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Withdrawal History Modal */}
+      <Dialog open={isHistoryOpen} onOpenChange={setIsHistoryOpen}>
+        <DialogContent className="bg-gradient-to-br from-purple-600 to-pink-600 text-white border-none max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold">💸 Withdrawal History</DialogTitle>
+          </DialogHeader>
+          <WithdrawalHistory />
         </DialogContent>
       </Dialog>
     </>
