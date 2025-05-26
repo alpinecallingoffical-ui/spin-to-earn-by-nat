@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AuthModal } from '@/components/AuthModal';
@@ -96,7 +95,7 @@ const Index = () => {
             </TabsContent>
 
             <TabsContent value="wallet" className="space-y-6">
-              <WalletDisplayConnected />
+              <WalletDisplayConnected onSwitchToHistory={handleSwitchToHistory} />
             </TabsContent>
 
             <TabsContent value="history" className="space-y-6">

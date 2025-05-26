@@ -8,7 +8,11 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
-export const WalletDisplayConnected: React.FC = () => {
+interface WalletDisplayConnectedProps {
+  onSwitchToHistory?: () => void;
+}
+
+export const WalletDisplayConnected: React.FC<WalletDisplayConnectedProps> = ({ onSwitchToHistory }) => {
   const { userData } = useUserData();
   const { user } = useAuth();
   const { toast } = useToast();
@@ -89,6 +93,7 @@ export const WalletDisplayConnected: React.FC = () => {
           </Button>
           
           <Button
+            onClick={onSwitchToHistory}
             variant="outline"
             className="py-3 rounded-xl font-semibold bg-white/20 border-white/30 text-white hover:bg-white/30"
           >
