@@ -6,7 +6,11 @@ import { useUserData } from '@/hooks/useUserData';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 
-export const UserProfileConnected: React.FC = () => {
+interface UserProfileConnectedProps {
+  onSwitchToHistory?: () => void;
+}
+
+export const UserProfileConnected: React.FC<UserProfileConnectedProps> = ({ onSwitchToHistory }) => {
   const { userData } = useUserData();
   const { signOut } = useAuth();
   const { toast } = useToast();
@@ -29,6 +33,16 @@ export const UserProfileConnected: React.FC = () => {
       title: '👋 Goodbye!',
       description: 'You have been signed out',
     });
+  };
+
+  const handleContactSupport = () => {
+    const subject = encodeURIComponent('Support Request - Spin to Earn');
+    const body = encodeURIComponent('Hello,\n\nI need help with...\n\nThanks!');
+    window.open(`mailto:alpinecallingoffical@gmail.com?subject=${subject}&body=${body}`, '_blank');
+  };
+
+  const handleCallSupport = () => {
+    window.open('tel:+9779765964677', '_self');
   };
 
   if (!userData) {
@@ -65,6 +79,18 @@ export const UserProfileConnected: React.FC = () => {
             </p>
           </div>
         </div>
+      </div>
+
+      {/* Quick Actions */}
+      <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-6">
+        <h3 className="text-white text-lg font-bold mb-4">📊 Quick Actions</h3>
+        
+        <Button
+          onClick={onSwitchToHistory}
+          className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-xl mb-3"
+        >
+          📈 View Spin History
+        </Button>
       </div>
 
       {/* Referral System */}
@@ -120,12 +146,30 @@ export const UserProfileConnected: React.FC = () => {
           >
             🔔 Notifications
           </Button>
-          <Button
-            variant="outline"
-            className="w-full bg-white/10 border-white/30 text-white hover:bg-white/20 py-3 rounded-xl justify-start"
-          >
-            📞 Support
-          </Button>
+          
+          {/* Support Section */}
+          <div className="bg-white/10 rounded-xl p-4 space-y-3">
+            <h4 className="text-white font-semibold mb-2 flex items-center">
+              📞 Contact Support
+            </h4>
+            
+            <Button
+              onClick={handleContactSupport}
+              variant="outline"
+              className="w-full bg-green-500/20 border-green-400/30 text-green-200 hover:bg-green-500/30 py-3 rounded-xl justify-start"
+            >
+              📧 Email: alpinecallingoffical@gmail.com
+            </Button>
+            
+            <Button
+              onClick={handleCallSupport}
+              variant="outline"
+              className="w-full bg-blue-500/20 border-blue-400/30 text-blue-200 hover:bg-blue-500/30 py-3 rounded-xl justify-start"
+            >
+              📱 Call: +977 976-596-4677
+            </Button>
+          </div>
+          
           <Button
             onClick={handleSignOut}
             variant="outline"

@@ -12,6 +12,7 @@ const Index = () => {
   const { user, loading } = useAuth();
   const [showAuth, setShowAuth] = useState(false);
   const [referralCode, setReferralCode] = useState<string>('');
+  const [activeTab, setActiveTab] = useState('spin');
 
   useEffect(() => {
     // Check for referral code in URL
@@ -21,6 +22,10 @@ const Index = () => {
       setReferralCode(refCode);
     }
   }, []);
+
+  const handleSwitchToHistory = () => {
+    setActiveTab('history');
+  };
 
   if (loading) {
     return (
@@ -69,7 +74,7 @@ const Index = () => {
           <p className="text-white/80">Welcome back! Ready to spin and win?</p>
         </div>
 
-        <Tabs defaultValue="spin" className="max-w-4xl mx-auto">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="max-w-4xl mx-auto">
           <TabsList className="grid w-full grid-cols-4 bg-white/20 backdrop-blur-sm">
             <TabsTrigger value="spin" className="text-white data-[state=active]:bg-white/30">
               🎰 Spin
@@ -99,7 +104,7 @@ const Index = () => {
             </TabsContent>
 
             <TabsContent value="profile" className="space-y-6">
-              <UserProfileConnected />
+              <UserProfileConnected onSwitchToHistory={handleSwitchToHistory} />
             </TabsContent>
           </div>
         </Tabs>
