@@ -42,19 +42,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, referralC
         toast({ title: 'Welcome back!' });
         onClose();
       } else {
-        console.log('Attempting signup with email:', email);
+        console.log('Attempting signup with email:', email, 'name:', name);
         
-        // First check if user already exists
-        const { data: existingUser } = await supabase.auth.signInWithPassword({
-          email,
-          password: 'dummy', // This will fail but tell us if user exists
-        });
-        
-        // If we get here without error, user might already exist
-        if (existingUser?.user) {
-          throw new Error('User with this email already exists. Please try logging in instead.');
-        }
-
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
@@ -75,9 +64,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, referralC
         console.log('Signup response:', data);
         
         if (data.user) {
-          // Wait a moment for the trigger to process
-          await new Promise(resolve => setTimeout(resolve, 1000));
-          
           toast({ 
             title: 'Account created successfully!',
             description: 'Welcome to Spin to Earn!'
@@ -99,8 +85,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, referralC
         errorMessage = 'Password should be at least 6 characters long.';
       } else if (error.message?.includes('Invalid email')) {
         errorMessage = 'Please enter a valid email address.';
-      } else if (error.message?.includes('User with this email already exists')) {
-        errorMessage = 'This email is already registered. Please try logging in instead.';
+      } else if (error.message?.includes('signup is disabled')) {
+        errorMessage = 'New user registration is currently disabled. Please contact support.';
+      } else if (error.message?.includes('Email not confirmed')) {
+        errorMessage = 'Please check your email and click the confirmation link before signing in.';
       } else if (error.message?.includes('temporarily unavailable')) {
         errorMessage = 'Service is temporarily unavailable. Please try again in a few minutes.';
       } else if (error.message?.includes('Database error')) {
@@ -143,9 +131,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, referralC
       let errorMessage = 'Failed to sign in with Google. Please try again.';
       
       if (error.message?.includes('redirect_uri_mismatch')) {
-        errorMessage = 'Google authentication configuration error. Please contact support.';
+        errorMessage = 'Google OAuth is not properly configured. Please check the redirect URLs in your Google Cloud Console and Supabase settings.';
       } else if (error.message?.includes('invalid_request')) {
-        errorMessage = 'Google authentication is not properly configured. Please contact support.';
+        errorMessage = 'Google authentication configuration error. Please contact support.';
+      } else if (error.message?.includes('unauthorized_client')) {
+        errorMessage = 'Google OAuth client is not authorized. Please check your Google Cloud Console settings.';
       }
       
       toast({
@@ -180,7 +170,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, referralC
       let errorMessage = 'Failed to sign in with Facebook. Please try again.';
       
       if (error.message?.includes('redirect_uri_mismatch')) {
-        errorMessage = 'Facebook authentication configuration error. Please contact support.';
+        errorMessage = 'Facebook OAuth is not properly configured. Please check your redirect URLs.';
       }
       
       toast({
