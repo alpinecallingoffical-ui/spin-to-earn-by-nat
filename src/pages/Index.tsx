@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AuthModal } from '@/components/AuthModal';
@@ -5,6 +6,7 @@ import { SpinWheelConnected } from '@/components/SpinWheelConnected';
 import { WalletDisplayConnected } from '@/components/WalletDisplayConnected';
 import { UserProfileConnected } from '@/components/UserProfileConnected';
 import { SpinHistoryConnected } from '@/components/SpinHistoryConnected';
+import { SpinManagement } from '@/components/SpinManagement';
 import { useAuth } from '@/hooks/useAuth';
 
 const Index = () => {
@@ -74,7 +76,7 @@ const Index = () => {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="max-w-4xl mx-auto">
-          <TabsList className="grid w-full grid-cols-4 bg-white/20 backdrop-blur-sm">
+          <TabsList className="grid w-full grid-cols-5 bg-white/20 backdrop-blur-sm">
             <TabsTrigger value="spin" className="text-white data-[state=active]:bg-white/30">
               🎰 Spin
             </TabsTrigger>
@@ -83,6 +85,9 @@ const Index = () => {
             </TabsTrigger>
             <TabsTrigger value="history" className="text-white data-[state=active]:bg-white/30">
               📊 History
+            </TabsTrigger>
+            <TabsTrigger value="manage" className="text-white data-[state=active]:bg-white/30">
+              ⚙️ Manage
             </TabsTrigger>
             <TabsTrigger value="profile" className="text-white data-[state=active]:bg-white/30">
               👤 Profile
@@ -100,6 +105,10 @@ const Index = () => {
 
             <TabsContent value="history" className="space-y-6">
               <SpinHistoryConnected />
+            </TabsContent>
+
+            <TabsContent value="manage" className="space-y-6">
+              <SpinManagement />
             </TabsContent>
 
             <TabsContent value="profile" className="space-y-6">

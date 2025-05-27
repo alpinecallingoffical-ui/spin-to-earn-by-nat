@@ -48,6 +48,70 @@ export type Database = {
           },
         ]
       }
+      spin_management: {
+        Row: {
+          admin_notes: string | null
+          created_at: string
+          id: string
+          original_spin_id: string | null
+          processed_at: string | null
+          processed_by: string | null
+          reward_amount: number
+          spin_time: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          created_at?: string
+          id?: string
+          original_spin_id?: string | null
+          processed_at?: string | null
+          processed_by?: string | null
+          reward_amount: number
+          spin_time?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_notes?: string | null
+          created_at?: string
+          id?: string
+          original_spin_id?: string | null
+          processed_at?: string | null
+          processed_by?: string | null
+          reward_amount?: number
+          spin_time?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "spin_management_original_spin_id_fkey"
+            columns: ["original_spin_id"]
+            isOneToOne: false
+            referencedRelation: "spins"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "spin_management_processed_by_fkey"
+            columns: ["processed_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "spin_management_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       spins: {
         Row: {
           id: string
@@ -160,6 +224,18 @@ export type Database = {
       }
       record_spin: {
         Args: { user_uuid: string; reward_amount: number }
+        Returns: boolean
+      }
+      update_spin_status: {
+        Args: {
+          spin_management_id: string
+          new_status: string
+          admin_notes?: string
+        }
+        Returns: boolean
+      }
+      update_spin_time: {
+        Args: { spin_management_id: string; new_spin_time: string }
         Returns: boolean
       }
     }
