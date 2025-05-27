@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 interface Withdrawal {
   id: string;
@@ -86,11 +85,33 @@ export const WithdrawalHistory: React.FC = () => {
     );
   }
 
+  const totalWithdrawn = withdrawals
+    .filter(w => w.status === 'completed')
+    .reduce((sum, w) => sum + w.coin_amount, 0);
+
+  const pendingWithdrawals = withdrawals.filter(w => w.status === 'pending').length;
+
   return (
     <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-6">
       <h3 className="text-white text-lg font-bold mb-4 flex items-center">
-        💸 Withdrawal History
+        💸 All-Time Withdrawal History
       </h3>
+
+      {/* Stats Summary */}
+      <div className="grid grid-cols-3 gap-4 mb-6">
+        <div className="bg-white/10 rounded-xl p-3 text-center">
+          <p className="text-white/80 text-sm">Total Requests</p>
+          <p className="text-white font-bold text-lg">{withdrawals.length}</p>
+        </div>
+        <div className="bg-white/10 rounded-xl p-3 text-center">
+          <p className="text-white/80 text-sm">Total Withdrawn</p>
+          <p className="text-white font-bold text-lg">{totalWithdrawn.toLocaleString()}</p>
+        </div>
+        <div className="bg-white/10 rounded-xl p-3 text-center">
+          <p className="text-white/80 text-sm">Pending</p>
+          <p className="text-white font-bold text-lg">{pendingWithdrawals}</p>
+        </div>
+      </div>
       
       {withdrawals.length === 0 ? (
         <div className="text-center py-8">

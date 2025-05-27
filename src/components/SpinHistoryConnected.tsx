@@ -1,9 +1,51 @@
 
-import React from 'react';
-import { useUserData } from '@/hooks/useUserData';
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
+
+interface SpinRecord {
+  id: string;
+  reward: number;
+  spun_at: string;
+}
 
 export const SpinHistoryConnected: React.FC = () => {
-  const { spins, userData } = useUserData();
+  const { user } = useAuth();
+  const [allSpins, setAllSpins] = useState<SpinRecord[]>([]);
+  const [todaySpins, setTodaySpins] = useState<SpinRecord[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchSpins = async () => {
+      if (!user) return;
+
+      try {
+        // Fetch all spins
+        const { data: allSpinsData, error: allSpinsError } = await supabase
+          .from('spins')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('spun_at', { ascending: false });
+
+        if (allSpinsError) throw allSpinsError;
+        setAllSpins(allSpinsData || []);
+
+        // Filter today's spins
+        const today = new Date().toISOString().split('T')[0];
+        const todaySpinsData = allSpinsData?.filter(spin => 
+          spin.spun_at.startsWith(today)
+        ) || [];
+        setTodaySpins(todaySpinsData);
+
+      } catch (error) {
+        console.error('Error fetching spins:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSpins();
+  }, [user]);
 
   const formatTime = (dateString: string) => {
     return new Date(dateString).toLocaleTimeString('en-US', {
@@ -14,36 +56,54 @@ export const SpinHistoryConnected: React.FC = () => {
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
       month: 'short',
       day: 'numeric'
     });
   };
 
-  const todaySpins = spins.length;
-  const spinsLeft = Math.max(0, 5 - todaySpins);
-  const totalWon = spins.reduce((sum, spin) => sum + spin.reward, 0);
-  const bestSpin = spins.length > 0 ? Math.max(...spins.map(s => s.reward)) : 0;
+  if (loading) {
+    return (
+      <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-6">
+        <div className="text-center py-8">
+          <div className="text-white text-lg">Loading spin history...</div>
+        </div>
+      </div>
+    );
+  }
+
+  const spinsLeft = Math.max(0, 5 - todaySpins.length);
+  const totalWon = allSpins.reduce((sum, spin) => sum + spin.reward, 0);
+  const bestSpin = allSpins.length > 0 ? Math.max(...allSpins.map(s => s.reward)) : 0;
+  const todayTotal = todaySpins.reduce((sum, spin) => sum + spin.reward, 0);
 
   return (
     <div className="space-y-4">
       {/* Stats Card */}
       <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-6">
         <h3 className="text-white text-lg font-bold mb-4 flex items-center">
-          📊 Today's Stats
+          📊 Your Spinning Stats
         </h3>
         
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 gap-4 mb-4">
           <div className="text-center">
-            <p className="text-white/80 text-sm">Spins Used</p>
-            <p className="text-white font-bold text-xl">{todaySpins}/5</p>
+            <p className="text-white/80 text-sm">Today's Spins</p>
+            <p className="text-white font-bold text-xl">{todaySpins.length}/5</p>
           </div>
           <div className="text-center">
-            <p className="text-white/80 text-sm">Coins Won</p>
+            <p className="text-white/80 text-sm">Today's Coins</p>
+            <p className="text-white font-bold text-xl">{todayTotal}</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div className="text-center">
+            <p className="text-white/80 text-sm">Total Spins</p>
+            <p className="text-white font-bold text-xl">{allSpins.length}</p>
+          </div>
+          <div className="text-center">
+            <p className="text-white/80 text-sm">All-Time Coins</p>
             <p className="text-white font-bold text-xl">{totalWon}</p>
-          </div>
-          <div className="text-center">
-            <p className="text-white/80 text-sm">Best Spin</p>
-            <p className="text-white font-bold text-xl">{bestSpin}</p>
           </div>
         </div>
 
@@ -58,17 +118,17 @@ export const SpinHistoryConnected: React.FC = () => {
 
       {/* History List */}
       <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-6">
-        <h3 className="text-white text-lg font-bold mb-4">📜 Recent Spins</h3>
+        <h3 className="text-white text-lg font-bold mb-4">📜 All-Time Spin History</h3>
         
-        {spins.length === 0 ? (
+        {allSpins.length === 0 ? (
           <div className="text-center py-8">
             <p className="text-white/60 text-lg">🎰</p>
-            <p className="text-white/60">No spins yet today!</p>
+            <p className="text-white/60">No spins yet!</p>
             <p className="text-white/40 text-sm">Start spinning to see your history</p>
           </div>
         ) : (
           <div className="space-y-3 max-h-80 overflow-y-auto">
-            {spins.map((spin) => (
+            {allSpins.map((spin) => (
               <div
                 key={spin.id}
                 className="bg-white/10 rounded-xl p-4 flex items-center justify-between"
@@ -103,7 +163,7 @@ export const SpinHistoryConnected: React.FC = () => {
       </div>
 
       {/* Achievement Badge */}
-      {todaySpins >= 5 && (
+      {todaySpins.length >= 5 && (
         <div className="bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl p-4 text-center">
           <p className="text-white font-bold text-lg">🏆 Achievement Unlocked!</p>
           <p className="text-white/80">Daily Spinner - Completed all 5 spins today!</p>
