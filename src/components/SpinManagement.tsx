@@ -12,7 +12,7 @@ interface SpinManagementRecord {
   original_spin_id: string | null;
   spin_time: string;
   reward_amount: number;
-  status: 'pending' | 'approved' | 'rejected';
+  status: string; // Changed from union type to string to match Supabase response
   admin_notes: string | null;
   processed_by: string | null;
   processed_at: string | null;
