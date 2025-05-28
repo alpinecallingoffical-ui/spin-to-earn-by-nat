@@ -12,12 +12,13 @@ interface SpinManagementRecord {
   original_spin_id: string | null;
   spin_time: string;
   reward_amount: number;
-  status: string; // Changed from union type to string to match Supabase response
+  status: string;
   admin_notes: string | null;
   processed_by: string | null;
   processed_at: string | null;
   created_at: string;
   updated_at: string;
+  spins_chance: number | null;
 }
 
 export const SpinManagement: React.FC = () => {
@@ -26,6 +27,7 @@ export const SpinManagement: React.FC = () => {
   const [records, setRecords] = useState<SpinManagementRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingTime, setEditingTime] = useState<{ [key: string]: string }>({});
+  const [editingChance, setEditingChance] = useState<{ [key: string]: number }>({});
 
   useEffect(() => {
     fetchSpinManagement();
@@ -67,7 +69,7 @@ export const SpinManagement: React.FC = () => {
 
       toast({
         title: 'Success',
-        description: `Spin ${newStatus} successfully`,
+        description: `Spin ${newStatus} successfully${newStatus === 'approved' ? ' and coins added' : ''}`,
       });
 
       fetchSpinManagement();
@@ -107,6 +109,32 @@ export const SpinManagement: React.FC = () => {
     }
   };
 
+  const updateSpinChance = async (recordId: string, newChance: number) => {
+    try {
+      const { error } = await supabase
+        .from('spin_management')
+        .update({ spins_chance: newChance })
+        .eq('id', recordId);
+
+      if (error) throw error;
+
+      toast({
+        title: 'Success',
+        description: 'Spin chance updated successfully',
+      });
+
+      setEditingChance(prev => ({ ...prev, [recordId]: 0 }));
+      fetchSpinManagement();
+    } catch (error) {
+      console.error('Error updating spin chance:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to update spin chance',
+        variant: 'destructive',
+      });
+    }
+  };
+
   const createSpinRequest = async () => {
     if (!user) return;
 
@@ -115,8 +143,9 @@ export const SpinManagement: React.FC = () => {
         .from('spin_management')
         .insert({
           user_id: user.id,
-          reward_amount: 10, // Default reward
+          reward_amount: 10,
           status: 'pending',
+          spins_chance: 5,
         });
 
       if (error) throw error;
@@ -260,6 +289,53 @@ export const SpinManagement: React.FC = () => {
                     )}
                   </div>
 
+                  {/* Spins Chance Editor */}
+                  <div className="flex items-center space-x-2">
+                    <span className="text-white/80 text-sm min-w-0 flex-shrink-0">Spins Chance:</span>
+                    {editingChance[record.id] !== undefined ? (
+                      <div className="flex items-center space-x-2 flex-1">
+                        <Input
+                          type="number"
+                          min="1"
+                          max="10"
+                          value={editingChance[record.id]}
+                          onChange={(e) => setEditingChance(prev => ({ ...prev, [record.id]: parseInt(e.target.value) || 0 }))}
+                          className="bg-white/20 border-white/30 text-white text-sm flex-1"
+                        />
+                        <Button
+                          onClick={() => updateSpinChance(record.id, editingChance[record.id])}
+                          className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 text-xs"
+                          disabled={editingChance[record.id] < 1}
+                        >
+                          Save
+                        </Button>
+                        <Button
+                          onClick={() => setEditingChance(prev => ({ ...prev, [record.id]: 0 }))}
+                          variant="outline"
+                          className="bg-white/10 border-white/30 text-white px-3 py-1 text-xs"
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center space-x-2 flex-1">
+                        <span className="text-white text-sm flex-1">
+                          {record.spins_chance || 5} daily spins
+                        </span>
+                        <Button
+                          onClick={() => setEditingChance(prev => ({ 
+                            ...prev, 
+                            [record.id]: record.spins_chance || 5
+                          }))}
+                          variant="outline"
+                          className="bg-white/10 border-white/30 text-white px-3 py-1 text-xs"
+                        >
+                          Edit
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+
                   {/* Status Actions */}
                   {record.status === 'pending' && (
                     <div className="flex space-x-2">
@@ -267,7 +343,7 @@ export const SpinManagement: React.FC = () => {
                         onClick={() => updateSpinStatus(record.id, 'approved')}
                         className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 text-sm"
                       >
-                        ✅ Approve
+                        ✅ Approve & Add Coins
                       </Button>
                       <Button
                         onClick={() => updateSpinStatus(record.id, 'rejected')}
