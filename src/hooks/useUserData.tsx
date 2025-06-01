@@ -56,23 +56,16 @@ export const useUserData = () => {
       if (spinsError) throw spinsError;
       setSpins(todaySpins || []);
 
-      // Calculate dynamic spin limit based on VIP level
-      const userSpinLimit = profile?.daily_spin_limit || getDefaultSpinLimit(profile?.coins || 0);
+      // Use the actual daily_spin_limit from database
+      const userSpinLimit = profile?.daily_spin_limit || 5;
       
-      // Check if user can spin (based on their personal limit)
+      // Check if user can spin based on their personal limit
       setCanSpin((todaySpins?.length || 0) < userSpinLimit);
     } catch (error) {
       console.error('Error fetching user data:', error);
     } finally {
       setLoading(false);
     }
-  };
-
-  const getDefaultSpinLimit = (coins: number) => {
-    if (coins >= 3000) return 50; // Grand Master - unlimited (represented as 50)
-    if (coins >= 2000) return 10; // Elite Master
-    if (coins >= 1000) return 8;  // VIP
-    return 5; // Regular
   };
 
   const recordSpin = async (reward: number) => {
@@ -101,10 +94,10 @@ export const useUserData = () => {
   useEffect(() => {
     fetchUserData();
 
-    // Set up realtime subscription for coin updates
+    // Set up realtime subscription for user updates
     if (user) {
       const subscription = supabase
-        .channel('user-coins')
+        .channel('user-updates')
         .on(
           'postgres_changes',
           {
@@ -114,6 +107,7 @@ export const useUserData = () => {
             filter: `id=eq.${user.id}`,
           },
           (payload) => {
+            console.log('User data updated:', payload);
             setUserData(prev => prev ? { 
               ...prev, 
               coins: payload.new.coins,

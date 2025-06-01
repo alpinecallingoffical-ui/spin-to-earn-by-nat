@@ -30,6 +30,7 @@ export const SpinManagement: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'requests' | 'users'>('requests');
+  const [spinLimitInputs, setSpinLimitInputs] = useState<{ [key: string]: number }>({});
   const { toast } = useToast();
 
   const fetchRecords = async () => {
@@ -59,7 +60,16 @@ export const SpinManagement: React.FC = () => {
         .order('coins', { ascending: false });
 
       if (error) throw error;
-      setUsers(data || []);
+      
+      const usersData = data || [];
+      setUsers(usersData);
+      
+      // Initialize spin limit inputs with current values
+      const initialInputs: { [key: string]: number } = {};
+      usersData.forEach(user => {
+        initialInputs[user.id] = user.daily_spin_limit || 5;
+      });
+      setSpinLimitInputs(initialInputs);
     } catch (error) {
       console.error('Error fetching users:', error);
       toast({
@@ -77,6 +87,27 @@ export const SpinManagement: React.FC = () => {
       setLoading(false);
     };
     loadData();
+
+    // Set up real-time subscription for user updates
+    const userSubscription = supabase
+      .channel('users-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'users',
+        },
+        (payload) => {
+          console.log('User updated:', payload);
+          fetchUsers(); // Refresh users data
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(userSubscription);
+    };
   }, []);
 
   const updateSpinStatus = async (id: string, status: string, notes?: string) => {
@@ -108,19 +139,27 @@ export const SpinManagement: React.FC = () => {
 
   const updateUserSpinLimit = async (userId: string, newLimit: number) => {
     try {
-      const { error } = await supabase.rpc('update_user_spin_limit', {
-        target_user_id: userId,
-        new_limit: newLimit,
-      });
+      // Direct database update with full permissions
+      const { error } = await supabase
+        .from('users')
+        .update({ daily_spin_limit: newLimit })
+        .eq('id', userId);
 
       if (error) throw error;
 
       toast({
-        title: 'Success',
-        description: 'Spin limit updated successfully',
+        title: '✅ Success',
+        description: `Spin limit updated to ${newLimit} spins per day`,
       });
 
-      await fetchUsers();
+      // Update local state immediately
+      setUsers(prevUsers => 
+        prevUsers.map(user => 
+          user.id === userId 
+            ? { ...user, daily_spin_limit: newLimit }
+            : user
+        )
+      );
     } catch (error) {
       console.error('Error updating spin limit:', error);
       toast({
@@ -128,6 +167,21 @@ export const SpinManagement: React.FC = () => {
         description: 'Failed to update spin limit',
         variant: 'destructive',
       });
+    }
+  };
+
+  const handleSpinLimitInputChange = (userId: string, value: string) => {
+    const numValue = parseInt(value) || 0;
+    setSpinLimitInputs(prev => ({
+      ...prev,
+      [userId]: numValue
+    }));
+  };
+
+  const handleSpinLimitUpdate = (userId: string) => {
+    const newLimit = spinLimitInputs[userId];
+    if (newLimit && newLimit > 0) {
+      updateUserSpinLimit(userId, newLimit);
     }
   };
 
@@ -263,24 +317,25 @@ export const SpinManagement: React.FC = () => {
                       </div>
                       
                       <div>
-                        <label className="text-white/80 text-sm block mb-2">Change Daily Spin Limit:</label>
+                        <label className="text-white/80 text-sm block mb-2">🎯 Admin Control - Change Daily Spin Limit:</label>
                         <div className="flex space-x-2">
                           <Input
                             type="number"
-                            defaultValue={user.daily_spin_limit}
+                            value={spinLimitInputs[user.id] || user.daily_spin_limit}
+                            onChange={(e) => handleSpinLimitInputChange(user.id, e.target.value)}
                             className="bg-white/20 border-white/30 text-white placeholder-white/50 w-20"
                             min="1"
-                            max="50"
-                            onChange={(e) => {
-                              const newLimit = parseInt(e.target.value);
-                              if (newLimit && newLimit !== user.daily_spin_limit) {
-                                updateUserSpinLimit(user.id, newLimit);
-                              }
-                            }}
+                            max="100"
                           />
-                          <div className="text-white/60 text-sm mt-1">
-                            Recommended: {user.coins >= 3000 ? '50' : user.coins >= 2000 ? '10' : user.coins >= 1000 ? '8' : '5'}
-                          </div>
+                          <Button
+                            onClick={() => handleSpinLimitUpdate(user.id)}
+                            className="bg-purple-600 hover:bg-purple-700 text-white text-sm px-3 py-1"
+                          >
+                            🔄 Update
+                          </Button>
+                        </div>
+                        <div className="text-white/60 text-xs mt-1">
+                          Current: {user.daily_spin_limit} spins/day
                         </div>
                       </div>
                     </div>
