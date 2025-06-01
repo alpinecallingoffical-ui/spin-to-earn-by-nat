@@ -28,6 +28,12 @@ export const useUserData = () => {
   const [canSpin, setCanSpin] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  const calculateCanSpin = (coins: number, spinLimit: number, todaySpinCount: number) => {
+    // Grand Master level (3000+ coins) gets unlimited spins
+    const isUnlimited = coins >= 3000;
+    return isUnlimited || todaySpinCount < spinLimit;
+  };
+
   const fetchUserData = async () => {
     if (!user) {
       setLoading(false);
@@ -35,6 +41,8 @@ export const useUserData = () => {
     }
 
     try {
+      console.log('Fetching user data for:', user.id);
+      
       // Fetch user profile
       const { data: profile, error: profileError } = await supabase
         .from('users')
@@ -43,6 +51,7 @@ export const useUserData = () => {
         .single();
 
       if (profileError) throw profileError;
+      console.log('User profile fetched:', profile);
       setUserData(profile);
 
       // Fetch today's spins
@@ -54,22 +63,23 @@ export const useUserData = () => {
         .order('spun_at', { ascending: false });
 
       if (spinsError) throw spinsError;
+      console.log('Today spins fetched:', todaySpins);
       setSpins(todaySpins || []);
 
-      // Get the actual daily_spin_limit from database
+      // Calculate can spin status
+      const todaySpinCount = todaySpins?.length || 0;
       const userSpinLimit = profile?.daily_spin_limit || 5;
+      const userCoins = profile?.coins || 0;
       
-      // For Grand Master level (3000+ coins), unlimited spins
-      const isUnlimited = profile?.coins >= 3000;
-      
-      // Check if user can spin based on their personal limit or unlimited status
-      setCanSpin(isUnlimited || (todaySpins?.length || 0) < userSpinLimit);
+      const canSpinStatus = calculateCanSpin(userCoins, userSpinLimit, todaySpinCount);
+      setCanSpin(canSpinStatus);
 
-      console.log('User data fetched:', {
+      console.log('Spin calculation:', {
+        userCoins,
         userSpinLimit,
-        todaySpins: todaySpins?.length || 0,
-        isUnlimited,
-        canSpin: isUnlimited || (todaySpins?.length || 0) < userSpinLimit
+        todaySpinCount,
+        canSpinStatus,
+        isUnlimited: userCoins >= 3000
       });
     } catch (error) {
       console.error('Error fetching user data:', error);
@@ -90,7 +100,7 @@ export const useUserData = () => {
       if (error) throw error;
       
       if (data) {
-        // Refresh user data
+        // Refresh user data to get updated coins and spin count
         await fetchUserData();
         return true;
       }
@@ -104,10 +114,10 @@ export const useUserData = () => {
   useEffect(() => {
     fetchUserData();
 
-    // Set up realtime subscription for user updates
     if (user) {
-      const subscription = supabase
-        .channel('user-updates')
+      // Set up realtime subscription for user table updates
+      const userSubscription = supabase
+        .channel('user-data-updates')
         .on(
           'postgres_changes',
           {
@@ -117,21 +127,36 @@ export const useUserData = () => {
             filter: `id=eq.${user.id}`,
           },
           (payload) => {
-            console.log('User data updated via realtime:', payload);
+            console.log('Real-time user update received:', payload);
+            
             // Update local state immediately with new data
             setUserData(prev => {
               if (!prev) return null;
               
               const updatedData = { 
                 ...prev, 
-                coins: payload.new.coins,
-                daily_spin_limit: payload.new.daily_spin_limit 
+                ...payload.new
               };
               
+              console.log('Updated user data:', updatedData);
+              
               // Recalculate canSpin based on new data
-              const isUnlimited = updatedData.coins >= 3000;
               const todaySpinCount = spins.length;
-              setCanSpin(isUnlimited || todaySpinCount < updatedData.daily_spin_limit);
+              const newCanSpin = calculateCanSpin(
+                updatedData.coins, 
+                updatedData.daily_spin_limit, 
+                todaySpinCount
+              );
+              
+              console.log('Real-time spin calculation:', {
+                coins: updatedData.coins,
+                spinLimit: updatedData.daily_spin_limit,
+                todaySpinCount,
+                newCanSpin,
+                isUnlimited: updatedData.coins >= 3000
+              });
+              
+              setCanSpin(newCanSpin);
               
               return updatedData;
             });
@@ -139,11 +164,51 @@ export const useUserData = () => {
         )
         .subscribe();
 
+      // Set up realtime subscription for spins table updates
+      const spinsSubscription = supabase
+        .channel('spins-updates')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'spins',
+            filter: `user_id=eq.${user.id}`,
+          },
+          (payload) => {
+            console.log('Real-time spins update received:', payload);
+            // Refresh spins data when new spin is added
+            fetchUserData();
+          }
+        )
+        .subscribe();
+
       return () => {
-        supabase.removeChannel(subscription);
+        supabase.removeChannel(userSubscription);
+        supabase.removeChannel(spinsSubscription);
       };
     }
-  }, [user, spins.length]);
+  }, [user]);
+
+  // Re-calculate canSpin whenever spins array changes
+  useEffect(() => {
+    if (userData) {
+      const todaySpinCount = spins.length;
+      const newCanSpin = calculateCanSpin(
+        userData.coins, 
+        userData.daily_spin_limit, 
+        todaySpinCount
+      );
+      setCanSpin(newCanSpin);
+      
+      console.log('Spins array changed, recalculating:', {
+        coins: userData.coins,
+        spinLimit: userData.daily_spin_limit,
+        todaySpinCount,
+        newCanSpin
+      });
+    }
+  }, [spins, userData]);
 
   return {
     userData,

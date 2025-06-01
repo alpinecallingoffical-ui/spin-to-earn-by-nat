@@ -18,62 +18,76 @@ export const UserProfileConnected: React.FC<UserProfileConnectedProps> = ({ onSw
   const getVipLevel = (coins: number) => {
     if (coins >= 3000) return { 
       level: 'Grand Master', 
-      color: 'bg-gradient-to-r from-purple-600 to-pink-600', 
+      color: 'bg-gradient-to-r from-purple-600 via-pink-600 to-red-600', 
       emoji: '👑',
       nextLevel: null,
-      progress: 100
+      progress: 100,
+      animation: 'animate-pulse',
+      glow: 'shadow-2xl shadow-purple-500/50'
     };
     if (coins >= 2000) return { 
       level: 'Elite Master', 
-      color: 'bg-gradient-to-r from-blue-600 to-purple-600', 
+      color: 'bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600', 
       emoji: '💎',
       nextLevel: 'Grand Master',
-      progress: ((coins - 2000) / 1000) * 100
+      progress: ((coins - 2000) / 1000) * 100,
+      animation: 'animate-bounce',
+      glow: 'shadow-xl shadow-blue-500/50'
     };
     if (coins >= 1000) return { 
       level: 'VIP', 
-      color: 'bg-gradient-to-r from-yellow-500 to-orange-500', 
+      color: 'bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500', 
       emoji: '⭐',
       nextLevel: 'Elite Master',
-      progress: ((coins - 1000) / 1000) * 100
+      progress: ((coins - 1000) / 1000) * 100,
+      animation: 'animate-pulse',
+      glow: 'shadow-lg shadow-yellow-500/50'
     };
     return { 
       level: 'Regular', 
       color: 'bg-gray-500', 
       emoji: '🎰',
       nextLevel: 'VIP',
-      progress: (coins / 1000) * 100
+      progress: (coins / 1000) * 100,
+      animation: '',
+      glow: ''
     };
   };
 
   const getVipFeatures = (coins: number) => {
     if (coins >= 3000) return [
-      '🎰 Unlimited daily spins (ACTIVE)',
-      '🎯 Priority support (ACTIVE)',
-      '🎁 Exclusive rewards (ACTIVE)',
-      '👑 Grand Master badge (ACTIVE)',
-      '💫 Special animations (ACTIVE)',
-      '🌟 VIP chat access (ACTIVE)'
+      { text: '🎰 Unlimited daily spins', status: 'ACTIVE', special: true },
+      { text: '🎯 Priority support', status: 'ACTIVE', special: true },
+      { text: '🎁 Exclusive Grand Master rewards', status: 'ACTIVE', special: true },
+      { text: '👑 Grand Master badge & crown', status: 'ACTIVE', special: true },
+      { text: '💫 Special rainbow animations', status: 'ACTIVE', special: true },
+      { text: '🌟 VIP chat access', status: 'ACTIVE', special: true },
+      { text: '🔥 10x bonus multiplier', status: 'ACTIVE', special: true },
+      { text: '💰 Daily bonus coins', status: 'ACTIVE', special: true }
     ];
     if (coins >= 2000) return [
-      '🎰 10 daily spins (ACTIVE)',
-      '🎯 Priority support (ACTIVE)',
-      '🎁 Elite rewards (ACTIVE)',
-      '💎 Elite Master badge (ACTIVE)',
-      '✨ Enhanced features (ACTIVE)',
-      '🎨 Custom themes (ACTIVE)'
+      { text: '🎰 15 daily spins', status: 'ACTIVE', special: true },
+      { text: '🎯 Priority support', status: 'ACTIVE', special: true },
+      { text: '🎁 Elite Master rewards', status: 'ACTIVE', special: true },
+      { text: '💎 Elite Master badge', status: 'ACTIVE', special: true },
+      { text: '✨ Enhanced blue animations', status: 'ACTIVE', special: true },
+      { text: '🎨 Custom blue themes', status: 'ACTIVE', special: true },
+      { text: '🚀 5x bonus multiplier', status: 'ACTIVE', special: true },
+      { text: '💝 Weekly bonus rewards', status: 'ACTIVE', special: true }
     ];
     if (coins >= 1000) return [
-      '🎰 8 daily spins (ACTIVE)',
-      '🎯 VIP support (ACTIVE)',
-      '🎁 Bonus rewards (ACTIVE)',
-      '⭐ VIP badge (ACTIVE)',
-      '🌟 Special perks (ACTIVE)',
-      '🎵 Sound effects (ACTIVE)'
+      { text: '🎰 10 daily spins', status: 'ACTIVE', special: true },
+      { text: '🎯 VIP support', status: 'ACTIVE', special: true },
+      { text: '🎁 VIP bonus rewards', status: 'ACTIVE', special: true },
+      { text: '⭐ VIP golden badge', status: 'ACTIVE', special: true },
+      { text: '🌟 Golden animations', status: 'ACTIVE', special: true },
+      { text: '🎵 VIP sound effects', status: 'ACTIVE', special: true },
+      { text: '💰 2x bonus multiplier', status: 'ACTIVE', special: true },
+      { text: '🎉 Special celebrations', status: 'ACTIVE', special: true }
     ];
     return [
-      '🎰 5 daily spins',
-      '🎯 Standard support'
+      { text: '🎰 5 daily spins', status: 'STANDARD', special: false },
+      { text: '🎯 Standard support', status: 'STANDARD', special: false }
     ];
   };
 
@@ -120,25 +134,44 @@ export const UserProfileConnected: React.FC<UserProfileConnectedProps> = ({ onSw
 
   return (
     <div className="space-y-6">
-      {/* VIP Status Card */}
-      <div className={`${vipInfo.color} rounded-2xl p-6 text-white relative overflow-hidden`}>
-        {/* Add animated background for VIP levels */}
+      {/* VIP Status Card with Enhanced Animations */}
+      <div className={`${vipInfo.color} ${vipInfo.glow} rounded-2xl p-6 text-white relative overflow-hidden ${vipInfo.animation}`}>
+        {/* Enhanced animated background for VIP levels */}
         {userData.coins >= 1000 && (
-          <div className="absolute inset-0 opacity-20">
+          <div className="absolute inset-0 opacity-30">
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent transform skew-x-12 animate-pulse"></div>
+            {userData.coins >= 3000 && (
+              <>
+                <div className="absolute inset-0 bg-gradient-to-l from-transparent via-yellow-300 to-transparent transform -skew-x-12 animate-pulse delay-1000"></div>
+                <div className="absolute top-0 left-0 w-4 h-4 bg-white rounded-full animate-ping"></div>
+                <div className="absolute top-4 right-8 w-2 h-2 bg-yellow-300 rounded-full animate-ping delay-500"></div>
+                <div className="absolute bottom-8 left-12 w-3 h-3 bg-pink-300 rounded-full animate-ping delay-1000"></div>
+              </>
+            )}
           </div>
         )}
         
         <div className="flex items-center justify-between mb-4 relative z-10">
           <div className="flex items-center space-x-3">
-            <div className="text-3xl animate-bounce">{vipInfo.emoji}</div>
+            <div className={`text-4xl ${userData.coins >= 1000 ? 'animate-bounce' : ''}`}>
+              {vipInfo.emoji}
+              {userData.coins >= 3000 && <span className="ml-2 animate-spin">✨</span>}
+            </div>
             <div>
-              <h2 className="text-2xl font-bold">{vipInfo.level}</h2>
-              <p className="text-white/80">Status Level</p>
+              <h2 className="text-2xl font-bold flex items-center">
+                {vipInfo.level}
+                {userData.coins >= 3000 && <span className="ml-2 text-yellow-300 animate-pulse">♔</span>}
+              </h2>
+              <p className="text-white/80">
+                {userData.coins >= 3000 ? 'UNLIMITED POWER!' : 'Status Level'}
+              </p>
             </div>
           </div>
           <div className="text-right">
-            <p className="text-2xl font-bold">{userData.coins.toLocaleString()}</p>
+            <p className="text-3xl font-bold flex items-center">
+              {userData.coins.toLocaleString()}
+              {userData.coins >= 1000 && <span className="ml-2 text-yellow-300 animate-pulse">💰</span>}
+            </p>
             <p className="text-white/80">Total Coins</p>
           </div>
         </div>
@@ -147,11 +180,11 @@ export const UserProfileConnected: React.FC<UserProfileConnectedProps> = ({ onSw
           <div className="relative z-10">
             <div className="flex justify-between text-sm mb-2">
               <span>Progress to {vipInfo.nextLevel}</span>
-              <span>{Math.round(vipInfo.progress)}%</span>
+              <span className="font-bold">{Math.round(vipInfo.progress)}%</span>
             </div>
-            <div className="w-full bg-white/20 rounded-full h-2">
+            <div className="w-full bg-white/20 rounded-full h-3">
               <div 
-                className="bg-white h-2 rounded-full transition-all duration-300"
+                className="bg-gradient-to-r from-yellow-400 to-yellow-600 h-3 rounded-full transition-all duration-500 animate-pulse"
                 style={{ width: `${Math.min(vipInfo.progress, 100)}%` }}
               ></div>
             </div>
@@ -159,48 +192,93 @@ export const UserProfileConnected: React.FC<UserProfileConnectedProps> = ({ onSw
         )}
       </div>
 
-      {/* VIP Features */}
+      {/* Enhanced VIP Features */}
       <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-6">
         <h3 className="text-white text-lg font-bold mb-4 flex items-center">
           🎁 Your {vipInfo.level} Benefits
+          {userData.coins >= 3000 && <span className="ml-2 animate-spin">👑</span>}
         </h3>
         
         <div className="grid grid-cols-1 gap-3">
           {features.map((feature, index) => (
-            <div key={index} className={`rounded-xl p-3 flex items-center ${
-              feature.includes('(ACTIVE)') 
-                ? 'bg-green-500/20 border border-green-400/30' 
+            <div key={index} className={`rounded-xl p-4 flex items-center justify-between transition-all duration-300 ${
+              feature.special 
+                ? 'bg-gradient-to-r from-green-500/30 to-blue-500/30 border border-green-400/50 shadow-lg' 
                 : 'bg-white/10'
             }`}>
-              <span className={`${
-                feature.includes('(ACTIVE)') 
-                  ? 'text-green-200 font-semibold' 
-                  : 'text-white'
+              <span className={`font-semibold ${
+                feature.special 
+                  ? 'text-green-200' 
+                  : 'text-white/70'
               }`}>
-                {feature}
+                {feature.text}
               </span>
+              {feature.special && (
+                <div className="flex items-center space-x-2">
+                  <span className="text-xs bg-green-500 text-white px-2 py-1 rounded-full animate-pulse">
+                    {feature.status}
+                  </span>
+                  <span className="text-green-400 animate-bounce">✨</span>
+                </div>
+              )}
             </div>
           ))}
         </div>
+
+        {/* Special VIP Level Messages */}
+        {userData.coins >= 3000 && (
+          <div className="mt-4 p-4 bg-gradient-to-r from-purple-600/30 to-pink-600/30 rounded-xl border border-purple-400/50">
+            <div className="text-center">
+              <p className="text-yellow-300 font-bold text-lg animate-pulse">🎉 CONGRATULATIONS! 🎉</p>
+              <p className="text-white/90">You've reached the highest level - Grand Master!</p>
+              <p className="text-purple-300 text-sm mt-2">Enjoy unlimited spins and exclusive rewards!</p>
+            </div>
+          </div>
+        )}
+        
+        {userData.coins >= 2000 && userData.coins < 3000 && (
+          <div className="mt-4 p-4 bg-gradient-to-r from-blue-600/30 to-purple-600/30 rounded-xl border border-blue-400/50">
+            <div className="text-center">
+              <p className="text-blue-300 font-bold animate-pulse">💎 Elite Master Status Active! 💎</p>
+              <p className="text-white/90">Only {3000 - userData.coins} more coins to Grand Master!</p>
+            </div>
+          </div>
+        )}
+        
+        {userData.coins >= 1000 && userData.coins < 2000 && (
+          <div className="mt-4 p-4 bg-gradient-to-r from-yellow-600/30 to-orange-600/30 rounded-xl border border-yellow-400/50">
+            <div className="text-center">
+              <p className="text-yellow-300 font-bold animate-pulse">⭐ VIP Status Active! ⭐</p>
+              <p className="text-white/90">Only {2000 - userData.coins} more coins to Elite Master!</p>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* User Info Card */}
       <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-6">
         <div className="flex items-center space-x-4 mb-4">
-          <div className="w-16 h-16 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center text-2xl">
+          <div className={`w-16 h-16 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center text-2xl ${userData.coins >= 1000 ? 'animate-pulse' : ''}`}>
             👤
           </div>
           <div>
             <h3 className="text-white text-xl font-bold">{userData.name}</h3>
-            <p className="text-white/70">Spin Master</p>
+            <p className="text-white/70">{vipInfo.level} Spin Master</p>
           </div>
         </div>
         
         <div className="grid grid-cols-2 gap-4">
           <div className="bg-white/20 rounded-xl p-3 text-center">
             <p className="text-white/80 text-sm">Daily Spin Limit</p>
-            <p className="text-white font-bold text-lg">
-              {userData.coins >= 3000 ? '♾️ Unlimited' : userData.daily_spin_limit}
+            <p className="text-white font-bold text-lg flex items-center justify-center">
+              {userData.coins >= 3000 ? (
+                <span className="text-yellow-300 animate-pulse">♾️ Unlimited</span>
+              ) : (
+                <span>{userData.daily_spin_limit}</span>
+              )}
+              {userData.coins >= 1000 && userData.coins < 3000 && (
+                <span className="ml-2 text-yellow-300 animate-bounce">🔥</span>
+              )}
             </p>
           </div>
           <div className="bg-white/20 rounded-xl p-3 text-center">
@@ -218,7 +296,7 @@ export const UserProfileConnected: React.FC<UserProfileConnectedProps> = ({ onSw
         
         <Button
           onClick={onSwitchToHistory}
-          className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-xl mb-3"
+          className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-xl mb-3 transition-all duration-300 hover:scale-105"
         >
           📈 View Spin History
         </Button>
@@ -241,7 +319,7 @@ export const UserProfileConnected: React.FC<UserProfileConnectedProps> = ({ onSw
               />
               <Button
                 onClick={copyReferralLink}
-                className="bg-blue-500 hover:bg-blue-600 text-white px-4"
+                className="bg-blue-500 hover:bg-blue-600 text-white px-4 transition-all duration-300 hover:scale-105"
               >
                 📋
               </Button>
@@ -254,12 +332,15 @@ export const UserProfileConnected: React.FC<UserProfileConnectedProps> = ({ onSw
               <li>• Get 100 bonus coins for each friend who joins</li>
               <li>• Your friend gets 50 welcome bonus coins</li>
               <li>• Start earning today!</li>
+              {userData.coins >= 1000 && (
+                <li className="text-yellow-300 font-semibold">• VIP members get 2x referral bonuses! ✨</li>
+              )}
             </ul>
           </div>
 
           <Button 
             onClick={copyReferralLink}
-            className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white py-3 rounded-xl"
+            className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white py-3 rounded-xl transition-all duration-300 hover:scale-105"
           >
             📱 Share Referral Link
           </Button>
@@ -273,7 +354,7 @@ export const UserProfileConnected: React.FC<UserProfileConnectedProps> = ({ onSw
         <div className="space-y-3">
           <Button
             variant="outline"
-            className="w-full bg-white/10 border-white/30 text-white hover:bg-white/20 py-3 rounded-xl justify-start"
+            className="w-full bg-white/10 border-white/30 text-white hover:bg-white/20 py-3 rounded-xl justify-start transition-all duration-300 hover:scale-105"
           >
             🔔 Notifications
           </Button>
@@ -281,12 +362,13 @@ export const UserProfileConnected: React.FC<UserProfileConnectedProps> = ({ onSw
           <div className="bg-white/10 rounded-xl p-4 space-y-3">
             <h4 className="text-white font-semibold mb-2 flex items-center">
               📞 Contact Support
+              {userData.coins >= 2000 && <span className="ml-2 text-blue-300 text-xs">(Priority Support)</span>}
             </h4>
             
             <Button
               onClick={handleContactSupport}
               variant="outline"
-              className="w-full bg-green-500/20 border-green-400/30 text-green-200 hover:bg-green-500/30 py-3 rounded-xl justify-start"
+              className="w-full bg-green-500/20 border-green-400/30 text-green-200 hover:bg-green-500/30 py-3 rounded-xl justify-start transition-all duration-300 hover:scale-105"
             >
               📧 Email: alpinecallingoffical@gmail.com
             </Button>
@@ -294,7 +376,7 @@ export const UserProfileConnected: React.FC<UserProfileConnectedProps> = ({ onSw
             <Button
               onClick={handleCallSupport}
               variant="outline"
-              className="w-full bg-blue-500/20 border-blue-400/30 text-blue-200 hover:bg-blue-500/30 py-3 rounded-xl justify-start"
+              className="w-full bg-blue-500/20 border-blue-400/30 text-blue-200 hover:bg-blue-500/30 py-3 rounded-xl justify-start transition-all duration-300 hover:scale-105"
             >
               📱 Call: +977 976-596-4677
             </Button>
@@ -303,7 +385,7 @@ export const UserProfileConnected: React.FC<UserProfileConnectedProps> = ({ onSw
           <Button
             onClick={handleSignOut}
             variant="outline"
-            className="w-full bg-red-500/20 border-red-400/30 text-red-200 hover:bg-red-500/30 py-3 rounded-xl justify-start"
+            className="w-full bg-red-500/20 border-red-400/30 text-red-200 hover:bg-red-500/30 py-3 rounded-xl justify-start transition-all duration-300 hover:scale-105"
           >
             🚪 Logout
           </Button>
