@@ -12,6 +12,7 @@ interface UserData {
   referral_code: string;
   referred_by?: string;
   created_at: string;
+  daily_spin_limit: number;
 }
 
 interface SpinRecord {
@@ -55,13 +56,23 @@ export const useUserData = () => {
       if (spinsError) throw spinsError;
       setSpins(todaySpins || []);
 
-      // Check if user can spin (less than 5 spins today)
-      setCanSpin((todaySpins?.length || 0) < 5);
+      // Calculate dynamic spin limit based on VIP level
+      const userSpinLimit = profile?.daily_spin_limit || getDefaultSpinLimit(profile?.coins || 0);
+      
+      // Check if user can spin (based on their personal limit)
+      setCanSpin((todaySpins?.length || 0) < userSpinLimit);
     } catch (error) {
       console.error('Error fetching user data:', error);
     } finally {
       setLoading(false);
     }
+  };
+
+  const getDefaultSpinLimit = (coins: number) => {
+    if (coins >= 3000) return 50; // Grand Master - unlimited (represented as 50)
+    if (coins >= 2000) return 10; // Elite Master
+    if (coins >= 1000) return 8;  // VIP
+    return 5; // Regular
   };
 
   const recordSpin = async (reward: number) => {
@@ -103,7 +114,11 @@ export const useUserData = () => {
             filter: `id=eq.${user.id}`,
           },
           (payload) => {
-            setUserData(prev => prev ? { ...prev, coins: payload.new.coins } : null);
+            setUserData(prev => prev ? { 
+              ...prev, 
+              coins: payload.new.coins,
+              daily_spin_limit: payload.new.daily_spin_limit 
+            } : null);
           }
         )
         .subscribe();

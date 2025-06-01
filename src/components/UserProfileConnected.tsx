@@ -15,6 +15,65 @@ export const UserProfileConnected: React.FC<UserProfileConnectedProps> = ({ onSw
   const { signOut } = useAuth();
   const { toast } = useToast();
 
+  const getVipLevel = (coins: number) => {
+    if (coins >= 3000) return { 
+      level: 'Grand Master', 
+      color: 'bg-gradient-to-r from-purple-600 to-pink-600', 
+      emoji: '👑',
+      nextLevel: null,
+      progress: 100
+    };
+    if (coins >= 2000) return { 
+      level: 'Elite Master', 
+      color: 'bg-gradient-to-r from-blue-600 to-purple-600', 
+      emoji: '💎',
+      nextLevel: 'Grand Master',
+      progress: ((coins - 2000) / 1000) * 100
+    };
+    if (coins >= 1000) return { 
+      level: 'VIP', 
+      color: 'bg-gradient-to-r from-yellow-500 to-orange-500', 
+      emoji: '⭐',
+      nextLevel: 'Elite Master',
+      progress: ((coins - 1000) / 1000) * 100
+    };
+    return { 
+      level: 'Regular', 
+      color: 'bg-gray-500', 
+      emoji: '🎰',
+      nextLevel: 'VIP',
+      progress: (coins / 1000) * 100
+    };
+  };
+
+  const getVipFeatures = (coins: number) => {
+    if (coins >= 3000) return [
+      '🎰 Unlimited daily spins',
+      '🎯 Priority support',
+      '🎁 Exclusive rewards',
+      '👑 Grand Master badge',
+      '💫 Special animations'
+    ];
+    if (coins >= 2000) return [
+      '🎰 10 daily spins',
+      '🎯 Priority support',
+      '🎁 Elite rewards',
+      '💎 Elite Master badge',
+      '✨ Enhanced features'
+    ];
+    if (coins >= 1000) return [
+      '🎰 8 daily spins',
+      '🎯 VIP support',
+      '🎁 Bonus rewards',
+      '⭐ VIP badge',
+      '🌟 Special perks'
+    ];
+    return [
+      '🎰 5 daily spins',
+      '🎯 Standard support'
+    ];
+  };
+
   const referralLink = userData?.referral_code 
     ? `${window.location.origin}?ref=${userData.referral_code}` 
     : '';
@@ -53,8 +112,58 @@ export const UserProfileConnected: React.FC<UserProfileConnectedProps> = ({ onSw
     );
   }
 
+  const vipInfo = getVipLevel(userData.coins);
+  const features = getVipFeatures(userData.coins);
+
   return (
     <div className="space-y-6">
+      {/* VIP Status Card */}
+      <div className={`${vipInfo.color} rounded-2xl p-6 text-white`}>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center space-x-3">
+            <div className="text-3xl">{vipInfo.emoji}</div>
+            <div>
+              <h2 className="text-2xl font-bold">{vipInfo.level}</h2>
+              <p className="text-white/80">Status Level</p>
+            </div>
+          </div>
+          <div className="text-right">
+            <p className="text-2xl font-bold">{userData.coins.toLocaleString()}</p>
+            <p className="text-white/80">Total Coins</p>
+          </div>
+        </div>
+        
+        {vipInfo.nextLevel && (
+          <div>
+            <div className="flex justify-between text-sm mb-2">
+              <span>Progress to {vipInfo.nextLevel}</span>
+              <span>{Math.round(vipInfo.progress)}%</span>
+            </div>
+            <div className="w-full bg-white/20 rounded-full h-2">
+              <div 
+                className="bg-white h-2 rounded-full transition-all duration-300"
+                style={{ width: `${Math.min(vipInfo.progress, 100)}%` }}
+              ></div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* VIP Features */}
+      <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-6">
+        <h3 className="text-white text-lg font-bold mb-4 flex items-center">
+          🎁 Your {vipInfo.level} Benefits
+        </h3>
+        
+        <div className="grid grid-cols-1 gap-3">
+          {features.map((feature, index) => (
+            <div key={index} className="bg-white/10 rounded-xl p-3 flex items-center">
+              <span className="text-white">{feature}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* User Info Card */}
       <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-6">
         <div className="flex items-center space-x-4 mb-4">
@@ -69,8 +178,8 @@ export const UserProfileConnected: React.FC<UserProfileConnectedProps> = ({ onSw
         
         <div className="grid grid-cols-2 gap-4">
           <div className="bg-white/20 rounded-xl p-3 text-center">
-            <p className="text-white/80 text-sm">Total Coins</p>
-            <p className="text-white font-bold text-lg">{userData.coins.toLocaleString()}</p>
+            <p className="text-white/80 text-sm">Daily Spin Limit</p>
+            <p className="text-white font-bold text-lg">{userData.coins >= 3000 ? '♾️' : (userData.daily_spin_limit || 5)}</p>
           </div>
           <div className="bg-white/20 rounded-xl p-3 text-center">
             <p className="text-white/80 text-sm">Member Since</p>
@@ -147,7 +256,6 @@ export const UserProfileConnected: React.FC<UserProfileConnectedProps> = ({ onSw
             🔔 Notifications
           </Button>
           
-          {/* Support Section */}
           <div className="bg-white/10 rounded-xl p-4 space-y-3">
             <h4 className="text-white font-semibold mb-2 flex items-center">
               📞 Contact Support

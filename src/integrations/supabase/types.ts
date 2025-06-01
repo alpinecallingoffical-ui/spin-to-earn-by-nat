@@ -65,12 +65,12 @@ export type Database = {
       spin_management: {
         Row: {
           admin_notes: string | null
+          amount: number
           created_at: string
           id: string
           original_spin_id: string | null
           processed_at: string | null
           processed_by: string | null
-          reward_amount: number
           spin_time: string
           spins_chance: number | null
           status: string
@@ -79,12 +79,12 @@ export type Database = {
         }
         Insert: {
           admin_notes?: string | null
+          amount: number
           created_at?: string
           id?: string
           original_spin_id?: string | null
           processed_at?: string | null
           processed_by?: string | null
-          reward_amount: number
           spin_time?: string
           spins_chance?: number | null
           status?: string
@@ -93,12 +93,12 @@ export type Database = {
         }
         Update: {
           admin_notes?: string | null
+          amount?: number
           created_at?: string
           id?: string
           original_spin_id?: string | null
           processed_at?: string | null
           processed_by?: string | null
-          reward_amount?: number
           spin_time?: string
           spins_chance?: number | null
           status?: string

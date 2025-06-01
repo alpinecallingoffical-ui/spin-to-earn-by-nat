@@ -1,200 +1,154 @@
 
 import React, { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useAuth } from '@/hooks/useAuth';
-import { supabase } from '@/integrations/supabase/client';
+import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 
 interface SpinManagementRecord {
   id: string;
   user_id: string;
-  original_spin_id: string | null;
-  spin_time: string;
-  reward_amount: number;
+  amount: number;
   status: string;
-  admin_notes: string | null;
-  processed_by: string | null;
-  processed_at: string | null;
   created_at: string;
-  updated_at: string;
-  spins_chance: number | null;
+  spin_time: string;
+  admin_notes?: string;
+  spins_chance?: number;
+}
+
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  coins: number;
+  daily_spin_limit: number;
 }
 
 export const SpinManagement: React.FC = () => {
-  const { user } = useAuth();
-  const { toast } = useToast();
   const [records, setRecords] = useState<SpinManagementRecord[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
-  const [editingTime, setEditingTime] = useState<{ [key: string]: string }>({});
-  const [editingChance, setEditingChance] = useState<{ [key: string]: number }>({});
+  const [activeTab, setActiveTab] = useState<'requests' | 'users'>('requests');
+  const { toast } = useToast();
 
-  useEffect(() => {
-    fetchSpinManagement();
-  }, [user]);
-
-  const fetchSpinManagement = async () => {
-    if (!user) return;
-
+  const fetchRecords = async () => {
     try {
       const { data, error } = await supabase
         .from('spin_management')
         .select('*')
-        .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
       setRecords(data || []);
     } catch (error) {
-      console.error('Error fetching spin management:', error);
+      console.error('Error fetching records:', error);
       toast({
         title: 'Error',
         description: 'Failed to fetch spin management records',
         variant: 'destructive',
       });
-    } finally {
-      setLoading(false);
     }
   };
 
-  const updateSpinStatus = async (recordId: string, newStatus: 'approved' | 'rejected', adminNotes?: string) => {
+  const fetchUsers = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('id, name, email, coins, daily_spin_limit')
+        .order('coins', { ascending: false });
+
+      if (error) throw error;
+      setUsers(data || []);
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to fetch users',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  useEffect(() => {
+    const loadData = async () => {
+      setLoading(true);
+      await Promise.all([fetchRecords(), fetchUsers()]);
+      setLoading(false);
+    };
+    loadData();
+  }, []);
+
+  const updateSpinStatus = async (id: string, status: string, notes?: string) => {
     try {
       const { error } = await supabase.rpc('update_spin_status', {
-        spin_management_id: recordId,
-        new_status: newStatus,
-        admin_notes: adminNotes || null,
+        spin_management_id: id,
+        new_status: status,
+        admin_notes: notes,
       });
 
       if (error) throw error;
 
       toast({
         title: 'Success',
-        description: `Spin ${newStatus} successfully${newStatus === 'approved' ? ' and coins added' : ''}`,
+        description: `Request ${status} successfully`,
       });
 
-      fetchSpinManagement();
+      await fetchRecords();
+      await fetchUsers(); // Refresh users to show updated coins
     } catch (error) {
       console.error('Error updating spin status:', error);
       toast({
         title: 'Error',
-        description: 'Failed to update spin status',
+        description: 'Failed to update request status',
         variant: 'destructive',
       });
     }
   };
 
-  const updateSpinTime = async (recordId: string, newTime: string) => {
+  const updateUserSpinLimit = async (userId: string, newLimit: number) => {
     try {
-      const { error } = await supabase.rpc('update_spin_time', {
-        spin_management_id: recordId,
-        new_spin_time: newTime,
+      const { error } = await supabase.rpc('update_user_spin_limit', {
+        target_user_id: userId,
+        new_limit: newLimit,
       });
 
       if (error) throw error;
 
       toast({
         title: 'Success',
-        description: 'Spin time updated successfully',
+        description: 'Spin limit updated successfully',
       });
 
-      setEditingTime(prev => ({ ...prev, [recordId]: '' }));
-      fetchSpinManagement();
+      await fetchUsers();
     } catch (error) {
-      console.error('Error updating spin time:', error);
+      console.error('Error updating spin limit:', error);
       toast({
         title: 'Error',
-        description: 'Failed to update spin time',
+        description: 'Failed to update spin limit',
         variant: 'destructive',
       });
     }
   };
 
-  const updateSpinChance = async (recordId: string, newChance: number) => {
-    try {
-      const { error } = await supabase
-        .from('spin_management')
-        .update({ spins_chance: newChance })
-        .eq('id', recordId);
-
-      if (error) throw error;
-
-      toast({
-        title: 'Success',
-        description: 'Spin chance updated successfully',
-      });
-
-      setEditingChance(prev => ({ ...prev, [recordId]: 0 }));
-      fetchSpinManagement();
-    } catch (error) {
-      console.error('Error updating spin chance:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to update spin chance',
-        variant: 'destructive',
-      });
-    }
+  const getVipLevel = (coins: number) => {
+    if (coins >= 3000) return { level: 'Grand Master', color: 'bg-gradient-to-r from-purple-600 to-pink-600', emoji: '👑' };
+    if (coins >= 2000) return { level: 'Elite Master', color: 'bg-gradient-to-r from-blue-600 to-purple-600', emoji: '💎' };
+    if (coins >= 1000) return { level: 'VIP', color: 'bg-gradient-to-r from-yellow-500 to-orange-500', emoji: '⭐' };
+    return { level: 'Regular', color: 'bg-gray-500', emoji: '🎰' };
   };
 
-  const createSpinRequest = async () => {
-    if (!user) return;
-
-    try {
-      const { error } = await supabase
-        .from('spin_management')
-        .insert({
-          user_id: user.id,
-          reward_amount: 10,
-          status: 'pending',
-          spins_chance: 5,
-        });
-
-      if (error) throw error;
-
-      toast({
-        title: 'Success',
-        description: 'Spin request created successfully',
-      });
-
-      fetchSpinManagement();
-    } catch (error) {
-      console.error('Error creating spin request:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to create spin request',
-        variant: 'destructive',
-      });
-    }
-  };
-
-  const formatDateTime = (dateString: string) => {
-    return new Date(dateString).toLocaleString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'approved':
-        return 'bg-green-500/20 text-green-300 border border-green-400/30';
-      case 'pending':
-        return 'bg-yellow-500/20 text-yellow-300 border border-yellow-400/30';
-      case 'rejected':
-        return 'bg-red-500/20 text-red-300 border border-red-400/30';
-      default:
-        return 'bg-gray-500/20 text-gray-300 border border-gray-400/30';
-    }
+  const getVipFeatures = (coins: number) => {
+    if (coins >= 3000) return ['Unlimited daily spins', 'Priority support', 'Exclusive rewards', 'Grand Master badge'];
+    if (coins >= 2000) return ['10 daily spins', 'Priority support', 'Elite rewards', 'Elite Master badge'];
+    if (coins >= 1000) return ['8 daily spins', 'VIP support', 'Bonus rewards', 'VIP badge'];
+    return ['5 daily spins', 'Standard support'];
   };
 
   if (loading) {
     return (
-      <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-6">
-        <div className="text-center py-8">
-          <div className="text-white text-lg">Loading spin management...</div>
-        </div>
+      <div className="text-center text-white">
+        <p>Loading management data...</p>
       </div>
     );
   }
@@ -202,173 +156,138 @@ export const SpinManagement: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-6">
-        <div className="flex items-center justify-between mb-6">
-          <h3 className="text-white text-lg font-bold">🎰 Spin Management</h3>
+        <h2 className="text-white text-2xl font-bold mb-4">🔧 Spin Management</h2>
+        
+        <div className="flex space-x-4 mb-6">
           <Button
-            onClick={createSpinRequest}
-            className="bg-blue-500 hover:bg-blue-600 text-white"
+            onClick={() => setActiveTab('requests')}
+            className={`${activeTab === 'requests' ? 'bg-blue-600' : 'bg-white/20'} text-white`}
           >
-            Create Spin Request
+            📋 Spin Requests
+          </Button>
+          <Button
+            onClick={() => setActiveTab('users')}
+            className={`${activeTab === 'users' ? 'bg-blue-600' : 'bg-white/20'} text-white`}
+          >
+            👥 User Management
           </Button>
         </div>
 
-        {records.length === 0 ? (
-          <div className="text-center py-8">
-            <p className="text-white/60 text-lg">🎰</p>
-            <p className="text-white/60">No spin management records yet!</p>
-            <p className="text-white/40 text-sm">Create your first spin request</p>
-          </div>
-        ) : (
-          <div className="space-y-4 max-h-96 overflow-y-auto">
-            {records.map((record) => (
-              <div
-                key={record.id}
-                className="bg-white/10 rounded-xl p-4"
-              >
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center">
-                      <span className="text-white font-bold">🎰</span>
-                    </div>
+        {activeTab === 'requests' && (
+          <div className="space-y-4">
+            {records.length === 0 ? (
+              <p className="text-white/80">No spin requests found.</p>
+            ) : (
+              records.map((record) => (
+                <div key={record.id} className="bg-white/10 rounded-xl p-4">
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
                     <div>
-                      <p className="text-white font-semibold">{record.reward_amount} coins</p>
-                      <p className="text-white/60 text-sm">
-                        Created: {formatDateTime(record.created_at)}
-                      </p>
+                      <p className="text-white font-semibold">User ID: {record.user_id.slice(0, 8)}...</p>
+                      <p className="text-white/80">Amount: {record.amount} coins</p>
+                      <p className="text-white/80">Date: {new Date(record.created_at).toLocaleDateString()}</p>
                     </div>
-                  </div>
-                  
-                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(record.status)}`}>
-                    {record.status.charAt(0).toUpperCase() + record.status.slice(1)}
-                  </span>
-                </div>
-
-                <div className="space-y-3">
-                  {/* Spin Time Editor */}
-                  <div className="flex items-center space-x-2">
-                    <span className="text-white/80 text-sm min-w-0 flex-shrink-0">Spin Time:</span>
-                    {editingTime[record.id] !== undefined ? (
-                      <div className="flex items-center space-x-2 flex-1">
-                        <Input
-                          type="datetime-local"
-                          value={editingTime[record.id]}
-                          onChange={(e) => setEditingTime(prev => ({ ...prev, [record.id]: e.target.value }))}
-                          className="bg-white/20 border-white/30 text-white text-sm flex-1"
-                        />
+                    
+                    <div>
+                      <Badge 
+                        className={`${
+                          record.status === 'approved' ? 'bg-green-500' :
+                          record.status === 'rejected' ? 'bg-red-500' :
+                          'bg-yellow-500'
+                        } text-white`}
+                      >
+                        {record.status.toUpperCase()}
+                      </Badge>
+                    </div>
+                    
+                    <div>
+                      {record.admin_notes && (
+                        <p className="text-white/80 text-sm">Notes: {record.admin_notes}</p>
+                      )}
+                    </div>
+                    
+                    {record.status === 'pending' && (
+                      <div className="flex space-x-2">
                         <Button
-                          onClick={() => updateSpinTime(record.id, editingTime[record.id])}
-                          className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 text-xs"
-                          disabled={!editingTime[record.id]}
+                          onClick={() => updateSpinStatus(record.id, 'approved')}
+                          className="bg-green-600 hover:bg-green-700 text-white text-sm px-3 py-1"
                         >
-                          Save
+                          ✅ Approve
                         </Button>
                         <Button
-                          onClick={() => setEditingTime(prev => ({ ...prev, [record.id]: '' }))}
-                          variant="outline"
-                          className="bg-white/10 border-white/30 text-white px-3 py-1 text-xs"
+                          onClick={() => updateSpinStatus(record.id, 'rejected')}
+                          className="bg-red-600 hover:bg-red-700 text-white text-sm px-3 py-1"
                         >
-                          Cancel
-                        </Button>
-                      </div>
-                    ) : (
-                      <div className="flex items-center space-x-2 flex-1">
-                        <span className="text-white text-sm flex-1">
-                          {formatDateTime(record.spin_time)}
-                        </span>
-                        <Button
-                          onClick={() => setEditingTime(prev => ({ 
-                            ...prev, 
-                            [record.id]: new Date(record.spin_time).toISOString().slice(0, 16)
-                          }))}
-                          variant="outline"
-                          className="bg-white/10 border-white/30 text-white px-3 py-1 text-xs"
-                        >
-                          Edit
+                          ❌ Reject
                         </Button>
                       </div>
                     )}
                   </div>
-
-                  {/* Spins Chance Editor */}
-                  <div className="flex items-center space-x-2">
-                    <span className="text-white/80 text-sm min-w-0 flex-shrink-0">Spins Chance:</span>
-                    {editingChance[record.id] !== undefined ? (
-                      <div className="flex items-center space-x-2 flex-1">
-                        <Input
-                          type="number"
-                          min="1"
-                          max="10"
-                          value={editingChance[record.id]}
-                          onChange={(e) => setEditingChance(prev => ({ ...prev, [record.id]: parseInt(e.target.value) || 0 }))}
-                          className="bg-white/20 border-white/30 text-white text-sm flex-1"
-                        />
-                        <Button
-                          onClick={() => updateSpinChance(record.id, editingChance[record.id])}
-                          className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 text-xs"
-                          disabled={editingChance[record.id] < 1}
-                        >
-                          Save
-                        </Button>
-                        <Button
-                          onClick={() => setEditingChance(prev => ({ ...prev, [record.id]: 0 }))}
-                          variant="outline"
-                          className="bg-white/10 border-white/30 text-white px-3 py-1 text-xs"
-                        >
-                          Cancel
-                        </Button>
-                      </div>
-                    ) : (
-                      <div className="flex items-center space-x-2 flex-1">
-                        <span className="text-white text-sm flex-1">
-                          {record.spins_chance || 5} daily spins
-                        </span>
-                        <Button
-                          onClick={() => setEditingChance(prev => ({ 
-                            ...prev, 
-                            [record.id]: record.spins_chance || 5
-                          }))}
-                          variant="outline"
-                          className="bg-white/10 border-white/30 text-white px-3 py-1 text-xs"
-                        >
-                          Edit
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Status Actions */}
-                  {record.status === 'pending' && (
-                    <div className="flex space-x-2">
-                      <Button
-                        onClick={() => updateSpinStatus(record.id, 'approved')}
-                        className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 text-sm"
-                      >
-                        ✅ Approve & Add Coins
-                      </Button>
-                      <Button
-                        onClick={() => updateSpinStatus(record.id, 'rejected')}
-                        className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 text-sm"
-                      >
-                        ❌ Reject
-                      </Button>
-                    </div>
-                  )}
-
-                  {record.admin_notes && (
-                    <div className="bg-white/10 rounded-lg p-2">
-                      <p className="text-white/80 text-xs font-semibold mb-1">Admin Notes:</p>
-                      <p className="text-white/60 text-xs">{record.admin_notes}</p>
-                    </div>
-                  )}
-
-                  {record.processed_at && (
-                    <p className="text-white/60 text-xs">
-                      Processed: {formatDateTime(record.processed_at)}
-                    </p>
-                  )}
                 </div>
-              </div>
-            ))}
+              ))
+            )}
+          </div>
+        )}
+
+        {activeTab === 'users' && (
+          <div className="space-y-4">
+            {users.length === 0 ? (
+              <p className="text-white/80">No users found.</p>
+            ) : (
+              users.map((user) => {
+                const vipInfo = getVipLevel(user.coins);
+                const features = getVipFeatures(user.coins);
+                
+                return (
+                  <div key={user.id} className="bg-white/10 rounded-xl p-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <div className="flex items-center space-x-2 mb-2">
+                          <h3 className="text-white font-semibold">{user.name}</h3>
+                          <div className={`${vipInfo.color} text-white px-2 py-1 rounded-full text-xs font-bold flex items-center space-x-1`}>
+                            <span>{vipInfo.emoji}</span>
+                            <span>{vipInfo.level}</span>
+                          </div>
+                        </div>
+                        <p className="text-white/80">{user.email}</p>
+                        <p className="text-white/80">💰 {user.coins} coins</p>
+                        <p className="text-white/80">🎲 {user.daily_spin_limit} daily spins</p>
+                      </div>
+                      
+                      <div>
+                        <h4 className="text-white font-semibold mb-2">🎁 Features:</h4>
+                        <ul className="text-white/80 text-sm space-y-1">
+                          {features.map((feature, index) => (
+                            <li key={index}>• {feature}</li>
+                          ))}
+                        </ul>
+                      </div>
+                      
+                      <div>
+                        <label className="text-white/80 text-sm block mb-2">Change Daily Spin Limit:</label>
+                        <div className="flex space-x-2">
+                          <Input
+                            type="number"
+                            defaultValue={user.daily_spin_limit}
+                            className="bg-white/20 border-white/30 text-white placeholder-white/50 w-20"
+                            min="1"
+                            max="50"
+                            onChange={(e) => {
+                              const newLimit = parseInt(e.target.value);
+                              if (newLimit && newLimit !== user.daily_spin_limit) {
+                                updateUserSpinLimit(user.id, newLimit);
+                              }
+                            }}
+                          />
+                          <div className="text-white/60 text-sm mt-1">
+                            Recommended: {user.coins >= 3000 ? '50' : user.coins >= 2000 ? '10' : user.coins >= 1000 ? '8' : '5'}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })
+            )}
           </div>
         )}
       </div>
