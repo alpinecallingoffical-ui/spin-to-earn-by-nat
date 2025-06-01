@@ -56,11 +56,21 @@ export const useUserData = () => {
       if (spinsError) throw spinsError;
       setSpins(todaySpins || []);
 
-      // Use the actual daily_spin_limit from database
+      // Get the actual daily_spin_limit from database
       const userSpinLimit = profile?.daily_spin_limit || 5;
       
-      // Check if user can spin based on their personal limit
-      setCanSpin((todaySpins?.length || 0) < userSpinLimit);
+      // For Grand Master level (3000+ coins), unlimited spins
+      const isUnlimited = profile?.coins >= 3000;
+      
+      // Check if user can spin based on their personal limit or unlimited status
+      setCanSpin(isUnlimited || (todaySpins?.length || 0) < userSpinLimit);
+
+      console.log('User data fetched:', {
+        userSpinLimit,
+        todaySpins: todaySpins?.length || 0,
+        isUnlimited,
+        canSpin: isUnlimited || (todaySpins?.length || 0) < userSpinLimit
+      });
     } catch (error) {
       console.error('Error fetching user data:', error);
     } finally {
@@ -107,12 +117,24 @@ export const useUserData = () => {
             filter: `id=eq.${user.id}`,
           },
           (payload) => {
-            console.log('User data updated:', payload);
-            setUserData(prev => prev ? { 
-              ...prev, 
-              coins: payload.new.coins,
-              daily_spin_limit: payload.new.daily_spin_limit 
-            } : null);
+            console.log('User data updated via realtime:', payload);
+            // Update local state immediately with new data
+            setUserData(prev => {
+              if (!prev) return null;
+              
+              const updatedData = { 
+                ...prev, 
+                coins: payload.new.coins,
+                daily_spin_limit: payload.new.daily_spin_limit 
+              };
+              
+              // Recalculate canSpin based on new data
+              const isUnlimited = updatedData.coins >= 3000;
+              const todaySpinCount = spins.length;
+              setCanSpin(isUnlimited || todaySpinCount < updatedData.daily_spin_limit);
+              
+              return updatedData;
+            });
           }
         )
         .subscribe();
@@ -121,7 +143,7 @@ export const useUserData = () => {
         supabase.removeChannel(subscription);
       };
     }
-  }, [user]);
+  }, [user, spins.length]);
 
   return {
     userData,

@@ -90,7 +90,7 @@ export const SpinManagement: React.FC = () => {
 
     // Set up real-time subscription for user updates
     const userSubscription = supabase
-      .channel('users-realtime')
+      .channel('users-admin-realtime')
       .on(
         'postgres_changes',
         {
@@ -99,7 +99,7 @@ export const SpinManagement: React.FC = () => {
           table: 'users',
         },
         (payload) => {
-          console.log('User updated:', payload);
+          console.log('User updated in admin:', payload);
           fetchUsers(); // Refresh users data
         }
       )
@@ -139,32 +139,31 @@ export const SpinManagement: React.FC = () => {
 
   const updateUserSpinLimit = async (userId: string, newLimit: number) => {
     try {
-      // Direct database update with full permissions
-      const { error } = await supabase
-        .from('users')
-        .update({ daily_spin_limit: newLimit })
-        .eq('id', userId);
+      console.log('Updating spin limit for user:', userId, 'to:', newLimit);
+      
+      // Use the proper Supabase function with correct parameter names
+      const { error } = await supabase.rpc('update_user_spin_limit', {
+        target_user_id: userId,
+        new_limit: newLimit
+      });
 
-      if (error) throw error;
+      if (error) {
+        console.error('RPC error:', error);
+        throw error;
+      }
 
       toast({
         title: '✅ Success',
         description: `Spin limit updated to ${newLimit} spins per day`,
       });
 
-      // Update local state immediately
-      setUsers(prevUsers => 
-        prevUsers.map(user => 
-          user.id === userId 
-            ? { ...user, daily_spin_limit: newLimit }
-            : user
-        )
-      );
+      // Refresh users data to show the update
+      await fetchUsers();
     } catch (error) {
       console.error('Error updating spin limit:', error);
       toast({
         title: 'Error',
-        description: 'Failed to update spin limit',
+        description: `Failed to update spin limit: ${error.message}`,
         variant: 'destructive',
       });
     }

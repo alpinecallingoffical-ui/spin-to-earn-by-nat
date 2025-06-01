@@ -48,25 +48,28 @@ export const UserProfileConnected: React.FC<UserProfileConnectedProps> = ({ onSw
 
   const getVipFeatures = (coins: number) => {
     if (coins >= 3000) return [
-      '🎰 Unlimited daily spins',
-      '🎯 Priority support',
-      '🎁 Exclusive rewards',
-      '👑 Grand Master badge',
-      '💫 Special animations'
+      '🎰 Unlimited daily spins (ACTIVE)',
+      '🎯 Priority support (ACTIVE)',
+      '🎁 Exclusive rewards (ACTIVE)',
+      '👑 Grand Master badge (ACTIVE)',
+      '💫 Special animations (ACTIVE)',
+      '🌟 VIP chat access (ACTIVE)'
     ];
     if (coins >= 2000) return [
-      '🎰 10 daily spins',
-      '🎯 Priority support',
-      '🎁 Elite rewards',
-      '💎 Elite Master badge',
-      '✨ Enhanced features'
+      '🎰 10 daily spins (ACTIVE)',
+      '🎯 Priority support (ACTIVE)',
+      '🎁 Elite rewards (ACTIVE)',
+      '💎 Elite Master badge (ACTIVE)',
+      '✨ Enhanced features (ACTIVE)',
+      '🎨 Custom themes (ACTIVE)'
     ];
     if (coins >= 1000) return [
-      '🎰 8 daily spins',
-      '🎯 VIP support',
-      '🎁 Bonus rewards',
-      '⭐ VIP badge',
-      '🌟 Special perks'
+      '🎰 8 daily spins (ACTIVE)',
+      '🎯 VIP support (ACTIVE)',
+      '🎁 Bonus rewards (ACTIVE)',
+      '⭐ VIP badge (ACTIVE)',
+      '🌟 Special perks (ACTIVE)',
+      '🎵 Sound effects (ACTIVE)'
     ];
     return [
       '🎰 5 daily spins',
@@ -118,10 +121,17 @@ export const UserProfileConnected: React.FC<UserProfileConnectedProps> = ({ onSw
   return (
     <div className="space-y-6">
       {/* VIP Status Card */}
-      <div className={`${vipInfo.color} rounded-2xl p-6 text-white`}>
-        <div className="flex items-center justify-between mb-4">
+      <div className={`${vipInfo.color} rounded-2xl p-6 text-white relative overflow-hidden`}>
+        {/* Add animated background for VIP levels */}
+        {userData.coins >= 1000 && (
+          <div className="absolute inset-0 opacity-20">
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent transform skew-x-12 animate-pulse"></div>
+          </div>
+        )}
+        
+        <div className="flex items-center justify-between mb-4 relative z-10">
           <div className="flex items-center space-x-3">
-            <div className="text-3xl">{vipInfo.emoji}</div>
+            <div className="text-3xl animate-bounce">{vipInfo.emoji}</div>
             <div>
               <h2 className="text-2xl font-bold">{vipInfo.level}</h2>
               <p className="text-white/80">Status Level</p>
@@ -134,7 +144,7 @@ export const UserProfileConnected: React.FC<UserProfileConnectedProps> = ({ onSw
         </div>
         
         {vipInfo.nextLevel && (
-          <div>
+          <div className="relative z-10">
             <div className="flex justify-between text-sm mb-2">
               <span>Progress to {vipInfo.nextLevel}</span>
               <span>{Math.round(vipInfo.progress)}%</span>
@@ -157,8 +167,18 @@ export const UserProfileConnected: React.FC<UserProfileConnectedProps> = ({ onSw
         
         <div className="grid grid-cols-1 gap-3">
           {features.map((feature, index) => (
-            <div key={index} className="bg-white/10 rounded-xl p-3 flex items-center">
-              <span className="text-white">{feature}</span>
+            <div key={index} className={`rounded-xl p-3 flex items-center ${
+              feature.includes('(ACTIVE)') 
+                ? 'bg-green-500/20 border border-green-400/30' 
+                : 'bg-white/10'
+            }`}>
+              <span className={`${
+                feature.includes('(ACTIVE)') 
+                  ? 'text-green-200 font-semibold' 
+                  : 'text-white'
+              }`}>
+                {feature}
+              </span>
             </div>
           ))}
         </div>
@@ -179,7 +199,9 @@ export const UserProfileConnected: React.FC<UserProfileConnectedProps> = ({ onSw
         <div className="grid grid-cols-2 gap-4">
           <div className="bg-white/20 rounded-xl p-3 text-center">
             <p className="text-white/80 text-sm">Daily Spin Limit</p>
-            <p className="text-white font-bold text-lg">{userData.coins >= 3000 ? '♾️' : (userData.daily_spin_limit || 5)}</p>
+            <p className="text-white font-bold text-lg">
+              {userData.coins >= 3000 ? '♾️ Unlimited' : userData.daily_spin_limit}
+            </p>
           </div>
           <div className="bg-white/20 rounded-xl p-3 text-center">
             <p className="text-white/80 text-sm">Member Since</p>
