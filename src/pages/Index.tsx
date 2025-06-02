@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AuthModal } from '@/components/AuthModal';
@@ -8,13 +7,14 @@ import { UserProfileConnected } from '@/components/UserProfileConnected';
 import { SpinHistoryConnected } from '@/components/SpinHistoryConnected';
 import { SpinManagement } from '@/components/SpinManagement';
 import { useAuth } from '@/hooks/useAuth';
-
 const Index = () => {
-  const { user, loading } = useAuth();
+  const {
+    user,
+    loading
+  } = useAuth();
   const [showAuth, setShowAuth] = useState(false);
   const [referralCode, setReferralCode] = useState<string>('');
   const [activeTab, setActiveTab] = useState('spin');
-
   useEffect(() => {
     // Check for referral code in URL
     const urlParams = new URLSearchParams(window.location.search);
@@ -23,52 +23,34 @@ const Index = () => {
       setReferralCode(refCode);
     }
   }, []);
-
   const handleSwitchToHistory = () => {
     setActiveTab('history');
   };
-
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-600 via-pink-600 to-orange-500 flex items-center justify-center">
+    return <div className="min-h-screen bg-gradient-to-br from-purple-600 via-pink-600 to-orange-500 flex items-center justify-center">
         <div className="text-white text-2xl font-bold">🎰 Loading...</div>
-      </div>
-    );
+      </div>;
   }
-
   if (!user) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-600 via-pink-600 to-orange-500 flex flex-col items-center justify-center p-4">
+    return <div className="min-h-screen bg-gradient-to-br from-purple-600 via-pink-600 to-orange-500 flex flex-col items-center justify-center p-4">
         <div className="text-center mb-8">
           <h1 className="text-6xl font-bold text-white mb-4">🎰 Spin to Earn</h1>
           <p className="text-xl text-white/80 mb-6">Spin the wheel daily and earn coins!</p>
           
-          {referralCode && (
-            <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 mb-6">
+          {referralCode && <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 mb-6">
               <p className="text-white font-semibold">🎁 You've been invited!</p>
               <p className="text-white/80">Join now and get 50 bonus coins!</p>
-            </div>
-          )}
+            </div>}
           
-          <button
-            onClick={() => setShowAuth(true)}
-            className="bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-white font-bold py-4 px-8 rounded-2xl text-xl shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all"
-          >
+          <button onClick={() => setShowAuth(true)} className="bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-white font-bold py-4 px-8 rounded-2xl text-xl shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all">
             🚀 Get Started
           </button>
         </div>
 
-        <AuthModal 
-          isOpen={showAuth} 
-          onClose={() => setShowAuth(false)}
-          referralCode={referralCode}
-        />
-      </div>
-    );
+        <AuthModal isOpen={showAuth} onClose={() => setShowAuth(false)} referralCode={referralCode} />
+      </div>;
   }
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-600 via-pink-600 to-orange-500">
+  return <div className="min-h-screen bg-gradient-to-br from-purple-600 via-pink-600 to-orange-500">
       <div className="container mx-auto px-4 py-8">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-white mb-2">🎰 Spin to Earn</h1>
@@ -86,9 +68,7 @@ const Index = () => {
             <TabsTrigger value="history" className="text-white data-[state=active]:bg-white/30">
               📊 History
             </TabsTrigger>
-            <TabsTrigger value="manage" className="text-white data-[state=active]:bg-white/30">
-              ⚙️ Manage
-            </TabsTrigger>
+            
             <TabsTrigger value="profile" className="text-white data-[state=active]:bg-white/30">
               👤 Profile
             </TabsTrigger>
@@ -117,8 +97,6 @@ const Index = () => {
           </div>
         </Tabs>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default Index;
