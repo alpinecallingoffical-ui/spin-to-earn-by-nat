@@ -4,12 +4,15 @@ import { SpinWheelConnected } from '@/components/SpinWheelConnected';
 import { SpinHistoryConnected } from '@/components/SpinHistoryConnected';
 import { UserProfileConnected } from '@/components/UserProfileConnected';
 import { WalletDisplayConnected } from '@/components/WalletDisplayConnected';
+import { GamesSection } from '@/components/GamesSection';
+import { VideosSection } from '@/components/VideosSection';
 import { useAuth } from '@/hooks/useAuth';
 import { useState } from 'react';
 
 const Index = () => {
   const { user, loading } = useAuth();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState<'spin' | 'games' | 'videos'>('spin');
 
   if (loading) {
     return (
@@ -42,25 +45,97 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
       <div className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* User Profile Section */}
-          <div className="lg:col-span-1">
-            <UserProfileConnected />
-            <div className="mt-6">
-              <WalletDisplayConnected />
-            </div>
-          </div>
-
-          {/* Main Spin Wheel Section */}
-          <div className="lg:col-span-1 flex flex-col items-center justify-center">
-            <SpinWheelConnected />
-          </div>
-
-          {/* Spin History Section */}
-          <div className="lg:col-span-1">
-            <SpinHistoryConnected />
+        {/* Navigation Tabs */}
+        <div className="flex justify-center mb-8">
+          <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-2 flex space-x-2">
+            <button
+              onClick={() => setActiveSection('spin')}
+              className={`px-6 py-3 rounded-xl font-semibold transition-all ${
+                activeSection === 'spin'
+                  ? 'bg-yellow-500 text-white shadow-lg'
+                  : 'text-white/80 hover:text-white hover:bg-white/10'
+              }`}
+            >
+              🎰 Spin Wheel
+            </button>
+            <button
+              onClick={() => setActiveSection('games')}
+              className={`px-6 py-3 rounded-xl font-semibold transition-all ${
+                activeSection === 'games'
+                  ? 'bg-green-500 text-white shadow-lg'
+                  : 'text-white/80 hover:text-white hover:bg-white/10'
+              }`}
+            >
+              🎮 Games
+            </button>
+            <button
+              onClick={() => setActiveSection('videos')}
+              className={`px-6 py-3 rounded-xl font-semibold transition-all ${
+                activeSection === 'videos'
+                  ? 'bg-red-500 text-white shadow-lg'
+                  : 'text-white/80 hover:text-white hover:bg-white/10'
+              }`}
+            >
+              📺 Videos
+            </button>
           </div>
         </div>
+
+        {activeSection === 'spin' && (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* User Profile Section */}
+            <div className="lg:col-span-1">
+              <UserProfileConnected />
+              <div className="mt-6">
+                <WalletDisplayConnected />
+              </div>
+            </div>
+
+            {/* Main Spin Wheel Section */}
+            <div className="lg:col-span-1 flex flex-col items-center justify-center">
+              <SpinWheelConnected />
+            </div>
+
+            {/* Spin History Section */}
+            <div className="lg:col-span-1">
+              <SpinHistoryConnected />
+            </div>
+          </div>
+        )}
+
+        {activeSection === 'games' && (
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            {/* User Profile Sidebar */}
+            <div className="lg:col-span-1">
+              <UserProfileConnected />
+              <div className="mt-6">
+                <WalletDisplayConnected />
+              </div>
+            </div>
+
+            {/* Games Section */}
+            <div className="lg:col-span-3">
+              <GamesSection />
+            </div>
+          </div>
+        )}
+
+        {activeSection === 'videos' && (
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            {/* User Profile Sidebar */}
+            <div className="lg:col-span-1">
+              <UserProfileConnected />
+              <div className="mt-6">
+                <WalletDisplayConnected />
+              </div>
+            </div>
+
+            {/* Videos Section */}
+            <div className="lg:col-span-3">
+              <VideosSection />
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
