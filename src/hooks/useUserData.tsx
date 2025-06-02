@@ -115,19 +115,19 @@ export const useUserData = () => {
     fetchUserData();
 
     if (user) {
-      // Set up realtime subscription for user table updates
-      const userSubscription = supabase
-        .channel('user-data-updates')
+      // Set up comprehensive real-time subscription for ALL database changes
+      const allChangesSubscription = supabase
+        .channel('admin-realtime-updates')
         .on(
           'postgres_changes',
           {
-            event: 'UPDATE',
+            event: '*', // Listen to ALL events (INSERT, UPDATE, DELETE)
             schema: 'public',
             table: 'users',
             filter: `id=eq.${user.id}`,
           },
           (payload) => {
-            console.log('Real-time user update received:', payload);
+            console.log('Real-time users table update:', payload);
             
             // Update local state immediately with new data
             setUserData(prev => {
@@ -138,7 +138,7 @@ export const useUserData = () => {
                 ...payload.new
               };
               
-              console.log('Updated user data:', updatedData);
+              console.log('Updated user data from admin change:', updatedData);
               
               // Recalculate canSpin based on new data
               const todaySpinCount = spins.length;
@@ -148,7 +148,7 @@ export const useUserData = () => {
                 todaySpinCount
               );
               
-              console.log('Real-time spin calculation:', {
+              console.log('Real-time spin calculation after admin change:', {
                 coins: updatedData.coins,
                 spinLimit: updatedData.daily_spin_limit,
                 todaySpinCount,
@@ -162,11 +162,6 @@ export const useUserData = () => {
             });
           }
         )
-        .subscribe();
-
-      // Set up realtime subscription for spins table updates
-      const spinsSubscription = supabase
-        .channel('spins-updates')
         .on(
           'postgres_changes',
           {
@@ -176,16 +171,47 @@ export const useUserData = () => {
             filter: `user_id=eq.${user.id}`,
           },
           (payload) => {
-            console.log('Real-time spins update received:', payload);
-            // Refresh spins data when new spin is added
+            console.log('Real-time spins table update:', payload);
+            // Refresh spins data when any spin changes occur
             fetchUserData();
+          }
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'withdrawals',
+            filter: `user_id=eq.${user.id}`,
+          },
+          (payload) => {
+            console.log('Real-time withdrawals table update:', payload);
+            // Refresh user data as withdrawals might affect coins
+            fetchUserData();
+          }
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'referrals',
+          },
+          (payload) => {
+            console.log('Real-time referrals table update:', payload);
+            // Check if this affects the current user
+            if (payload.new?.referrer_id === user.id || payload.new?.referred_user_id === user.id) {
+              fetchUserData();
+            }
           }
         )
         .subscribe();
 
+      console.log('Real-time subscription setup for admin changes');
+
       return () => {
-        supabase.removeChannel(userSubscription);
-        supabase.removeChannel(spinsSubscription);
+        supabase.removeChannel(allChangesSubscription);
+        console.log('Real-time subscription cleaned up');
       };
     }
   }, [user]);
