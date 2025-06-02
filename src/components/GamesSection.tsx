@@ -1,7 +1,5 @@
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useUserData } from '@/hooks/useUserData';
 
@@ -93,7 +91,7 @@ export const GamesSection: React.FC = () => {
       description: `Starting ${game.title}. Good luck!`,
     });
 
-    // Simulate game play (you can replace this with actual game logic)
+    // Simulate game play
     setTimeout(() => {
       const randomReward = Math.floor(Math.random() * 100) + 20;
       toast({
@@ -115,92 +113,76 @@ export const GamesSection: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <Card className="bg-white/20 backdrop-blur-sm border-white/30">
-        <CardHeader>
-          <CardTitle className="text-white text-2xl flex items-center">
-            🎮 Mini Games Collection
-            <span className="ml-3 text-sm bg-gradient-to-r from-green-400 to-blue-500 text-white px-3 py-1 rounded-full">
-              Earn More Coins!
-            </span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-white/80 mb-6">
-            Play exciting mini-games to earn extra coins! Each game costs coins to play but offers great rewards.
-          </p>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {games.map((game) => (
-              <Card key={game.id} className="bg-white/10 border-white/20 hover:bg-white/20 transition-all duration-300">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <div className="text-3xl">{game.icon}</div>
-                    <div className={`text-sm font-bold ${getDifficultyColor(game.difficulty)}`}>
-                      {game.difficulty}
-                    </div>
-                  </div>
-                  <CardTitle className="text-white text-lg">{game.title}</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <p className="text-white/80 text-sm">{game.description}</p>
-                  
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-white/70">Cost:</span>
-                      <span className="text-red-400 font-bold">{game.cost} coins</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-white/70">Reward:</span>
-                      <span className="text-green-400 font-bold">{game.reward}</span>
-                    </div>
-                  </div>
+      {/* Header */}
+      <div className="bg-white/20 backdrop-blur-sm rounded-3xl p-6 text-center shadow-xl">
+        <h2 className="text-3xl font-bold text-white mb-2">🎮 Mini Games</h2>
+        <p className="text-white/80">Play exciting games to earn extra coins!</p>
+      </div>
 
-                  <Button
-                    onClick={() => handlePlayGame(game)}
-                    disabled={!userData || userData.coins < game.cost || selectedGame !== null}
-                    className={`w-full py-2 rounded-xl font-semibold transition-all ${
-                      userData && userData.coins >= game.cost && selectedGame === null
-                        ? 'bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white'
-                        : 'bg-gray-500 text-gray-300 cursor-not-allowed'
-                    }`}
-                  >
-                    {selectedGame?.id === game.id ? (
-                      <>⏳ Playing...</>
-                    ) : userData && userData.coins >= game.cost ? (
-                      <>🎮 Play Now</>
-                    ) : (
-                      <>🚫 Need {game.cost} coins</>
-                    )}
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
+      {/* Games Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {games.map((game) => (
+          <div key={game.id} className="bg-white/20 backdrop-blur-sm rounded-3xl p-6 shadow-xl hover:bg-white/30 transition-all duration-300">
+            <div className="flex items-center justify-between mb-4">
+              <div className="text-4xl">{game.icon}</div>
+              <div className={`text-sm font-bold ${getDifficultyColor(game.difficulty)}`}>
+                {game.difficulty}
+              </div>
+            </div>
+            
+            <h3 className="text-xl font-bold text-white mb-2">{game.title}</h3>
+            <p className="text-white/80 text-sm mb-4">{game.description}</p>
+            
+            <div className="space-y-2 mb-4">
+              <div className="flex justify-between text-sm">
+                <span className="text-white/70">Cost:</span>
+                <span className="text-red-400 font-bold">{game.cost} coins</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-white/70">Reward:</span>
+                <span className="text-green-400 font-bold">{game.reward}</span>
+              </div>
+            </div>
+
+            <button
+              onClick={() => handlePlayGame(game)}
+              disabled={!userData || userData.coins < game.cost || selectedGame !== null}
+              className={`w-full py-3 rounded-xl font-semibold transition-all duration-300 ${
+                userData && userData.coins >= game.cost && selectedGame === null
+                  ? 'bg-gradient-to-r from-green-400 to-blue-500 hover:from-green-500 hover:to-blue-600 text-white shadow-lg hover:shadow-xl transform hover:scale-105'
+                  : 'bg-gray-500 text-gray-300 cursor-not-allowed'
+              }`}
+            >
+              {selectedGame?.id === game.id ? (
+                <>⏳ Playing...</>
+              ) : userData && userData.coins >= game.cost ? (
+                <>🎮 Play Now</>
+              ) : (
+                <>🚫 Need {game.cost} coins</>
+              )}
+            </button>
           </div>
-        </CardContent>
-      </Card>
+        ))}
+      </div>
 
       {/* Game Stats */}
-      <Card className="bg-white/20 backdrop-blur-sm border-white/30">
-        <CardHeader>
-          <CardTitle className="text-white text-xl">📊 Gaming Stats</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-3 gap-4">
-            <div className="bg-white/20 rounded-xl p-4 text-center">
-              <p className="text-white/80 text-sm">Games Played Today</p>
-              <p className="text-white font-bold text-2xl">0</p>
-            </div>
-            <div className="bg-white/20 rounded-xl p-4 text-center">
-              <p className="text-white/80 text-sm">Coins Earned</p>
-              <p className="text-green-400 font-bold text-2xl">0</p>
-            </div>
-            <div className="bg-white/20 rounded-xl p-4 text-center">
-              <p className="text-white/80 text-sm">Win Rate</p>
-              <p className="text-yellow-400 font-bold text-2xl">0%</p>
-            </div>
+      <div className="bg-white/20 backdrop-blur-sm rounded-3xl p-6 shadow-xl">
+        <h3 className="text-xl font-bold text-white mb-4">📊 Gaming Stats</h3>
+        <div className="grid grid-cols-3 gap-4">
+          <div className="bg-white/20 rounded-2xl p-4 text-center">
+            <p className="text-white/80 text-sm">Games Played</p>
+            <p className="text-white font-bold text-2xl">0</p>
           </div>
-        </CardContent>
-      </Card>
+          <div className="bg-white/20 rounded-2xl p-4 text-center">
+            <p className="text-white/80 text-sm">Coins Earned</p>
+            <p className="text-green-400 font-bold text-2xl">0</p>
+          </div>
+          <div className="bg-white/20 rounded-2xl p-4 text-center">
+            <p className="text-white/80 text-sm">Win Rate</p>
+            <p className="text-yellow-400 font-bold text-2xl">0%</p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

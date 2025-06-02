@@ -47,12 +47,12 @@ const Index = () => {
       <div className="container mx-auto px-4 py-8">
         {/* Navigation Tabs */}
         <div className="flex justify-center mb-8">
-          <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-2 flex space-x-2">
+          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-2 flex space-x-2">
             <button
               onClick={() => setActiveSection('spin')}
               className={`px-6 py-3 rounded-xl font-semibold transition-all ${
                 activeSection === 'spin'
-                  ? 'bg-yellow-500 text-white shadow-lg'
+                  ? 'bg-gradient-to-r from-yellow-400 to-orange-500 text-white shadow-lg'
                   : 'text-white/80 hover:text-white hover:bg-white/10'
               }`}
             >
@@ -62,7 +62,7 @@ const Index = () => {
               onClick={() => setActiveSection('games')}
               className={`px-6 py-3 rounded-xl font-semibold transition-all ${
                 activeSection === 'games'
-                  ? 'bg-green-500 text-white shadow-lg'
+                  ? 'bg-gradient-to-r from-green-400 to-blue-500 text-white shadow-lg'
                   : 'text-white/80 hover:text-white hover:bg-white/10'
               }`}
             >
@@ -72,7 +72,7 @@ const Index = () => {
               onClick={() => setActiveSection('videos')}
               className={`px-6 py-3 rounded-xl font-semibold transition-all ${
                 activeSection === 'videos'
-                  ? 'bg-red-500 text-white shadow-lg'
+                  ? 'bg-gradient-to-r from-red-400 to-pink-500 text-white shadow-lg'
                   : 'text-white/80 hover:text-white hover:bg-white/10'
               }`}
             >
@@ -104,8 +104,8 @@ const Index = () => {
         )}
 
         {activeSection === 'games' && (
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-            {/* User Profile Sidebar */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* User Profile Section */}
             <div className="lg:col-span-1">
               <UserProfileConnected />
               <div className="mt-6">
@@ -114,15 +114,15 @@ const Index = () => {
             </div>
 
             {/* Games Section */}
-            <div className="lg:col-span-3">
+            <div className="lg:col-span-2">
               <GamesSection />
             </div>
           </div>
         )}
 
         {activeSection === 'videos' && (
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-            {/* User Profile Sidebar */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* User Profile Section */}
             <div className="lg:col-span-1">
               <UserProfileConnected />
               <div className="mt-6">
@@ -131,7 +131,7 @@ const Index = () => {
             </div>
 
             {/* Videos Section */}
-            <div className="lg:col-span-3">
+            <div className="lg:col-span-2">
               <VideosSection />
             </div>
           </div>
