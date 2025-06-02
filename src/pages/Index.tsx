@@ -1,141 +1,121 @@
 
+import { useState, useEffect } from 'react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AuthModal } from '@/components/AuthModal';
 import { SpinWheelConnected } from '@/components/SpinWheelConnected';
-import { SpinHistoryConnected } from '@/components/SpinHistoryConnected';
-import { UserProfileConnected } from '@/components/UserProfileConnected';
 import { WalletDisplayConnected } from '@/components/WalletDisplayConnected';
-import { GamesSection } from '@/components/GamesSection';
-import { VideosSection } from '@/components/VideosSection';
+import { UserProfileConnected } from '@/components/UserProfileConnected';
+import { SpinHistoryConnected } from '@/components/SpinHistoryConnected';
+import { SpinManagement } from '@/components/SpinManagement';
 import { useAuth } from '@/hooks/useAuth';
-import { useState } from 'react';
 
 const Index = () => {
   const { user, loading } = useAuth();
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const [activeSection, setActiveSection] = useState<'spin' | 'games' | 'videos'>('spin');
+  const [showAuth, setShowAuth] = useState(false);
+  const [referralCode, setReferralCode] = useState<string>('');
+  const [activeTab, setActiveTab] = useState('spin');
+
+  useEffect(() => {
+    // Check for referral code in URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const refCode = urlParams.get('ref');
+    if (refCode) {
+      setReferralCode(refCode);
+    }
+  }, []);
+
+  const handleSwitchToHistory = () => {
+    setActiveTab('history');
+  };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center">
-        <div className="text-white text-xl">Loading...</div>
+      <div className="min-h-screen bg-gradient-to-br from-purple-600 via-pink-600 to-orange-500 flex items-center justify-center">
+        <div className="text-white text-2xl font-bold">🎰 Loading...</div>
       </div>
     );
   }
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
-        <div className="container mx-auto px-4 py-8">
-          <div className="text-center">
-            <h1 className="text-4xl font-bold text-white mb-4">🎰 Spin to Earn</h1>
-            <p className="text-white/80 mb-8">Spin the wheel and earn amazing rewards!</p>
-            <button
-              onClick={() => setIsAuthModalOpen(true)}
-              className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-8 py-3 rounded-lg font-semibold hover:from-yellow-500 hover:to-orange-600 transition-all duration-300 transform hover:scale-105"
-            >
-              Get Started - Login/Register
-            </button>
-          </div>
+      <div className="min-h-screen bg-gradient-to-br from-purple-600 via-pink-600 to-orange-500 flex flex-col items-center justify-center p-4">
+        <div className="text-center mb-8">
+          <h1 className="text-6xl font-bold text-white mb-4">🎰 Spin to Earn</h1>
+          <p className="text-xl text-white/80 mb-6">Spin the wheel daily and earn coins!</p>
+          
+          {referralCode && (
+            <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 mb-6">
+              <p className="text-white font-semibold">🎁 You've been invited!</p>
+              <p className="text-white/80">Join now and get 50 bonus coins!</p>
+            </div>
+          )}
+          
+          <button
+            onClick={() => setShowAuth(true)}
+            className="bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-white font-bold py-4 px-8 rounded-2xl text-xl shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all"
+          >
+            🚀 Get Started
+          </button>
         </div>
-        <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
+
+        <AuthModal 
+          isOpen={showAuth} 
+          onClose={() => setShowAuth(false)}
+          referralCode={referralCode}
+        />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
+    <div className="min-h-screen bg-gradient-to-br from-purple-600 via-pink-600 to-orange-500">
       <div className="container mx-auto px-4 py-8">
-        {/* Navigation Tabs */}
-        <div className="flex justify-center mb-8">
-          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-2 flex space-x-2">
-            <button
-              onClick={() => setActiveSection('spin')}
-              className={`px-6 py-3 rounded-xl font-semibold transition-all ${
-                activeSection === 'spin'
-                  ? 'bg-gradient-to-r from-yellow-400 to-orange-500 text-white shadow-lg'
-                  : 'text-white/80 hover:text-white hover:bg-white/10'
-              }`}
-            >
-              🎰 Spin Wheel
-            </button>
-            <button
-              onClick={() => setActiveSection('games')}
-              className={`px-6 py-3 rounded-xl font-semibold transition-all ${
-                activeSection === 'games'
-                  ? 'bg-gradient-to-r from-green-400 to-blue-500 text-white shadow-lg'
-                  : 'text-white/80 hover:text-white hover:bg-white/10'
-              }`}
-            >
-              🎮 Games
-            </button>
-            <button
-              onClick={() => setActiveSection('videos')}
-              className={`px-6 py-3 rounded-xl font-semibold transition-all ${
-                activeSection === 'videos'
-                  ? 'bg-gradient-to-r from-red-400 to-pink-500 text-white shadow-lg'
-                  : 'text-white/80 hover:text-white hover:bg-white/10'
-              }`}
-            >
-              📺 Videos
-            </button>
-          </div>
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold text-white mb-2">🎰 Spin to Earn</h1>
+          <p className="text-white/80">Welcome back! Ready to spin and win?</p>
         </div>
 
-        {activeSection === 'spin' && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* User Profile Section */}
-            <div className="lg:col-span-1">
-              <UserProfileConnected />
-              <div className="mt-6">
-                <WalletDisplayConnected />
-              </div>
-            </div>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="max-w-4xl mx-auto">
+          <TabsList className="grid w-full grid-cols-5 bg-white/20 backdrop-blur-sm">
+            <TabsTrigger value="spin" className="text-white data-[state=active]:bg-white/30">
+              🎰 Spin
+            </TabsTrigger>
+            <TabsTrigger value="wallet" className="text-white data-[state=active]:bg-white/30">
+              💰 Wallet
+            </TabsTrigger>
+            <TabsTrigger value="history" className="text-white data-[state=active]:bg-white/30">
+              📊 History
+            </TabsTrigger>
+            <TabsTrigger value="manage" className="text-white data-[state=active]:bg-white/30">
+              ⚙️ Manage
+            </TabsTrigger>
+            <TabsTrigger value="profile" className="text-white data-[state=active]:bg-white/30">
+              👤 Profile
+            </TabsTrigger>
+          </TabsList>
 
-            {/* Main Spin Wheel Section */}
-            <div className="lg:col-span-1 flex flex-col items-center justify-center">
+          <div className="mt-6">
+            <TabsContent value="spin" className="space-y-6">
               <SpinWheelConnected />
-            </div>
+            </TabsContent>
 
-            {/* Spin History Section */}
-            <div className="lg:col-span-1">
+            <TabsContent value="wallet" className="space-y-6">
+              <WalletDisplayConnected onSwitchToHistory={handleSwitchToHistory} />
+            </TabsContent>
+
+            <TabsContent value="history" className="space-y-6">
               <SpinHistoryConnected />
-            </div>
+            </TabsContent>
+
+            <TabsContent value="manage" className="space-y-6">
+              <SpinManagement />
+            </TabsContent>
+
+            <TabsContent value="profile" className="space-y-6">
+              <UserProfileConnected onSwitchToHistory={handleSwitchToHistory} />
+            </TabsContent>
           </div>
-        )}
-
-        {activeSection === 'games' && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* User Profile Section */}
-            <div className="lg:col-span-1">
-              <UserProfileConnected />
-              <div className="mt-6">
-                <WalletDisplayConnected />
-              </div>
-            </div>
-
-            {/* Games Section */}
-            <div className="lg:col-span-2">
-              <GamesSection />
-            </div>
-          </div>
-        )}
-
-        {activeSection === 'videos' && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* User Profile Section */}
-            <div className="lg:col-span-1">
-              <UserProfileConnected />
-              <div className="mt-6">
-                <WalletDisplayConnected />
-              </div>
-            </div>
-
-            {/* Videos Section */}
-            <div className="lg:col-span-2">
-              <VideosSection />
-            </div>
-          </div>
-        )}
+        </Tabs>
       </div>
     </div>
   );
