@@ -199,9 +199,12 @@ export const useUserData = () => {
           },
           (payload) => {
             console.log('Real-time referrals table update:', payload);
-            // Check if this affects the current user
-            if (payload.new?.referrer_id === user.id || payload.new?.referred_user_id === user.id) {
-              fetchUserData();
+            // Check if this affects the current user with proper type checking
+            if (payload.new && typeof payload.new === 'object') {
+              const newData = payload.new as any;
+              if (newData.referrer_id === user.id || newData.referred_user_id === user.id) {
+                fetchUserData();
+              }
             }
           }
         )
