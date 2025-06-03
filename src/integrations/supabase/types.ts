@@ -65,44 +65,32 @@ export type Database = {
       spin_management: {
         Row: {
           admin_notes: string | null
-          amount: number
-          created_at: string
           id: string
           original_spin_id: string | null
           processed_at: string | null
           processed_by: string | null
           spin_time: string
-          spins_chance: number | null
           status: string
-          updated_at: string
           user_id: string
         }
         Insert: {
           admin_notes?: string | null
-          amount: number
-          created_at?: string
           id?: string
           original_spin_id?: string | null
           processed_at?: string | null
           processed_by?: string | null
           spin_time?: string
-          spins_chance?: number | null
           status?: string
-          updated_at?: string
           user_id: string
         }
         Update: {
           admin_notes?: string | null
-          amount?: number
-          created_at?: string
           id?: string
           original_spin_id?: string | null
           processed_at?: string | null
           processed_by?: string | null
           spin_time?: string
-          spins_chance?: number | null
           status?: string
-          updated_at?: string
           user_id?: string
         }
         Relationships: [

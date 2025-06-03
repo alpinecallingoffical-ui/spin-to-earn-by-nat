@@ -7,6 +7,7 @@ import { WalletDisplayConnected } from '@/components/WalletDisplayConnected';
 import { UserProfileConnected } from '@/components/UserProfileConnected';
 import { SpinHistoryConnected } from '@/components/SpinHistoryConnected';
 import { MoreSection } from '@/components/MoreSection';
+import { AboutSection } from '@/components/AboutSection';
 import { useAuth } from '@/hooks/useAuth';
 
 const Index = () => {
@@ -65,7 +66,7 @@ const Index = () => {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="max-w-4xl mx-auto">
-          <TabsList className="grid w-full grid-cols-5 bg-white/20 backdrop-blur-sm">
+          <TabsList className="grid w-full grid-cols-6 bg-white/20 backdrop-blur-sm">
             <TabsTrigger value="spin" className="text-white data-[state=active]:bg-white/30">
               🎰 Spin
             </TabsTrigger>
@@ -77,6 +78,9 @@ const Index = () => {
             </TabsTrigger>
             <TabsTrigger value="mores" className="text-white data-[state=active]:bg-white/30">
               🎮 MORES
+            </TabsTrigger>
+            <TabsTrigger value="about" className="text-white data-[state=active]:bg-white/30">
+              ℹ️ ABOUT
             </TabsTrigger>
             <TabsTrigger value="profile" className="text-white data-[state=active]:bg-white/30">
               👤 Profile
@@ -98,6 +102,10 @@ const Index = () => {
 
             <TabsContent value="mores" className="space-y-6">
               <MoreSection />
+            </TabsContent>
+
+            <TabsContent value="about" className="space-y-6">
+              <AboutSection />
             </TabsContent>
 
             <TabsContent value="profile" className="space-y-6">
