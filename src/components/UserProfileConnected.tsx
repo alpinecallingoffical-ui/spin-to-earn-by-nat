@@ -1,10 +1,10 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useUserData } from '@/hooks/useUserData';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { useVipBenefits } from '@/hooks/useVipBenefits';
 
 interface UserProfileConnectedProps {
   onSwitchToHistory?: () => void;
@@ -14,6 +14,7 @@ export const UserProfileConnected: React.FC<UserProfileConnectedProps> = ({ onSw
   const { userData } = useUserData();
   const { signOut } = useAuth();
   const { toast } = useToast();
+  const { getTotalMultiplierSavings, getTodaysBenefits } = useVipBenefits();
 
   const getVipLevel = (coins: number) => {
     if (coins >= 3000) return { 
@@ -55,39 +56,42 @@ export const UserProfileConnected: React.FC<UserProfileConnectedProps> = ({ onSw
   };
 
   const getVipFeatures = (coins: number) => {
+    const todaysBenefits = getTodaysBenefits();
+    const multiplierSavings = getTotalMultiplierSavings();
+    
     if (coins >= 3000) return [
-      { text: '🎰 Unlimited daily spins', status: 'ACTIVE', special: true },
-      { text: '🎯 Priority support', status: 'ACTIVE', special: true },
-      { text: '🎁 Exclusive Grand Master rewards', status: 'ACTIVE', special: true },
-      { text: '👑 Grand Master badge & crown', status: 'ACTIVE', special: true },
-      { text: '💫 Special rainbow animations', status: 'ACTIVE', special: true },
-      { text: '🌟 VIP chat access', status: 'ACTIVE', special: true },
-      { text: '🔥 10x bonus multiplier', status: 'ACTIVE', special: true },
-      { text: '💰 Daily bonus coins', status: 'ACTIVE', special: true }
+      { text: `🎰 Unlimited daily spins`, status: 'ACTIVE', special: true, used: false },
+      { text: `🎯 Priority support`, status: 'ACTIVE', special: true, used: false },
+      { text: `🎁 Exclusive Grand Master rewards`, status: 'ACTIVE', special: true, used: false },
+      { text: `👑 Grand Master badge & crown`, status: 'ACTIVE', special: true, used: false },
+      { text: `💫 Special rainbow animations`, status: 'ACTIVE', special: true, used: false },
+      { text: `🌟 VIP chat access`, status: 'ACTIVE', special: true, used: false },
+      { text: `🔥 10x bonus multiplier`, status: 'ACTIVE', special: true, used: todaysBenefits.length > 0, savings: multiplierSavings },
+      { text: `💰 Daily bonus coins`, status: 'ACTIVE', special: true, used: false }
     ];
     if (coins >= 2000) return [
-      { text: '🎰 15 daily spins', status: 'ACTIVE', special: true },
-      { text: '🎯 Priority support', status: 'ACTIVE', special: true },
-      { text: '🎁 Elite Master rewards', status: 'ACTIVE', special: true },
-      { text: '💎 Elite Master badge', status: 'ACTIVE', special: true },
-      { text: '✨ Enhanced blue animations', status: 'ACTIVE', special: true },
-      { text: '🎨 Custom blue themes', status: 'ACTIVE', special: true },
-      { text: '🚀 5x bonus multiplier', status: 'ACTIVE', special: true },
-      { text: '💝 Weekly bonus rewards', status: 'ACTIVE', special: true }
+      { text: `🎰 15 daily spins`, status: 'ACTIVE', special: true, used: false },
+      { text: `🎯 Priority support`, status: 'ACTIVE', special: true, used: false },
+      { text: `🎁 Elite Master rewards`, status: 'ACTIVE', special: true, used: false },
+      { text: `💎 Elite Master badge`, status: 'ACTIVE', special: true, used: false },
+      { text: `✨ Enhanced blue animations`, status: 'ACTIVE', special: true, used: false },
+      { text: `🎨 Custom blue themes`, status: 'ACTIVE', special: true, used: false },
+      { text: `🚀 5x bonus multiplier`, status: 'ACTIVE', special: true, used: todaysBenefits.length > 0, savings: multiplierSavings },
+      { text: `💝 Weekly bonus rewards`, status: 'ACTIVE', special: true, used: false }
     ];
     if (coins >= 1000) return [
-      { text: '🎰 10 daily spins', status: 'ACTIVE', special: true },
-      { text: '🎯 VIP support', status: 'ACTIVE', special: true },
-      { text: '🎁 VIP bonus rewards', status: 'ACTIVE', special: true },
-      { text: '⭐ VIP golden badge', status: 'ACTIVE', special: true },
-      { text: '🌟 Golden animations', status: 'ACTIVE', special: true },
-      { text: '🎵 VIP sound effects', status: 'ACTIVE', special: true },
-      { text: '💰 2x bonus multiplier', status: 'ACTIVE', special: true },
-      { text: '🎉 Special celebrations', status: 'ACTIVE', special: true }
+      { text: `🎰 10 daily spins`, status: 'ACTIVE', special: true, used: false },
+      { text: `🎯 VIP support`, status: 'ACTIVE', special: true, used: false },
+      { text: `🎁 VIP bonus rewards`, status: 'ACTIVE', special: true, used: false },
+      { text: `⭐ VIP golden badge`, status: 'ACTIVE', special: true, used: false },
+      { text: `🌟 Golden animations`, status: 'ACTIVE', special: true, used: false },
+      { text: `🎵 VIP sound effects`, status: 'ACTIVE', special: true, used: false },
+      { text: `💰 2x bonus multiplier`, status: 'ACTIVE', special: true, used: todaysBenefits.length > 0, savings: multiplierSavings },
+      { text: `🎉 Special celebrations`, status: 'ACTIVE', special: true, used: false }
     ];
     return [
-      { text: '🎰 5 daily spins', status: 'STANDARD', special: false },
-      { text: '🎯 Standard support', status: 'STANDARD', special: false }
+      { text: '🎰 5 daily spins', status: 'STANDARD', special: false, used: false },
+      { text: '🎯 Standard support', status: 'STANDARD', special: false, used: false }
     ];
   };
 
@@ -213,14 +217,24 @@ export const UserProfileConnected: React.FC<UserProfileConnectedProps> = ({ onSw
               }`}>
                 {feature.text}
               </span>
-              {feature.special && (
-                <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2">
+                {feature.special && (
                   <span className="text-xs bg-green-500 text-white px-2 py-1 rounded-full animate-pulse">
                     {feature.status}
                   </span>
-                  <span className="text-green-400 animate-bounce">✨</span>
-                </div>
-              )}
+                )}
+                {feature.used && (
+                  <span className="text-xs bg-blue-500 text-white px-2 py-1 rounded-full">
+                    USED TODAY
+                  </span>
+                )}
+                {feature.savings && feature.savings > 0 && (
+                  <span className="text-xs bg-yellow-500 text-white px-2 py-1 rounded-full">
+                    +{feature.savings} bonus
+                  </span>
+                )}
+                {feature.special && <span className="text-green-400 animate-bounce">✨</span>}
+              </div>
             </div>
           ))}
         </div>

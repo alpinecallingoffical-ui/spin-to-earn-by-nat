@@ -9,6 +9,33 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      game_scores: {
+        Row: {
+          achieved_at: string
+          game_type: string
+          id: string
+          reward_coins: number
+          score: number
+          user_id: string
+        }
+        Insert: {
+          achieved_at?: string
+          game_type: string
+          id?: string
+          reward_coins?: number
+          score?: number
+          user_id: string
+        }
+        Update: {
+          achieved_at?: string
+          game_type?: string
+          id?: string
+          reward_coins?: number
+          score?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       referrals: {
         Row: {
           bonus_given: number
@@ -167,6 +194,66 @@ export type Database = {
           },
         ]
       }
+      tasks: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          id: string
+          reward_coins: number
+          status: string
+          task_description: string | null
+          task_title: string
+          task_type: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          reward_coins?: number
+          status?: string
+          task_description?: string | null
+          task_title: string
+          task_type: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          reward_coins?: number
+          status?: string
+          task_description?: string | null
+          task_title?: string
+          task_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_benefits: {
+        Row: {
+          benefit_data: Json | null
+          benefit_type: string
+          id: string
+          used_at: string
+          user_id: string
+        }
+        Insert: {
+          benefit_data?: Json | null
+          benefit_type: string
+          id?: string
+          used_at?: string
+          user_id: string
+        }
+        Update: {
+          benefit_data?: Json | null
+          benefit_type?: string
+          id?: string
+          used_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       users: {
         Row: {
           coins: number
@@ -200,6 +287,33 @@ export type Database = {
           phone?: string | null
           referral_code?: string
           referred_by?: string | null
+        }
+        Relationships: []
+      }
+      video_watches: {
+        Row: {
+          id: string
+          reward_coins: number
+          user_id: string
+          video_id: string
+          video_title: string
+          watched_at: string
+        }
+        Insert: {
+          id?: string
+          reward_coins?: number
+          user_id: string
+          video_id: string
+          video_title: string
+          watched_at?: string
+        }
+        Update: {
+          id?: string
+          reward_coins?: number
+          user_id?: string
+          video_id?: string
+          video_title?: string
+          watched_at?: string
         }
         Relationships: []
       }
@@ -266,12 +380,34 @@ export type Database = {
         Args: { user_uuid: string }
         Returns: boolean
       }
+      complete_task: {
+        Args: { task_uuid: string }
+        Returns: boolean
+      }
       generate_referral_code: {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      record_game_score: {
+        Args: {
+          user_uuid: string
+          game_type_param: string
+          score_param: number
+          reward_amount: number
+        }
+        Returns: boolean
+      }
       record_spin: {
         Args: { user_uuid: string; reward_amount: number }
+        Returns: boolean
+      }
+      record_video_watch: {
+        Args: {
+          user_uuid: string
+          video_id_param: string
+          video_title_param: string
+          reward_amount: number
+        }
         Returns: boolean
       }
       update_spin_status: {
