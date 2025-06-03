@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -9,12 +8,12 @@ import { useToast } from '@/hooks/use-toast';
 interface SpinManagementRecord {
   id: string;
   user_id: string;
-  amount: number;
   status: string;
-  created_at: string;
   spin_time: string;
+  original_spin_id?: string;
+  processed_by?: string;
+  processed_at?: string;
   admin_notes?: string;
-  spins_chance?: number;
 }
 
 interface User {
@@ -38,7 +37,7 @@ export const SpinManagement: React.FC = () => {
       const { data, error } = await supabase
         .from('spin_management')
         .select('*')
-        .order('created_at', { ascending: false });
+        .order('spin_time', { ascending: false });
 
       if (error) throw error;
       setRecords(data || []);
@@ -236,8 +235,7 @@ export const SpinManagement: React.FC = () => {
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
                     <div>
                       <p className="text-white font-semibold">User ID: {record.user_id.slice(0, 8)}...</p>
-                      <p className="text-white/80">Amount: {record.amount} coins</p>
-                      <p className="text-white/80">Date: {new Date(record.created_at).toLocaleDateString()}</p>
+                      <p className="text-white/80">Date: {new Date(record.spin_time).toLocaleDateString()}</p>
                     </div>
                     
                     <div>
