@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AuthModal } from '@/components/AuthModal';
@@ -5,8 +6,9 @@ import { SpinWheelConnected } from '@/components/SpinWheelConnected';
 import { WalletDisplayConnected } from '@/components/WalletDisplayConnected';
 import { UserProfileConnected } from '@/components/UserProfileConnected';
 import { SpinHistoryConnected } from '@/components/SpinHistoryConnected';
-import { SpinManagement } from '@/components/SpinManagement';
+import { MoreSection } from '@/components/MoreSection';
 import { useAuth } from '@/hooks/useAuth';
+
 const Index = () => {
   const {
     user,
@@ -15,6 +17,7 @@ const Index = () => {
   const [showAuth, setShowAuth] = useState(false);
   const [referralCode, setReferralCode] = useState<string>('');
   const [activeTab, setActiveTab] = useState('spin');
+
   useEffect(() => {
     // Check for referral code in URL
     const urlParams = new URLSearchParams(window.location.search);
@@ -23,14 +26,17 @@ const Index = () => {
       setReferralCode(refCode);
     }
   }, []);
+
   const handleSwitchToHistory = () => {
     setActiveTab('history');
   };
+
   if (loading) {
     return <div className="min-h-screen bg-gradient-to-br from-purple-600 via-pink-600 to-orange-500 flex items-center justify-center">
         <div className="text-white text-2xl font-bold">🎰 Loading...</div>
       </div>;
   }
+
   if (!user) {
     return <div className="min-h-screen bg-gradient-to-br from-purple-600 via-pink-600 to-orange-500 flex flex-col items-center justify-center p-4">
         <div className="text-center mb-8">
@@ -50,6 +56,7 @@ const Index = () => {
         <AuthModal isOpen={showAuth} onClose={() => setShowAuth(false)} referralCode={referralCode} />
       </div>;
   }
+
   return <div className="min-h-screen bg-gradient-to-br from-purple-600 via-pink-600 to-orange-500">
       <div className="container mx-auto px-4 py-8">
         <div className="text-center mb-8">
@@ -68,7 +75,9 @@ const Index = () => {
             <TabsTrigger value="history" className="text-white data-[state=active]:bg-white/30">
               📊 History
             </TabsTrigger>
-            
+            <TabsTrigger value="mores" className="text-white data-[state=active]:bg-white/30">
+              🎮 MORES
+            </TabsTrigger>
             <TabsTrigger value="profile" className="text-white data-[state=active]:bg-white/30">
               👤 Profile
             </TabsTrigger>
@@ -87,8 +96,8 @@ const Index = () => {
               <SpinHistoryConnected />
             </TabsContent>
 
-            <TabsContent value="manage" className="space-y-6">
-              <SpinManagement />
+            <TabsContent value="mores" className="space-y-6">
+              <MoreSection />
             </TabsContent>
 
             <TabsContent value="profile" className="space-y-6">
@@ -99,4 +108,5 @@ const Index = () => {
       </div>
     </div>;
 };
+
 export default Index;
