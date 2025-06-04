@@ -4,6 +4,12 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { Play, Trophy, Gamepad, Clock } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+import { useUserData } from '@/hooks/useUserData';
+import { NumberGuessingGame } from './games/NumberGuessingGame';
+import { MemoryMatchGame } from './games/MemoryMatchGame';
+import { QuickMathGame } from './games/QuickMathGame';
 
 interface Game {
   id: string;
@@ -13,20 +19,15 @@ interface Game {
   difficulty: 'easy' | 'medium' | 'hard';
   category: string;
   reward: number;
-  played: boolean;
-  highScore?: number;
   timeToPlay: string;
-}
-
-interface GameSession {
-  gameId: string;
-  playing: boolean;
-  progress: number;
+  component: string;
 }
 
 export const GamesSection = () => {
   const { toast } = useToast();
-  const [games, setGames] = useState<Game[]>([
+  const { user } = useAuth();
+  const { userData, refetch } = useUserData();
+  const [games] = useState<Game[]>([
     {
       id: '1',
       title: 'Number Guessing',
@@ -35,8 +36,8 @@ export const GamesSection = () => {
       difficulty: 'easy',
       category: 'Puzzle',
       reward: 15,
-      played: false,
-      timeToPlay: '3-5 min'
+      timeToPlay: '3-5 min',
+      component: 'NumberGuessingGame'
     },
     {
       id: '2',
@@ -46,8 +47,8 @@ export const GamesSection = () => {
       difficulty: 'medium',
       category: 'Memory',
       reward: 25,
-      played: false,
-      timeToPlay: '5-8 min'
+      timeToPlay: '5-8 min',
+      component: 'MemoryMatchGame'
     },
     {
       id: '3',
@@ -57,77 +58,68 @@ export const GamesSection = () => {
       difficulty: 'easy',
       category: 'Educational',
       reward: 20,
-      played: false,
-      timeToPlay: '2-4 min'
-    },
-    {
-      id: '4',
-      title: 'Word Puzzle',
-      emoji: '🔤',
-      description: 'Find hidden words in the letter grid',
-      difficulty: 'medium',
-      category: 'Word',
-      reward: 30,
-      played: false,
-      timeToPlay: '8-12 min'
-    },
-    {
-      id: '5',
-      title: 'Color Match',
-      emoji: '🌈',
-      description: 'Match colors in the right sequence before time runs out',
-      difficulty: 'hard',
-      category: 'Reaction',
-      reward: 40,
-      played: false,
-      timeToPlay: '10-15 min'
-    },
-    {
-      id: '6',
-      title: 'Snake Classic',
-      emoji: '🐍',
-      description: 'Classic snake game with a modern twist',
-      difficulty: 'medium',
-      category: 'Arcade',
-      reward: 35,
-      played: false,
-      timeToPlay: '5-10 min'
+      timeToPlay: '2-4 min',
+      component: 'QuickMathGame'
     }
   ]);
 
-  const [gameSession, setGameSession] = useState<GameSession | null>(null);
+  const [currentGame, setCurrentGame] = useState<string | null>(null);
+  const [playedGames, setPlayedGames] = useState<string[]>([]);
+
+  const getVipMultiplier = (coins: number) => {
+    if (coins >= 3000) return 10; // Grand Master
+    if (coins >= 2000) return 5;  // Elite Master
+    if (coins >= 1000) return 2;  // VIP
+    return 1; // Regular
+  };
 
   const playGame = (gameId: string) => {
-    const game = games.find(g => g.id === gameId);
-    if (!game) return;
+    setCurrentGame(gameId);
+  };
 
-    setGameSession({ gameId, playing: true, progress: 0 });
+  const handleGameComplete = async (gameId: string, score: number) => {
+    if (!user) return;
 
-    // Simulate game progress
-    const interval = setInterval(() => {
-      setGameSession(prev => {
-        if (!prev) return null;
-        const newProgress = prev.progress + 20;
-        
-        if (newProgress >= 100) {
-          clearInterval(interval);
-          
-          // Mark game as played and give reward
-          setGames(prevGames => prevGames.map(g => 
-            g.id === gameId ? { ...g, played: true, highScore: Math.floor(Math.random() * 1000) + 500 } : g
-          ));
-          
-          toast({
-            title: '🎮 Game Completed!',
-            description: `Great job! You earned ${game.reward} coins playing "${game.title}"`,
-          });
-          
-          return null;
-        }
-        
-        return { ...prev, progress: newProgress };
+    try {
+      const game = games.find(g => g.id === gameId);
+      if (!game) return;
+
+      // Record game score and award coins
+      const { data, error } = await supabase.rpc('record_game_score', {
+        user_uuid: user.id,
+        game_type_param: game.component,
+        score_param: score,
+        reward_amount: game.reward
       });
-    }, 800);
+
+      if (error) throw error;
+
+      if (data) {
+        const multiplier = getVipMultiplier(userData?.coins || 0);
+        const finalReward = game.reward * multiplier;
+        
+        toast({
+          title: '🎮 Game Completed!',
+          description: `Great job! You earned ${finalReward} coins playing "${game.title}" with a score of ${score}!${multiplier > 1 ? ` (${multiplier}x VIP bonus!)` : ''}`,
+        });
+
+        setPlayedGames(prev => [...prev, gameId]);
+        await refetch();
+      }
+    } catch (error) {
+      console.error('Error recording game completion:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to record game completion. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setCurrentGame(null);
+    }
+  };
+
+  const closeGame = () => {
+    setCurrentGame(null);
   };
 
   const getDifficultyColor = (difficulty: string) => {
@@ -151,117 +143,119 @@ export const GamesSection = () => {
     }
   };
 
-  const playedGames = games.filter(g => g.played).length;
-  const totalEarned = games.filter(g => g.played).reduce((sum, g) => sum + g.reward, 0);
-  const totalHighScore = games.filter(g => g.highScore).reduce((sum, g) => sum + (g.highScore || 0), 0);
+  const vipMultiplier = getVipMultiplier(userData?.coins || 0);
+
+  const renderGame = () => {
+    const game = games.find(g => g.id === currentGame);
+    if (!game) return null;
+
+    const gameProps = {
+      onComplete: (score: number) => handleGameComplete(currentGame!, score),
+      onClose: closeGame
+    };
+
+    switch (game.component) {
+      case 'NumberGuessingGame':
+        return <NumberGuessingGame {...gameProps} />;
+      case 'MemoryMatchGame':
+        return <MemoryMatchGame {...gameProps} />;
+      case 'QuickMathGame':
+        return <QuickMathGame {...gameProps} />;
+      default:
+        return null;
+    }
+  };
 
   return (
     <div className="space-y-6">
+      {/* VIP Multiplier Banner */}
+      {vipMultiplier > 1 && (
+        <div className="bg-gradient-to-r from-yellow-600/30 to-orange-600/30 rounded-xl p-4 border border-yellow-400/50">
+          <div className="text-center">
+            <p className="text-yellow-300 font-bold animate-pulse">🎉 VIP GAMING BENEFITS! 🎉</p>
+            <p className="text-white/90">All game rewards have {vipMultiplier}x multiplier!</p>
+          </div>
+        </div>
+      )}
+
       {/* Gaming Stats */}
       <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
         <h3 className="text-white text-xl font-bold mb-4">🎮 Gaming Stats</h3>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="text-center">
-            <div className="text-2xl font-bold text-white">{playedGames}/{games.length}</div>
-            <div className="text-white/80 text-sm">Games Played</div>
+            <div className="text-2xl font-bold text-white">{playedGames.length}</div>
+            <div className="text-white/80 text-sm">Games Played Today</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-yellow-400">{totalEarned}</div>
-            <div className="text-white/80 text-sm">Coins Earned</div>
+            <div className="text-2xl font-bold text-purple-400">∞</div>
+            <div className="text-white/80 text-sm">Games Available</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-purple-400">{totalHighScore.toLocaleString()}</div>
-            <div className="text-white/80 text-sm">Total Score</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-green-400">{Math.round((playedGames / games.length) * 100)}%</div>
-            <div className="text-white/80 text-sm">Completion</div>
+            <div className="text-2xl font-bold text-green-400">{vipMultiplier}x</div>
+            <div className="text-white/80 text-sm">Reward Multiplier</div>
           </div>
         </div>
       </div>
 
-      {/* Game Player Modal */}
-      {gameSession && (
+      {/* Game Modal */}
+      {currentGame && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-6 max-w-md w-full">
-            <div className="text-center">
-              <div className="text-6xl mb-4">🎮</div>
-              <h3 className="text-white text-xl font-bold mb-2">Playing Game...</h3>
-              <p className="text-white/80 mb-4">Get ready for some fun!</p>
-              <div className="w-full bg-white/20 rounded-full h-3 mb-4">
-                <div 
-                  className="bg-gradient-to-r from-green-500 to-blue-600 h-3 rounded-full transition-all duration-300" 
-                  style={{width: `${gameSession.progress}%`}}
-                ></div>
-              </div>
-              <p className="text-white/60 text-sm">Progress: {gameSession.progress}%</p>
-            </div>
-          </div>
+          {renderGame()}
         </div>
       )}
 
       {/* Games Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {games.map((game) => (
-          <div key={game.id} className="bg-white/10 backdrop-blur-sm rounded-xl overflow-hidden hover:bg-white/20 transition-all">
-            <div className="relative p-6 text-center">
-              <div className="text-4xl mb-2">{game.emoji}</div>
-              <div className="absolute top-2 right-2 flex flex-col gap-1">
-                <Badge className={`${getCategoryColor(game.category)} text-white text-xs`}>
-                  {game.category}
-                </Badge>
-                <Badge className={`${getDifficultyColor(game.difficulty)} text-white text-xs`}>
-                  {game.difficulty}
-                </Badge>
-              </div>
-              {game.played && (
-                <div className="absolute top-2 left-2">
-                  <Badge className="bg-green-500 text-white text-xs flex items-center">
-                    <Trophy className="w-3 h-3 mr-1" />
-                    Completed
+        {games.map((game) => {
+          const finalReward = game.reward * vipMultiplier;
+          
+          return (
+            <div key={game.id} className="bg-white/10 backdrop-blur-sm rounded-xl overflow-hidden hover:bg-white/20 transition-all">
+              <div className="relative p-6 text-center">
+                <div className="text-4xl mb-2">{game.emoji}</div>
+                <div className="absolute top-2 right-2 flex flex-col gap-1">
+                  <Badge className={`${getCategoryColor(game.category)} text-white text-xs`}>
+                    {game.category}
+                  </Badge>
+                  <Badge className={`${getDifficultyColor(game.difficulty)} text-white text-xs`}>
+                    {game.difficulty}
                   </Badge>
                 </div>
-              )}
-            </div>
-            
-            <div className="p-4">
-              <h4 className="text-white font-semibold mb-2">{game.title}</h4>
-              <p className="text-white/70 text-sm mb-3">{game.description}</p>
-              
-              <div className="flex items-center justify-between text-xs text-white/60 mb-3">
-                <div className="flex items-center space-x-3">
-                  <span className="flex items-center">
-                    <Clock className="w-3 h-3 mr-1" />
-                    {game.timeToPlay}
-                  </span>
-                  {game.highScore && (
-                    <span className="flex items-center">
-                      <Trophy className="w-3 h-3 mr-1" />
-                      {game.highScore.toLocaleString()}
-                    </span>
-                  )}
-                </div>
-                <span className="text-yellow-400 font-semibold">+{game.reward} coins</span>
               </div>
               
-              {game.played ? (
-                <Button disabled className="w-full bg-green-600 text-white opacity-75">
-                  <Trophy className="w-4 h-4 mr-2" />
-                  Completed
-                </Button>
-              ) : (
+              <div className="p-4">
+                <h4 className="text-white font-semibold mb-2">{game.title}</h4>
+                <p className="text-white/70 text-sm mb-3">{game.description}</p>
+                
+                <div className="flex items-center justify-between text-xs text-white/60 mb-3">
+                  <div className="flex items-center space-x-3">
+                    <span className="flex items-center">
+                      <Clock className="w-3 h-3 mr-1" />
+                      {game.timeToPlay}
+                    </span>
+                  </div>
+                  <span className="text-yellow-400 font-semibold">
+                    +{finalReward} coins
+                    {vipMultiplier > 1 && (
+                      <span className="ml-1 text-xs bg-yellow-500 text-white px-1 py-0.5 rounded">
+                        {vipMultiplier}x
+                      </span>
+                    )}
+                  </span>
+                </div>
+                
                 <Button 
                   onClick={() => playGame(game.id)}
                   className="w-full bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white"
-                  disabled={gameSession?.playing}
+                  disabled={!!currentGame}
                 >
                   <Gamepad className="w-4 h-4 mr-2" />
                   Play Game
                 </Button>
-              )}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

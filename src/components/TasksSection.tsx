@@ -7,6 +7,7 @@ import { CheckCircle, Clock, Gift } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserData } from '@/hooks/useUserData';
+import { DailyCheckIn } from './DailyCheckIn';
 
 interface Task {
   id: string;
@@ -30,15 +31,6 @@ interface TaskTemplate {
 }
 
 const taskTemplates: TaskTemplate[] = [
-  {
-    task_type: 'daily_checkin',
-    task_title: 'Daily Check-in',
-    task_description: 'Log in to the app and claim your daily bonus',
-    reward_coins: 10,
-    difficulty: 'easy',
-    category: 'Daily',
-    timeEstimate: '1 min'
-  },
   {
     task_type: 'watch_videos',
     task_title: 'Watch 3 Videos',
@@ -74,15 +66,6 @@ const taskTemplates: TaskTemplate[] = [
     difficulty: 'hard',
     category: 'Gaming',
     timeEstimate: '20 min'
-  },
-  {
-    task_type: 'weekly_challenge',
-    task_title: 'Weekly Challenge',
-    task_description: 'Complete all daily tasks for 7 consecutive days',
-    reward_coins: 500,
-    difficulty: 'hard',
-    category: 'Weekly',
-    timeEstimate: '7 days'
   }
 ];
 
@@ -91,7 +74,7 @@ export const TasksSection = () => {
   const { user } = useAuth();
   const { userData, refetch } = useUserData();
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState<string | null>(null);
 
   const getVipMultiplier = (coins: number) => {
     if (coins >= 3000) return 10; // Grand Master
@@ -130,9 +113,9 @@ export const TasksSection = () => {
 
       if (existingTasks && existingTasks.length > 0) return;
 
-      // Create daily tasks
+      // Create daily tasks (excluding daily_checkin as it's handled separately)
       const dailyTasks = taskTemplates.filter(template => 
-        template.category === 'Daily' || template.task_type === 'watch_videos' || template.task_type === 'complete_spins'
+        template.task_type === 'watch_videos' || template.task_type === 'complete_spins'
       );
 
       const tasksToInsert = dailyTasks.map(template => ({
@@ -158,7 +141,7 @@ export const TasksSection = () => {
   const completeTask = async (taskId: string) => {
     if (!user) return;
 
-    setLoading(true);
+    setLoading(taskId);
     try {
       const { data, error } = await supabase.rpc('complete_task', {
         task_uuid: taskId
@@ -189,7 +172,7 @@ export const TasksSection = () => {
         variant: 'destructive',
       });
     } finally {
-      setLoading(false);
+      setLoading(null);
     }
   };
 
@@ -211,11 +194,9 @@ export const TasksSection = () => {
 
   const getCategoryColor = (template: TaskTemplate) => {
     switch (template.category) {
-      case 'Daily': return 'bg-blue-500';
       case 'Entertainment': return 'bg-purple-500';
       case 'Gaming': return 'bg-orange-500';
       case 'Social': return 'bg-pink-500';
-      case 'Weekly': return 'bg-indigo-500';
       default: return 'bg-gray-500';
     }
   };
@@ -234,6 +215,9 @@ export const TasksSection = () => {
 
   return (
     <div className="space-y-6">
+      {/* Daily Check-in */}
+      <DailyCheckIn />
+
       {/* VIP Status Banner */}
       {vipMultiplier > 1 && (
         <div className="bg-gradient-to-r from-yellow-600/30 to-orange-600/30 rounded-xl p-4 border border-yellow-400/50">
@@ -272,6 +256,7 @@ export const TasksSection = () => {
           if (!template) return null;
 
           const finalReward = task.reward_coins * vipMultiplier;
+          const isLoading = loading === task.id;
 
           return (
             <div key={task.id} className={`bg-white/10 backdrop-blur-sm rounded-xl p-4 border-l-4 ${task.status === 'completed' ? 'border-green-500' : 'border-white/30'}`}>
@@ -317,10 +302,10 @@ export const TasksSection = () => {
                   ) : (
                     <Button 
                       onClick={() => completeTask(task.id)}
-                      disabled={loading}
+                      disabled={isLoading}
                       className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white"
                     >
-                      {loading ? '⏳ Processing...' : 'Complete Task'}
+                      {isLoading ? '⏳ Processing...' : '✅ Complete Task'}
                     </Button>
                   )}
                 </div>
