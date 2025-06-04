@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
+import { useVipSounds } from './useVipSounds';
 
 interface UserData {
   id: string;
@@ -13,6 +14,7 @@ interface UserData {
   referred_by?: string;
   created_at: string;
   daily_spin_limit: number;
+  profile_picture_url?: string;
 }
 
 interface SpinRecord {
@@ -23,15 +25,43 @@ interface SpinRecord {
 
 export const useUserData = () => {
   const { user } = useAuth();
+  const { playGrandMasterSound, playVipLevelUpSound } = useVipSounds();
   const [userData, setUserData] = useState<UserData | null>(null);
   const [spins, setSpins] = useState<SpinRecord[]>([]);
   const [canSpin, setCanSpin] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [previousCoins, setPreviousCoins] = useState<number | null>(null);
 
   const calculateCanSpin = (coins: number, spinLimit: number, todaySpinCount: number) => {
     // Grand Master level (3000+ coins) gets unlimited spins
     const isUnlimited = coins >= 3000;
     return isUnlimited || todaySpinCount < spinLimit;
+  };
+
+  const checkForVipLevelUp = (newCoins: number, oldCoins: number | null) => {
+    if (oldCoins === null) return;
+
+    // Check if user just reached Grand Master (3000 coins)
+    if (oldCoins < 3000 && newCoins >= 3000) {
+      console.log('🎉 User reached Grand Master level!');
+      setTimeout(() => {
+        playGrandMasterSound();
+      }, 500);
+    }
+    // Check if user just reached Elite Master (2000 coins)
+    else if (oldCoins < 2000 && newCoins >= 2000) {
+      console.log('🎉 User reached Elite Master level!');
+      setTimeout(() => {
+        playVipLevelUpSound();
+      }, 500);
+    }
+    // Check if user just reached VIP (1000 coins)
+    else if (oldCoins < 1000 && newCoins >= 1000) {
+      console.log('🎉 User reached VIP level!');
+      setTimeout(() => {
+        playVipLevelUpSound();
+      }, 500);
+    }
   };
 
   const fetchUserData = async () => {
@@ -139,6 +169,10 @@ export const useUserData = () => {
               };
               
               console.log('Updated user data:', updatedData);
+              
+              // Check for VIP level up and play sounds
+              checkForVipLevelUp(updatedData.coins, prev.coins);
+              setPreviousCoins(prev.coins);
               
               // Recalculate canSpin based on new data
               const todaySpinCount = spins.length;

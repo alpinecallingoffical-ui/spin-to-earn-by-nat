@@ -263,6 +263,7 @@ export type Database = {
           id: string
           name: string
           phone: string | null
+          profile_picture_url: string | null
           referral_code: string
           referred_by: string | null
         }
@@ -274,6 +275,7 @@ export type Database = {
           id: string
           name: string
           phone?: string | null
+          profile_picture_url?: string | null
           referral_code: string
           referred_by?: string | null
         }
@@ -285,6 +287,7 @@ export type Database = {
           id?: string
           name?: string
           phone?: string | null
+          profile_picture_url?: string | null
           referral_code?: string
           referred_by?: string | null
         }

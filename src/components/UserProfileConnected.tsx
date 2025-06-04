@@ -5,13 +5,15 @@ import { useUserData } from '@/hooks/useUserData';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { useVipBenefits } from '@/hooks/useVipBenefits';
+import { ProfilePictureUpload } from './ProfilePictureUpload';
+import { VerifiedBadge } from './VerifiedBadge';
 
 interface UserProfileConnectedProps {
   onSwitchToHistory?: () => void;
 }
 
 export const UserProfileConnected: React.FC<UserProfileConnectedProps> = ({ onSwitchToHistory }) => {
-  const { userData } = useUserData();
+  const { userData, refetch } = useUserData();
   const { signOut } = useAuth();
   const { toast } = useToast();
   const { getTotalMultiplierSavings, getTodaysBenefits } = useVipBenefits();
@@ -24,7 +26,8 @@ export const UserProfileConnected: React.FC<UserProfileConnectedProps> = ({ onSw
       nextLevel: null,
       progress: 100,
       animation: 'animate-pulse',
-      glow: 'shadow-2xl shadow-purple-500/50'
+      glow: 'shadow-2xl shadow-purple-500/50',
+      isVerified: true
     };
     if (coins >= 2000) return { 
       level: 'Elite Master', 
@@ -33,7 +36,8 @@ export const UserProfileConnected: React.FC<UserProfileConnectedProps> = ({ onSw
       nextLevel: 'Grand Master',
       progress: ((coins - 2000) / 1000) * 100,
       animation: 'animate-bounce',
-      glow: 'shadow-xl shadow-blue-500/50'
+      glow: 'shadow-xl shadow-blue-500/50',
+      isVerified: false
     };
     if (coins >= 1000) return { 
       level: 'VIP', 
@@ -42,7 +46,8 @@ export const UserProfileConnected: React.FC<UserProfileConnectedProps> = ({ onSw
       nextLevel: 'Elite Master',
       progress: ((coins - 1000) / 1000) * 100,
       animation: 'animate-pulse',
-      glow: 'shadow-lg shadow-yellow-500/50'
+      glow: 'shadow-lg shadow-yellow-500/50',
+      isVerified: false
     };
     return { 
       level: 'Regular', 
@@ -51,7 +56,8 @@ export const UserProfileConnected: React.FC<UserProfileConnectedProps> = ({ onSw
       nextLevel: 'VIP',
       progress: (coins / 1000) * 100,
       animation: '',
-      glow: ''
+      glow: '',
+      isVerified: false
     };
   };
 
@@ -67,7 +73,8 @@ export const UserProfileConnected: React.FC<UserProfileConnectedProps> = ({ onSw
       { text: `💫 Special rainbow animations`, status: 'ACTIVE', special: true, used: false },
       { text: `🌟 VIP chat access`, status: 'ACTIVE', special: true, used: false },
       { text: `🔥 10x bonus multiplier`, status: 'ACTIVE', special: true, used: todaysBenefits.length > 0, savings: multiplierSavings },
-      { text: `💰 Daily bonus coins`, status: 'ACTIVE', special: true, used: false }
+      { text: `💰 Daily bonus coins`, status: 'ACTIVE', special: true, used: false },
+      { text: `✅ Verified status`, status: 'ACTIVE', special: true, used: false }
     ];
     if (coins >= 2000) return [
       { text: `🎰 15 daily spins`, status: 'ACTIVE', special: true, used: false },
@@ -125,6 +132,14 @@ export const UserProfileConnected: React.FC<UserProfileConnectedProps> = ({ onSw
     window.open('tel:+9779765964677', '_self');
   };
 
+  const handleProfilePictureUpload = (newUrl: string) => {
+    toast({
+      title: '📸 Profile Updated!',
+      description: 'Your profile picture has been updated successfully',
+    });
+    refetch();
+  };
+
   if (!userData) {
     return (
       <div className="text-center text-white">
@@ -164,10 +179,13 @@ export const UserProfileConnected: React.FC<UserProfileConnectedProps> = ({ onSw
             <div>
               <h2 className="text-2xl font-bold flex items-center">
                 {vipInfo.level}
+                {vipInfo.isVerified && (
+                  <VerifiedBadge size="lg" className="ml-2" />
+                )}
                 {userData.coins >= 3000 && <span className="ml-2 text-yellow-300 animate-pulse">♔</span>}
               </h2>
               <p className="text-white/80">
-                {userData.coins >= 3000 ? 'UNLIMITED POWER!' : 'Status Level'}
+                {userData.coins >= 3000 ? 'VERIFIED GRAND MASTER!' : 'Status Level'}
               </p>
             </div>
           </div>
@@ -243,9 +261,12 @@ export const UserProfileConnected: React.FC<UserProfileConnectedProps> = ({ onSw
         {userData.coins >= 3000 && (
           <div className="mt-4 p-4 bg-gradient-to-r from-purple-600/30 to-pink-600/30 rounded-xl border border-purple-400/50">
             <div className="text-center">
-              <p className="text-yellow-300 font-bold text-lg animate-pulse">🎉 CONGRATULATIONS! 🎉</p>
-              <p className="text-white/90">You've reached the highest level - Grand Master!</p>
-              <p className="text-purple-300 text-sm mt-2">Enjoy unlimited spins and exclusive rewards!</p>
+              <p className="text-yellow-300 font-bold text-lg animate-pulse flex items-center justify-center">
+                🎉 CONGRATULATIONS! 🎉 
+                <VerifiedBadge size="lg" className="ml-2" />
+              </p>
+              <p className="text-white/90">You've reached the highest level - Verified Grand Master!</p>
+              <p className="text-purple-300 text-sm mt-2">Enjoy unlimited spins, verified status, and exclusive rewards!</p>
             </div>
           </div>
         )}
@@ -254,7 +275,7 @@ export const UserProfileConnected: React.FC<UserProfileConnectedProps> = ({ onSw
           <div className="mt-4 p-4 bg-gradient-to-r from-blue-600/30 to-purple-600/30 rounded-xl border border-blue-400/50">
             <div className="text-center">
               <p className="text-blue-300 font-bold animate-pulse">💎 Elite Master Status Active! 💎</p>
-              <p className="text-white/90">Only {3000 - userData.coins} more coins to Grand Master!</p>
+              <p className="text-white/90">Only {3000 - userData.coins} more coins to Verified Grand Master!</p>
             </div>
           </div>
         )}
@@ -269,15 +290,24 @@ export const UserProfileConnected: React.FC<UserProfileConnectedProps> = ({ onSw
         )}
       </div>
 
-      {/* User Info Card */}
+      {/* User Info Card with Profile Picture Upload */}
       <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-6">
         <div className="flex items-center space-x-4 mb-4">
-          <div className={`w-16 h-16 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center text-2xl ${userData.coins >= 1000 ? 'animate-pulse' : ''}`}>
-            👤
-          </div>
+          <ProfilePictureUpload 
+            currentPictureUrl={userData.profile_picture_url}
+            onUploadSuccess={handleProfilePictureUpload}
+          />
           <div>
-            <h3 className="text-white text-xl font-bold">{userData.name}</h3>
+            <h3 className="text-white text-xl font-bold flex items-center">
+              {userData.name}
+              {vipInfo.isVerified && (
+                <VerifiedBadge size="md" className="ml-2" />
+              )}
+            </h3>
             <p className="text-white/70">{vipInfo.level} Spin Master</p>
+            {vipInfo.isVerified && (
+              <p className="text-blue-300 text-sm animate-pulse">✅ Verified Account</p>
+            )}
           </div>
         </div>
         
