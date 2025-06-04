@@ -24,11 +24,25 @@ interface User {
   daily_spin_limit: number;
 }
 
+interface Withdrawal {
+  id: string;
+  user_id: string;
+  coin_amount: number;
+  esewa_number: string;
+  status: string;
+  requested_at: string;
+  user?: {
+    name: string;
+    phone?: string;
+  };
+}
+
 export const SpinManagement: React.FC = () => {
   const [records, setRecords] = useState<SpinManagementRecord[]>([]);
   const [users, setUsers] = useState<User[]>([]);
+  const [withdrawals, setWithdrawals] = useState<Withdrawal[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'requests' | 'users'>('requests');
+  const [activeTab, setActiveTab] = useState<'requests' | 'users' | 'withdrawals'>('requests');
   const [spinLimitInputs, setSpinLimitInputs] = useState<{ [key: string]: number }>({});
   const { toast } = useToast();
 
@@ -79,10 +93,32 @@ export const SpinManagement: React.FC = () => {
     }
   };
 
+  const fetchWithdrawals = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('withdrawals')
+        .select(`
+          *,
+          user:users(name, phone)
+        `)
+        .order('requested_at', { ascending: false });
+
+      if (error) throw error;
+      setWithdrawals(data || []);
+    } catch (error) {
+      console.error('Error fetching withdrawals:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to fetch withdrawals',
+        variant: 'destructive',
+      });
+    }
+  };
+
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
-      await Promise.all([fetchRecords(), fetchUsers()]);
+      await Promise.all([fetchRecords(), fetchUsers(), fetchWithdrawals()]);
       setLoading(false);
     };
     loadData();
@@ -104,8 +140,26 @@ export const SpinManagement: React.FC = () => {
       )
       .subscribe();
 
+    // Set up real-time subscription for withdrawal updates
+    const withdrawalSubscription = supabase
+      .channel('withdrawals-admin-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'withdrawals',
+        },
+        (payload) => {
+          console.log('Withdrawal updated in admin:', payload);
+          fetchWithdrawals(); // Refresh withdrawals data
+        }
+      )
+      .subscribe();
+
     return () => {
       supabase.removeChannel(userSubscription);
+      supabase.removeChannel(withdrawalSubscription);
     };
   }, []);
 
@@ -131,6 +185,61 @@ export const SpinManagement: React.FC = () => {
       toast({
         title: 'Error',
         description: 'Failed to update request status',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const approveWithdrawal = async (withdrawalId: string) => {
+    try {
+      const { error } = await supabase.rpc('approve_withdrawal_with_notification', {
+        withdrawal_id: withdrawalId,
+        admin_notes: 'Withdrawal approved and processed by admin'
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: '✅ Withdrawal Approved!',
+        description: 'User has been notified and withdrawal is completed',
+      });
+
+      await fetchWithdrawals();
+      await fetchUsers(); // Refresh users to show updated coins
+    } catch (error) {
+      console.error('Error approving withdrawal:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to approve withdrawal',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const rejectWithdrawal = async (withdrawalId: string) => {
+    try {
+      const { error } = await supabase
+        .from('withdrawals')
+        .update({ 
+          status: 'rejected',
+          admin_notes: 'Withdrawal rejected by admin',
+          processed_at: new Date().toISOString()
+        })
+        .eq('id', withdrawalId);
+
+      if (error) throw error;
+
+      toast({
+        title: '❌ Withdrawal Rejected',
+        description: 'Withdrawal has been rejected',
+      });
+
+      await fetchWithdrawals();
+    } catch (error) {
+      console.error('Error rejecting withdrawal:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to reject withdrawal',
         variant: 'destructive',
       });
     }
@@ -208,7 +317,7 @@ export const SpinManagement: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-6">
-        <h2 className="text-white text-2xl font-bold mb-4">🔧 Spin Management</h2>
+        <h2 className="text-white text-2xl font-bold mb-4">🔧 Admin Management</h2>
         
         <div className="flex space-x-4 mb-6">
           <Button
@@ -222,6 +331,12 @@ export const SpinManagement: React.FC = () => {
             className={`${activeTab === 'users' ? 'bg-blue-600' : 'bg-white/20'} text-white`}
           >
             👥 User Management
+          </Button>
+          <Button
+            onClick={() => setActiveTab('withdrawals')}
+            className={`${activeTab === 'withdrawals' ? 'bg-blue-600' : 'bg-white/20'} text-white`}
+          >
+            💰 Withdrawals
           </Button>
         </div>
 
@@ -339,6 +454,61 @@ export const SpinManagement: React.FC = () => {
                   </div>
                 );
               })
+            )}
+          </div>
+        )}
+
+        {activeTab === 'withdrawals' && (
+          <div className="space-y-4">
+            {withdrawals.length === 0 ? (
+              <p className="text-white/80">No withdrawal requests found.</p>
+            ) : (
+              withdrawals.map((withdrawal) => (
+                <div key={withdrawal.id} className="bg-white/10 rounded-xl p-4">
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
+                    <div>
+                      <p className="text-white font-semibold">👤 {withdrawal.user?.name || 'Unknown User'}</p>
+                      <p className="text-white/80">📱 {withdrawal.user?.phone || 'No phone'}</p>
+                      <p className="text-white/80">📅 {new Date(withdrawal.requested_at).toLocaleDateString()}</p>
+                    </div>
+                    
+                    <div>
+                      <p className="text-white font-semibold">💰 {withdrawal.coin_amount.toLocaleString()} coins</p>
+                      <p className="text-white/80">💵 Rs. {(withdrawal.coin_amount / 10).toFixed(2)}</p>
+                      <p className="text-white/80">📱 eSewa: {withdrawal.esewa_number}</p>
+                    </div>
+                    
+                    <div>
+                      <Badge 
+                        className={`${
+                          withdrawal.status === 'completed' ? 'bg-green-500' :
+                          withdrawal.status === 'rejected' ? 'bg-red-500' :
+                          'bg-yellow-500'
+                        } text-white`}
+                      >
+                        {withdrawal.status.toUpperCase()}
+                      </Badge>
+                    </div>
+                    
+                    {withdrawal.status === 'pending' && (
+                      <div className="flex space-x-2">
+                        <Button
+                          onClick={() => approveWithdrawal(withdrawal.id)}
+                          className="bg-green-600 hover:bg-green-700 text-white text-sm px-3 py-1"
+                        >
+                          ✅ Approve & Notify
+                        </Button>
+                        <Button
+                          onClick={() => rejectWithdrawal(withdrawal.id)}
+                          className="bg-red-600 hover:bg-red-700 text-white text-sm px-3 py-1"
+                        >
+                          ❌ Reject
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))
             )}
           </div>
         )}

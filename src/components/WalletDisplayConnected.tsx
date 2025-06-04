@@ -8,6 +8,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { WithdrawalHistory } from '@/components/WithdrawalHistory';
+import { NotificationCenter } from '@/components/NotificationCenter';
+import { useNotifications } from '@/hooks/useNotifications';
 
 interface WalletDisplayConnectedProps {
   onSwitchToHistory?: () => void;
@@ -17,8 +19,10 @@ export const WalletDisplayConnected: React.FC<WalletDisplayConnectedProps> = ({ 
   const { userData } = useUserData();
   const { user } = useAuth();
   const { toast } = useToast();
+  const { unreadCount } = useNotifications();
   const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [esewaNumber, setEsewaNumber] = useState('');
   const [withdrawAmount, setWithdrawAmount] = useState('');
   const [loading, setLoading] = useState(false);
@@ -73,6 +77,19 @@ export const WalletDisplayConnected: React.FC<WalletDisplayConnectedProps> = ({ 
         <div className="flex items-center justify-center space-x-2 mb-4">
           <span className="text-3xl">🪙</span>
           <span className="text-2xl font-bold text-white">Your Wallet</span>
+          <div className="relative ml-4">
+            <Button
+              onClick={() => setIsNotificationOpen(true)}
+              className="bg-white/20 hover:bg-white/30 text-white p-2 rounded-full"
+            >
+              🔔
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              )}
+            </Button>
+          </div>
         </div>
         
         <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 mb-4">
@@ -172,6 +189,12 @@ export const WalletDisplayConnected: React.FC<WalletDisplayConnectedProps> = ({ 
           <WithdrawalHistory />
         </DialogContent>
       </Dialog>
+
+      {/* Notification Center */}
+      <NotificationCenter 
+        isOpen={isNotificationOpen} 
+        onClose={() => setIsNotificationOpen(false)} 
+      />
     </>
   );
 };
