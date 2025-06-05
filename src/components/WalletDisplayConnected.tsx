@@ -9,6 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { WithdrawalHistory } from '@/components/WithdrawalHistory';
 import { NotificationCenter } from '@/components/NotificationCenter';
+import { EmailConfigModal } from '@/components/EmailConfigModal';
 import { useNotifications } from '@/hooks/useNotifications';
 
 interface WalletDisplayConnectedProps {
@@ -23,6 +24,7 @@ export const WalletDisplayConnected: React.FC<WalletDisplayConnectedProps> = ({ 
   const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  const [isEmailConfigOpen, setIsEmailConfigOpen] = useState(false);
   const [esewaNumber, setEsewaNumber] = useState('');
   const [withdrawAmount, setWithdrawAmount] = useState('');
   const [loading, setLoading] = useState(false);
@@ -90,6 +92,13 @@ export const WalletDisplayConnected: React.FC<WalletDisplayConnectedProps> = ({ 
               )}
             </Button>
           </div>
+          <Button
+            onClick={() => setIsEmailConfigOpen(true)}
+            className="bg-white/20 hover:bg-white/30 text-white p-2 rounded-full"
+            title="Configure Email Notifications"
+          >
+            📧
+          </Button>
         </div>
         
         <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 mb-4">
@@ -194,6 +203,12 @@ export const WalletDisplayConnected: React.FC<WalletDisplayConnectedProps> = ({ 
       <NotificationCenter 
         isOpen={isNotificationOpen} 
         onClose={() => setIsNotificationOpen(false)} 
+      />
+
+      {/* Email Configuration Modal */}
+      <EmailConfigModal 
+        isOpen={isEmailConfigOpen} 
+        onClose={() => setIsEmailConfigOpen(false)} 
       />
     </>
   );
