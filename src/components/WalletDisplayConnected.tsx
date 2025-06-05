@@ -9,13 +9,14 @@ import { useToast } from '@/hooks/use-toast';
 import { WithdrawalHistory } from '@/components/WithdrawalHistory';
 import { NotificationCenter } from '@/components/NotificationCenter';
 import { useNotifications } from '@/hooks/useNotifications';
+import { EmailService } from '@/services/emailService';
 
 interface WalletDisplayConnectedProps {
   onSwitchToHistory?: () => void;
 }
 
 export const WalletDisplayConnected: React.FC<WalletDisplayConnectedProps> = ({ onSwitchToHistory }) => {
-  const { userData } = useUserData();
+  const { userData, refetch } = useUserData();
   const { user } = useAuth();
   const { toast } = useToast();
   const { unreadCount } = useNotifications();
@@ -32,7 +33,7 @@ export const WalletDisplayConnected: React.FC<WalletDisplayConnectedProps> = ({ 
 
   const handleWithdraw = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user || !canWithdraw) return;
+    if (!user || !canWithdraw || !userData) return;
 
     setLoading(true);
     try {
@@ -41,20 +42,74 @@ export const WalletDisplayConnected: React.FC<WalletDisplayConnectedProps> = ({ 
         throw new Error('Insufficient coins');
       }
 
-      const { error } = await supabase
+      // Automatically deduct coins from user account
+      const { error: updateError } = await supabase
+        .from('users')
+        .update({ coins: coins - coinAmount })
+        .eq('id', user.id);
+
+      if (updateError) throw updateError;
+
+      // Create withdrawal record as completed
+      const { data: withdrawal, error: withdrawalError } = await supabase
         .from('withdrawals')
         .insert({
           user_id: user.id,
           esewa_number: esewaNumber,
           coin_amount: coinAmount,
+          status: 'completed'
+        })
+        .select()
+        .single();
+
+      if (withdrawalError) throw withdrawalError;
+
+      // Create notification for user
+      const { error: notificationError } = await supabase
+        .from('notifications')
+        .insert({
+          user_id: user.id,
+          title: '💰 Withdrawal Completed!',
+          message: `Your withdrawal of ${coinAmount.toLocaleString()} coins (Rs. ${(coinAmount / 10).toFixed(2)}) has been successfully processed to eSewa number ${esewaNumber}.`,
+          type: 'success'
         });
 
-      if (error) throw error;
+      if (notificationError) throw notificationError;
+
+      // Send email notification
+      try {
+        const emailData = {
+          to_email: userData.email || user.email || '',
+          to_name: userData.name || 'User',
+          withdrawal_amount: coinAmount.toLocaleString(),
+          rupee_amount: (coinAmount / 10).toFixed(2),
+          esewa_number: esewaNumber,
+          date: new Date().toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+          })
+        };
+
+        const emailSent = await EmailService.sendWithdrawalApprovalEmail(emailData);
+        
+        if (emailSent) {
+          console.log('Email notification sent successfully');
+        } else {
+          console.log('Email notification failed to send');
+        }
+      } catch (emailError) {
+        console.error('Email sending error:', emailError);
+        // Don't throw - email failure shouldn't stop the withdrawal
+      }
 
       toast({
-        title: '✅ Withdrawal Request Submitted!',
-        description: 'Your request will be reviewed within 24 hours.',
+        title: '✅ Withdrawal Completed!',
+        description: `${coinAmount.toLocaleString()} coins (Rs. ${(coinAmount / 10).toFixed(2)}) have been deducted and sent to ${esewaNumber}`,
       });
+
+      // Refresh user data to show updated coin balance
+      refetch();
 
       setIsWithdrawOpen(false);
       setEsewaNumber('');
@@ -130,7 +185,7 @@ export const WalletDisplayConnected: React.FC<WalletDisplayConnectedProps> = ({ 
       <Dialog open={isWithdrawOpen} onOpenChange={setIsWithdrawOpen}>
         <DialogContent className="bg-gradient-to-br from-green-600 to-blue-600 text-white border-none">
           <DialogHeader>
-            <DialogTitle className="text-2xl font-bold">💰 Withdraw to eSewa</DialogTitle>
+            <DialogTitle className="text-2xl font-bold">💰 Instant Withdrawal to eSewa</DialogTitle>
           </DialogHeader>
 
           <form onSubmit={handleWithdraw} className="space-y-4">
@@ -165,7 +220,7 @@ export const WalletDisplayConnected: React.FC<WalletDisplayConnectedProps> = ({ 
 
             <div className="bg-white/20 p-3 rounded-lg">
               <p className="text-sm">💡 <strong>Exchange Rate:</strong> 10 coins = Rs. 1</p>
-              <p className="text-xs text-white/80">Processing time: 24-48 hours</p>
+              <p className="text-xs text-white/80">⚡ Instant processing - coins deducted immediately</p>
             </div>
 
             <Button
@@ -173,7 +228,7 @@ export const WalletDisplayConnected: React.FC<WalletDisplayConnectedProps> = ({ 
               disabled={loading}
               className="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3"
             >
-              {loading ? '⏳ Processing...' : '💸 Submit Request'}
+              {loading ? '⏳ Processing...' : '💸 Withdraw Instantly'}
             </Button>
           </form>
         </DialogContent>

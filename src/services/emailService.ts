@@ -17,10 +17,12 @@ export class EmailService {
 
   static async sendWithdrawalApprovalEmail(data: WithdrawalEmailData): Promise<boolean> {
     try {
+      console.log('Sending withdrawal email with data:', data);
+      
       const templateParams = {
         to_email: data.to_email,
         to_name: data.to_name,
-        subject: '💰 Withdrawal Approved - Your Money is on the Way!',
+        subject: '💰 Withdrawal Completed - Your Money is on the Way!',
         withdrawal_amount: data.withdrawal_amount,
         rupee_amount: data.rupee_amount,
         esewa_number: data.esewa_number,
@@ -28,6 +30,13 @@ export class EmailService {
         company_name: 'SpinWin',
         support_email: 'support@spinwin.com'
       };
+
+      console.log('Sending email with template params:', templateParams);
+      console.log('Using EmailJS config:', {
+        serviceId: this.SERVICE_ID,
+        templateId: this.TEMPLATE_ID,
+        publicKey: this.PUBLIC_KEY
+      });
 
       const response = await emailjs.send(
         this.SERVICE_ID,
