@@ -10,6 +10,7 @@ interface Notification {
   type: 'info' | 'success' | 'warning' | 'error';
   read: boolean;
   created_at: string;
+  user_id: string;
 }
 
 export const useNotifications = () => {
@@ -58,8 +59,14 @@ export const useNotifications = () => {
 
       if (error) throw error;
 
-      setNotifications(data || []);
-      setUnreadCount(data?.filter(n => !n.read).length || 0);
+      // Type assertion to ensure compatibility
+      const typedNotifications: Notification[] = (data || []).map(notification => ({
+        ...notification,
+        type: notification.type as 'info' | 'success' | 'warning' | 'error'
+      }));
+
+      setNotifications(typedNotifications);
+      setUnreadCount(typedNotifications.filter(n => !n.read).length);
     } catch (error) {
       console.error('Error fetching notifications:', error);
     }
