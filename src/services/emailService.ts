@@ -11,9 +11,9 @@ interface WithdrawalEmailData {
 }
 
 export class EmailService {
-  private static SERVICE_ID = 'your_service_id'; // You'll need to set this
-  private static TEMPLATE_ID = 'withdrawal_approval'; // You'll need to create this template
-  private static PUBLIC_KEY = 'your_public_key'; // You'll need to set this
+  private static SERVICE_ID = 'service_qn2iw71';
+  private static TEMPLATE_ID = 'template_4zqy0w2';
+  private static PUBLIC_KEY = 'mJPtoHuXGjLbMOGj8';
 
   static async sendWithdrawalApprovalEmail(data: WithdrawalEmailData): Promise<boolean> {
     try {
@@ -42,11 +42,5 @@ export class EmailService {
       console.error('Error sending email:', error);
       return false;
     }
-  }
-
-  static configure(serviceId: string, templateId: string, publicKey: string) {
-    this.SERVICE_ID = serviceId;
-    this.TEMPLATE_ID = templateId;
-    this.PUBLIC_KEY = publicKey;
   }
 }
