@@ -11,6 +11,8 @@ interface Notification {
   read: boolean;
   created_at: string;
   user_id: string;
+  is_admin_message?: boolean;
+  admin_id?: string;
 }
 
 export const useNotifications = () => {
