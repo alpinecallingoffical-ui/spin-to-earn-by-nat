@@ -35,7 +35,11 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, 
     }
   };
 
-  const getNotificationBg = (type: string) => {
+  const getNotificationBg = (type: string, isAdminMessage: boolean) => {
+    if (isAdminMessage) {
+      return 'bg-orange-500/20 border-orange-400/30 ring-2 ring-orange-400/20';
+    }
+    
     switch (type) {
       case 'success':
         return 'bg-green-500/20 border-green-400/30';
@@ -76,23 +80,30 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, 
             notifications.map((notification) => (
               <div
                 key={notification.id}
-                className={`rounded-xl p-4 border ${getNotificationBg(notification.type)} ${
+                className={`rounded-xl p-4 border ${getNotificationBg(notification.type, notification.is_admin_message || false)} ${
                   !notification.read ? 'ring-2 ring-white/30' : ''
                 }`}
                 onClick={() => !notification.read && markAsRead(notification.id)}
               >
                 <div className="flex items-start space-x-3">
                   <div className="text-2xl">
-                    {getNotificationIcon(notification.type)}
+                    {notification.is_admin_message ? '📢' : getNotificationIcon(notification.type)}
                   </div>
                   <div className="flex-1">
-                    <h4 className="text-white font-semibold mb-1">
-                      {notification.title}
-                      {!notification.read && (
-                        <span className="ml-2 w-2 h-2 bg-yellow-400 rounded-full inline-block"></span>
+                    <div className="flex items-center space-x-2">
+                      <h4 className="text-white font-semibold">
+                        {notification.title}
+                      </h4>
+                      {notification.is_admin_message && (
+                        <span className="bg-orange-500 text-white text-xs px-2 py-1 rounded-full font-bold">
+                          ADMIN
+                        </span>
                       )}
-                    </h4>
-                    <p className="text-white/80 text-sm mb-2">
+                      {!notification.read && (
+                        <span className="w-2 h-2 bg-yellow-400 rounded-full"></span>
+                      )}
+                    </div>
+                    <p className="text-white/80 text-sm mb-2 mt-1">
                       {notification.message}
                     </p>
                     <p className="text-white/60 text-xs">

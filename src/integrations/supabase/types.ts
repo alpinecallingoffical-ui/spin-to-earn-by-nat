@@ -9,6 +9,39 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      admin_messages: {
+        Row: {
+          admin_id: string
+          created_at: string
+          id: string
+          message: string
+          message_type: string
+          sent_at: string | null
+          sent_to_all: boolean | null
+          title: string
+        }
+        Insert: {
+          admin_id: string
+          created_at?: string
+          id?: string
+          message: string
+          message_type?: string
+          sent_at?: string | null
+          sent_to_all?: boolean | null
+          title?: string
+        }
+        Update: {
+          admin_id?: string
+          created_at?: string
+          id?: string
+          message?: string
+          message_type?: string
+          sent_at?: string | null
+          sent_to_all?: boolean | null
+          title?: string
+        }
+        Relationships: []
+      }
       game_scores: {
         Row: {
           achieved_at: string
@@ -38,8 +71,10 @@ export type Database = {
       }
       notifications: {
         Row: {
+          admin_id: string | null
           created_at: string | null
           id: string
+          is_admin_message: boolean | null
           message: string
           read: boolean
           title: string
@@ -47,8 +82,10 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          admin_id?: string | null
           created_at?: string | null
           id?: string
+          is_admin_message?: boolean | null
           message: string
           read?: boolean
           title: string
@@ -56,8 +93,10 @@ export type Database = {
           user_id: string
         }
         Update: {
+          admin_id?: string | null
           created_at?: string | null
           id?: string
+          is_admin_message?: boolean | null
           message?: string
           read?: boolean
           title?: string
@@ -459,6 +498,14 @@ export type Database = {
           video_id_param: string
           video_title_param: string
           reward_amount: number
+        }
+        Returns: boolean
+      }
+      send_message_to_all_users: {
+        Args: {
+          message_title: string
+          message_content: string
+          message_type?: string
         }
         Returns: boolean
       }

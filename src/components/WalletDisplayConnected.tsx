@@ -8,6 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { WithdrawalHistory } from '@/components/WithdrawalHistory';
 import { NotificationCenter } from '@/components/NotificationCenter';
+import { AdminMessageCenter } from '@/components/AdminMessageCenter';
 import { useNotifications } from '@/hooks/useNotifications';
 import { EmailService } from '@/services/emailService';
 
@@ -23,6 +24,7 @@ export const WalletDisplayConnected: React.FC<WalletDisplayConnectedProps> = ({ 
   const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  const [isAdminMessageOpen, setIsAdminMessageOpen] = useState(false);
   const [esewaNumber, setEsewaNumber] = useState('');
   const [withdrawAmount, setWithdrawAmount] = useState('');
   const [loading, setLoading] = useState(false);
@@ -30,6 +32,9 @@ export const WalletDisplayConnected: React.FC<WalletDisplayConnectedProps> = ({ 
   const coins = userData?.coins || 0;
   const minWithdrawCoins = 1000;
   const canWithdraw = coins >= minWithdrawCoins;
+
+  // Check if user is admin (you can adjust this logic based on your admin system)
+  const isAdmin = userData?.email === 'admin@example.com' || coins >= 10000; // Example admin check
 
   const handleWithdraw = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -132,7 +137,7 @@ export const WalletDisplayConnected: React.FC<WalletDisplayConnectedProps> = ({ 
         <div className="flex items-center justify-center space-x-2 mb-4">
           <span className="text-3xl">🪙</span>
           <span className="text-2xl font-bold text-white">Your Wallet</span>
-          <div className="relative ml-4">
+          <div className="flex items-center space-x-2 ml-4">
             <Button
               onClick={() => setIsNotificationOpen(true)}
               className="bg-white/20 hover:bg-white/30 text-white p-2 rounded-full"
@@ -144,6 +149,16 @@ export const WalletDisplayConnected: React.FC<WalletDisplayConnectedProps> = ({ 
                 </span>
               )}
             </Button>
+            
+            {isAdmin && (
+              <Button
+                onClick={() => setIsAdminMessageOpen(true)}
+                className="bg-orange-500/80 hover:bg-orange-600/80 text-white p-2 rounded-full"
+                title="Send message to all users"
+              >
+                📢
+              </Button>
+            )}
           </div>
         </div>
         
@@ -250,6 +265,14 @@ export const WalletDisplayConnected: React.FC<WalletDisplayConnectedProps> = ({ 
         isOpen={isNotificationOpen} 
         onClose={() => setIsNotificationOpen(false)} 
       />
+
+      {/* Admin Message Center */}
+      {isAdmin && (
+        <AdminMessageCenter
+          isOpen={isAdminMessageOpen}
+          onClose={() => setIsAdminMessageOpen(false)}
+        />
+      )}
     </>
   );
 };
