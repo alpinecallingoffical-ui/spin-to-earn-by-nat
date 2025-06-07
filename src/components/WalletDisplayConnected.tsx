@@ -50,31 +50,30 @@ export const WalletDisplayConnected: React.FC<WalletDisplayConnectedProps> = ({ 
 
       if (updateError) throw updateError;
 
-      // Create withdrawal record as completed
+      // Create withdrawal record with 'pending' status (this will be auto-approved)
       const { data: withdrawal, error: withdrawalError } = await supabase
         .from('withdrawals')
         .insert({
           user_id: user.id,
           esewa_number: esewaNumber,
           coin_amount: coinAmount,
-          status: 'completed'
+          status: 'pending'  // Use 'pending' instead of 'completed'
         })
         .select()
         .single();
 
       if (withdrawalError) throw withdrawalError;
 
-      // Create notification for user
-      const { error: notificationError } = await supabase
-        .from('notifications')
-        .insert({
-          user_id: user.id,
-          title: '💰 Withdrawal Completed!',
-          message: `Your withdrawal of ${coinAmount.toLocaleString()} coins (Rs. ${(coinAmount / 10).toFixed(2)}) has been successfully processed to eSewa number ${esewaNumber}.`,
-          type: 'success'
-        });
+      // Immediately approve the withdrawal using the database function
+      const { error: approvalError } = await supabase.rpc('approve_withdrawal_with_notification', {
+        withdrawal_id: withdrawal.id,
+        admin_notes: 'Auto-approved instant withdrawal'
+      });
 
-      if (notificationError) throw notificationError;
+      if (approvalError) {
+        console.error('Approval error:', approvalError);
+        // Don't throw here - the withdrawal was created successfully
+      }
 
       // Send email notification
       try {
@@ -91,6 +90,7 @@ export const WalletDisplayConnected: React.FC<WalletDisplayConnectedProps> = ({ 
           })
         };
 
+        console.log('Sending withdrawal email with data:', emailData);
         const emailSent = await EmailService.sendWithdrawalApprovalEmail(emailData);
         
         if (emailSent) {
@@ -115,6 +115,7 @@ export const WalletDisplayConnected: React.FC<WalletDisplayConnectedProps> = ({ 
       setEsewaNumber('');
       setWithdrawAmount('');
     } catch (error: any) {
+      console.error('Withdrawal error:', error);
       toast({
         title: 'Error',
         description: error.message,
