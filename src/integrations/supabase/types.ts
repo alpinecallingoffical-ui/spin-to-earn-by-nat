@@ -18,7 +18,9 @@ export type Database = {
           message_type: string
           sent_at: string | null
           title: string
+          user_email: string | null
           user_id: string
+          user_name: string | null
         }
         Insert: {
           admin_id: string
@@ -28,7 +30,9 @@ export type Database = {
           message_type?: string
           sent_at?: string | null
           title: string
+          user_email?: string | null
           user_id: string
+          user_name?: string | null
         }
         Update: {
           admin_id?: string
@@ -38,7 +42,9 @@ export type Database = {
           message_type?: string
           sent_at?: string | null
           title?: string
+          user_email?: string | null
           user_id?: string
+          user_name?: string | null
         }
         Relationships: []
       }

@@ -40,7 +40,8 @@ export const AdminMessageCenter: React.FC<AdminMessageCenterProps> = ({ isOpen, 
         throw new Error('Could not identify admin user. Please log in.');
       }
 
-      const { data: users, error: usersError } = await supabase.from('users').select('id');
+      // Fetch user ids, names, and emails
+      const { data: users, error: usersError } = await supabase.from('users').select('id, name, email');
       if (usersError) throw usersError;
       if (!users || users.length === 0) {
         toast({ title: 'No users to send message to.', variant: 'default' });
@@ -48,12 +49,12 @@ export const AdminMessageCenter: React.FC<AdminMessageCenterProps> = ({ isOpen, 
         return;
       }
 
-      const userIds = users.map(u => u.id);
-
       // Insert into admin_messages
-      const adminMessagesToInsert = userIds.map(userId => ({
+      const adminMessagesToInsert = users.map(u => ({
         admin_id: adminUser.id,
-        user_id: userId,
+        user_id: u.id,
+        user_name: u.name || null,
+        user_email: u.email || null,
         title: title.trim(),
         message: message.trim(),
         message_type: messageType,
@@ -62,9 +63,9 @@ export const AdminMessageCenter: React.FC<AdminMessageCenterProps> = ({ isOpen, 
       if (adminMessageError) throw adminMessageError;
 
       // Insert into notifications, supply id for each (required in types)
-      const notificationsToInsert = userIds.map(userId => ({
+      const notificationsToInsert = users.map(u => ({
         id: crypto.randomUUID(),
-        user_id: userId,
+        user_id: u.id,
         admin_id: adminUser.id,
         title: title.trim(),
         message: message.trim(),
@@ -79,7 +80,7 @@ export const AdminMessageCenter: React.FC<AdminMessageCenterProps> = ({ isOpen, 
 
       toast({
         title: '✅ Message Sent!',
-        description: `Your message "${title}" has been sent to all ${userIds.length} users`,
+        description: `Your message "${title}" has been sent to all ${users.length} users`,
       });
 
       // Reset form
@@ -120,10 +121,19 @@ export const AdminMessageCenter: React.FC<AdminMessageCenterProps> = ({ isOpen, 
         throw new Error('Could not identify admin user. Please log in.');
       }
 
+      // Fetch name/email for selected users
+      const { data: users, error: usersError } = await supabase
+        .from('users')
+        .select('id, name, email')
+        .in('id', userIds);
+      if (usersError) throw usersError;
+
       // Insert into admin_messages
-      const adminMessagesToInsert = userIds.map(userId => ({
+      const adminMessagesToInsert = users.map(u => ({
         admin_id: adminUser.id,
-        user_id: userId,
+        user_id: u.id,
+        user_name: u.name || null,
+        user_email: u.email || null,
         title: title.trim(),
         message: message.trim(),
         message_type: messageType,
@@ -132,9 +142,9 @@ export const AdminMessageCenter: React.FC<AdminMessageCenterProps> = ({ isOpen, 
       if (adminMessageError) throw adminMessageError;
 
       // Insert into notifications, supply id for each (required in types)
-      const notificationsToInsert = userIds.map(userId => ({
+      const notificationsToInsert = users.map(u => ({
         id: crypto.randomUUID(),
-        user_id: userId,
+        user_id: u.id,
         admin_id: adminUser.id,
         title: title.trim(),
         message: message.trim(),
@@ -274,6 +284,11 @@ export const AdminMessageCenter: React.FC<AdminMessageCenterProps> = ({ isOpen, 
                   <span className="font-semibold">{title || 'Your Title Here'}</span>
                 </div>
                 <p className="text-sm text-white/80">{message || 'Your message content will appear here...'}</p>
+                {/* User Details Preview */}
+                <p className="text-xs text-white/60 mt-2">
+                  Example Recipient: <span className="font-semibold">[User Name]</span> (<span className="font-mono">user@gmail.com</span>)
+                  <span className="ml-2 text-white/40">(Each user will see their own details)</span>
+                </p>
               </div>
             </div>
           </div>
