@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useAdminMessages } from '@/hooks/useAdminMessages';
 import { useAuth } from '@/hooks/useAuth';
@@ -15,11 +15,6 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, 
   const { user } = useAuth();
   const { unreadCount, refreshUnreadCount } = useUnreadAdminMessagesContext();
   const [selected, setSelected] = useState<null | (typeof messages)[number]>(null);
-
-  // Debug: log the messages and their read statuses
-  useEffect(() => {
-    console.log("Admin messages in NotificationCenter:", messages);
-  }, [messages]);
 
   // Call this to mark a message as read and refresh unread count
   const markAsRead = async (msg: { id: string; read?: boolean }) => {
@@ -71,11 +66,6 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, 
 
   return (
     <>
-      {/* For debugging: show total and unread count */}
-      <div className="bg-yellow-200 text-black text-xs px-2 py-1 fixed top-8 left-0 z-50">
-        Debug: unreadCount={unreadCount}, totalMessages={messages.length} <br />
-        Unread IDs: {[...messages.filter(m => !m.read).map(m => m.id)].join(", ")}
-      </div>
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent className="bg-gradient-to-br from-purple-600 to-pink-600 text-white border-none max-w-2xl max-h-[80vh] overflow-hidden">
           <DialogHeader>
