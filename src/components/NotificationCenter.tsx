@@ -1,9 +1,8 @@
-
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useAdminMessages } from '@/hooks/useAdminMessages';
 import { useAuth } from '@/hooks/useAuth';
-import { useUnreadAdminMessages } from '@/hooks/useUnreadAdminMessages';
+import { useUnreadAdminMessagesContext } from "@/hooks/UnreadAdminMessagesContext";
 import { supabase } from '@/integrations/supabase/client';
 
 interface NotificationCenterProps {
@@ -14,7 +13,7 @@ interface NotificationCenterProps {
 export const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, onClose }) => {
   const { messages, loading } = useAdminMessages();
   const { user } = useAuth();
-  const { unreadCount, refreshUnreadCount } = useUnreadAdminMessages();
+  const { unreadCount, refreshUnreadCount } = useUnreadAdminMessagesContext();
   const [selected, setSelected] = useState<null | (typeof messages)[number]>(null);
 
   // Call this to mark a message as read and refresh unread count
@@ -25,7 +24,7 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, 
       .update({ read: true })
       .eq('id', msg.id)
       .eq('user_id', user.id);
-    refreshUnreadCount();
+    await refreshUnreadCount(); // Make sure to refresh immediately after marking as read
   };
 
   // When opening a message, mark it as read

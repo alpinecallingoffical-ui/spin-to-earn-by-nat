@@ -10,7 +10,7 @@ import { AboutSection } from '@/components/AboutSection';
 import { useAuth } from '@/hooks/useAuth';
 import { NotificationCenter } from '@/components/NotificationCenter';
 import { WelcomeAnimation } from '@/components/WelcomeAnimation';
-import { useUnreadAdminMessages } from "@/hooks/useUnreadAdminMessages";
+import { useUnreadAdminMessagesContext } from "@/hooks/UnreadAdminMessagesContext";
 import { Leaderboard } from "@/components/Leaderboard";
 
 const Index = () => {
@@ -23,7 +23,7 @@ const Index = () => {
   const [activeTab, setActiveTab] = useState('spin');
   const [showNotifications, setShowNotifications] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
-  const { unreadCount } = useUnreadAdminMessages();
+  const { unreadCount } = useUnreadAdminMessagesContext();
 
   useEffect(() => {
     // Check for referral code in URL
