@@ -3,6 +3,8 @@ import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useAdminMessages } from '@/hooks/useAdminMessages';
 import { useAuth } from '@/hooks/useAuth';
+import { useUnreadAdminMessages } from '@/hooks/useUnreadAdminMessages';
+import { supabase } from '@/integrations/supabase/client';
 
 interface NotificationCenterProps {
   isOpen: boolean;
@@ -12,9 +14,27 @@ interface NotificationCenterProps {
 export const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, onClose }) => {
   const { messages, loading } = useAdminMessages();
   const { user } = useAuth();
+  const { unreadCount, refreshUnreadCount } = useUnreadAdminMessages();
   const [selected, setSelected] = useState<null | (typeof messages)[number]>(null);
 
-  // Removed markAllRead - can't mark as read since there is no "read" column
+  // Call this to mark a message as read and refresh unread count
+  const markAsRead = async (msg: { id: string; read?: boolean }) => {
+    if (!user || !msg || msg.read) return;
+    await supabase
+      .from('admin_messages')
+      .update({ read: true })
+      .eq('id', msg.id)
+      .eq('user_id', user.id);
+    refreshUnreadCount();
+  };
+
+  // When opening a message, mark it as read
+  const openMessage = (msg: typeof selected) => {
+    setSelected(msg);
+    if (msg && !msg.read) {
+      markAsRead(msg);
+    }
+  }
 
   const formatDate = (dateString: string | null) => {
     if (!dateString) return '';
@@ -51,7 +71,13 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, 
         <DialogContent className="bg-gradient-to-br from-purple-600 to-pink-600 text-white border-none max-w-2xl max-h-[80vh] overflow-hidden">
           <DialogHeader>
             <DialogTitle className="text-2xl font-bold flex items-center justify-between">
-              📨 Admin Messages
+              <span>📨 Admin Messages</span>
+              {/* Notification Dot */}
+              {unreadCount > 0 && (
+                <span className="ml-2 bg-red-500 text-white rounded-full text-xs font-bold px-2 py-0.5">
+                  {unreadCount}
+                </span>
+              )}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-3 max-h-96 overflow-y-auto">
@@ -68,8 +94,8 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, 
                 <button
                   key={msg.id}
                   type="button"
-                  onClick={() => setSelected(msg)}
-                  className={`w-full text-left rounded-xl p-4 border ${getTypeBg(msg.message_type)} ring-2 ring-white/10 transition hover:ring-white/30 hover:bg-white/10 focus:outline-none`}
+                  onClick={() => openMessage(msg)}
+                  className={`w-full text-left rounded-xl p-4 border ${getTypeBg(msg.message_type)} ring-2 ring-white/10 transition hover:ring-white/30 hover:bg-white/10 focus:outline-none relative`}
                   style={{ cursor: 'pointer' }}
                   tabIndex={0}
                 >
@@ -83,6 +109,9 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, 
                         <span className="bg-orange-500 text-white text-xs px-2 py-1 rounded-full font-bold">
                           ADMIN
                         </span>
+                        {!msg.read && (
+                          <span className="ml-2 bg-red-500 text-white rounded-full w-2 h-2 inline-block shrink-0" aria-label="Unread" />
+                        )}
                       </div>
                       <p className="text-white/80 text-sm mb-2 mt-1 line-clamp-2">
                         {msg.message}
