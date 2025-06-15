@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -35,17 +34,45 @@ export const AdminMessageCenter: React.FC<AdminMessageCenterProps> = ({ isOpen, 
 
     setLoading(true);
     try {
-      const { data, error } = await supabase.rpc('send_message_to_all_users', {
-        message_title: title.trim(),
-        message_content: message.trim(),
-        message_type: messageType
-      });
+      const { data: { user: adminUser }, error: adminUserError } = await supabase.auth.getUser();
+      if (adminUserError || !adminUser) {
+        throw new Error('Could not identify admin user. Please log in.');
+      }
 
-      if (error) throw error;
+      const { data: users, error: usersError } = await supabase.from('users').select('id');
+      if (usersError) throw usersError;
+      if (!users || users.length === 0) {
+        toast({ title: 'No users to send message to.', variant: 'default' });
+        setLoading(false);
+        return;
+      }
+      
+      const userIds = users.map(u => u.id);
+
+      const adminMessagesToInsert = userIds.map(userId => ({
+        admin_id: adminUser.id,
+        user_id: userId,
+        title: title.trim(),
+        message: message.trim(),
+        message_type: messageType,
+      }));
+      const { error: adminMessageError } = await supabase.from('admin_messages').insert(adminMessagesToInsert);
+      if (adminMessageError) throw adminMessageError;
+
+      const notificationsToInsert = userIds.map(userId => ({
+        user_id: userId,
+        admin_id: adminUser.id,
+        title: title.trim(),
+        message: message.trim(),
+        type: messageType,
+        is_admin_message: true,
+      }));
+      const { error: notificationError } = await supabase.from('notifications').insert(notificationsToInsert);
+      if (notificationError) throw notificationError;
 
       toast({
         title: '✅ Message Sent!',
-        description: `Your message "${title}" has been sent to all users`,
+        description: `Your message "${title}" has been sent to all ${userIds.length} users`,
       });
 
       // Reset form
@@ -75,22 +102,38 @@ export const AdminMessageCenter: React.FC<AdminMessageCenterProps> = ({ isOpen, 
       return;
     }
 
+    if (userIds.length === 0) {
+      return;
+    }
+
     setLoading(true);
     try {
-      // Send notification to selected users
-      for (const userId of userIds) {
-        const { error } = await supabase
-          .from('notifications')
-          .insert({
-            user_id: userId,
-            title: title.trim(),
-            message: message.trim(),
-            type: messageType,
-            is_admin_message: true,
-          });
-
-        if (error) throw error;
+      const { data: { user: adminUser }, error: adminUserError } = await supabase.auth.getUser();
+      if (adminUserError || !adminUser) {
+        throw new Error('Could not identify admin user. Please log in.');
       }
+      
+      const adminMessagesToInsert = userIds.map(userId => ({
+        admin_id: adminUser.id,
+        user_id: userId,
+        title: title.trim(),
+        message: message.trim(),
+        message_type: messageType,
+      }));
+      const { error: adminMessageError } = await supabase.from('admin_messages').insert(adminMessagesToInsert);
+      if (adminMessageError) throw adminMessageError;
+      
+      const notificationsToInsert = userIds.map(userId => ({
+        user_id: userId,
+        admin_id: adminUser.id,
+        title: title.trim(),
+        message: message.trim(),
+        type: messageType,
+        is_admin_message: true,
+      }));
+      
+      const { error: notificationError } = await supabase.from('notifications').insert(notificationsToInsert);
+      if (notificationError) throw notificationError;
 
       toast({
         title: '✅ Message Sent!',
