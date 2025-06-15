@@ -9,6 +9,8 @@ import { SpinHistoryConnected } from '@/components/SpinHistoryConnected';
 import { MoreSection } from '@/components/MoreSection';
 import { AboutSection } from '@/components/AboutSection';
 import { useAuth } from '@/hooks/useAuth';
+import { NotificationCenter } from '@/components/NotificationCenter';
+import { WelcomeAnimation } from '@/components/WelcomeAnimation';
 
 const Index = () => {
   const {
@@ -18,6 +20,8 @@ const Index = () => {
   const [showAuth, setShowAuth] = useState(false);
   const [referralCode, setReferralCode] = useState<string>('');
   const [activeTab, setActiveTab] = useState('spin');
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(false);
 
   useEffect(() => {
     // Check for referral code in URL
@@ -27,6 +31,15 @@ const Index = () => {
       setReferralCode(refCode);
     }
   }, []);
+
+  useEffect(() => {
+    if (user) {
+      setShowWelcome(true);
+      // Hide welcome after 2.5s
+      const timeout = setTimeout(() => setShowWelcome(false), 2500);
+      return () => clearTimeout(timeout);
+    }
+  }, [user]);
 
   const handleSwitchToHistory = () => {
     setActiveTab('history');
@@ -53,12 +66,22 @@ const Index = () => {
             🚀 Get Started
           </button>
         </div>
-
         <AuthModal isOpen={showAuth} onClose={() => setShowAuth(false)} referralCode={referralCode} />
       </div>;
   }
 
-  return <div className="min-h-screen bg-gradient-to-br from-purple-600 via-pink-600 to-orange-500">
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-purple-600 via-pink-600 to-orange-500">
+      <WelcomeAnimation show={showWelcome} userName={user.user_metadata?.name || user.email || "User"} />
+      <NotificationCenter isOpen={showNotifications} onClose={() => setShowNotifications(false)} />
+      <div className="fixed top-3 right-3 z-50">
+        <button
+          onClick={() => setShowNotifications(true)}
+          className="bg-white/20 hover:bg-white/30 text-white text-lg px-4 py-2 rounded-xl shadow-lg transition-all duration-200"
+        >
+          🔔 Notifications
+        </button>
+      </div>
       <div className="container mx-auto px-4 py-8">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-white mb-2">🎰 Spin to Earn</h1>
@@ -114,7 +137,8 @@ const Index = () => {
           </div>
         </Tabs>
       </div>
-    </div>;
+    </div>
+  );
 };
 
 export default Index;
