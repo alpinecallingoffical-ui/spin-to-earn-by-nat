@@ -18,7 +18,8 @@ import { Crown } from "lucide-react";
 const Index = () => {
   const {
     user,
-    loading
+    loading,
+    signOut // <-- Add this line to get signOut from the hook
   } = useAuth();
   const [showAuth, setShowAuth] = useState(false);
   const [referralCode, setReferralCode] = useState<string>('');
