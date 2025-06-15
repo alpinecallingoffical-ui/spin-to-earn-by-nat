@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -46,9 +47,10 @@ export const AdminMessageCenter: React.FC<AdminMessageCenterProps> = ({ isOpen, 
         setLoading(false);
         return;
       }
-      
+
       const userIds = users.map(u => u.id);
 
+      // Insert into admin_messages
       const adminMessagesToInsert = userIds.map(userId => ({
         admin_id: adminUser.id,
         user_id: userId,
@@ -59,6 +61,7 @@ export const AdminMessageCenter: React.FC<AdminMessageCenterProps> = ({ isOpen, 
       const { error: adminMessageError } = await supabase.from('admin_messages').insert(adminMessagesToInsert);
       if (adminMessageError) throw adminMessageError;
 
+      // Insert into notifications - remove the id property, Supabase will auto-generate it
       const notificationsToInsert = userIds.map(userId => ({
         user_id: userId,
         admin_id: adminUser.id,
@@ -67,7 +70,11 @@ export const AdminMessageCenter: React.FC<AdminMessageCenterProps> = ({ isOpen, 
         type: messageType,
         is_admin_message: true,
       }));
-      const { error: notificationError } = await supabase.from('notifications').insert(notificationsToInsert);
+      // The error was here: The insert was not typed correctly, so let's add a proper .insert([...])
+      const { error: notificationError } = await supabase
+        .from('notifications')
+        .insert(notificationsToInsert);
+
       if (notificationError) throw notificationError;
 
       toast({
@@ -112,7 +119,7 @@ export const AdminMessageCenter: React.FC<AdminMessageCenterProps> = ({ isOpen, 
       if (adminUserError || !adminUser) {
         throw new Error('Could not identify admin user. Please log in.');
       }
-      
+
       const adminMessagesToInsert = userIds.map(userId => ({
         admin_id: adminUser.id,
         user_id: userId,
@@ -122,7 +129,7 @@ export const AdminMessageCenter: React.FC<AdminMessageCenterProps> = ({ isOpen, 
       }));
       const { error: adminMessageError } = await supabase.from('admin_messages').insert(adminMessagesToInsert);
       if (adminMessageError) throw adminMessageError;
-      
+
       const notificationsToInsert = userIds.map(userId => ({
         user_id: userId,
         admin_id: adminUser.id,
@@ -131,8 +138,11 @@ export const AdminMessageCenter: React.FC<AdminMessageCenterProps> = ({ isOpen, 
         type: messageType,
         is_admin_message: true,
       }));
-      
-      const { error: notificationError } = await supabase.from('notifications').insert(notificationsToInsert);
+      // The error was here: The insert was not typed correctly, so let's add a proper .insert([...])
+      const { error: notificationError } = await supabase
+        .from('notifications')
+        .insert(notificationsToInsert);
+
       if (notificationError) throw notificationError;
 
       toast({
