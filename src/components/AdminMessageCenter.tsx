@@ -49,7 +49,7 @@ export const AdminMessageCenter: React.FC<AdminMessageCenterProps> = ({ isOpen, 
         return;
       }
 
-      // Insert into admin_messages
+      // Insert into admin_messages ONLY
       const adminMessagesToInsert = users.map(u => ({
         admin_id: adminUser.id,
         user_id: u.id,
@@ -61,22 +61,6 @@ export const AdminMessageCenter: React.FC<AdminMessageCenterProps> = ({ isOpen, 
       }));
       const { error: adminMessageError } = await supabase.from('admin_messages').insert(adminMessagesToInsert);
       if (adminMessageError) throw adminMessageError;
-
-      // Insert into notifications, supply id for each (required in types)
-      const notificationsToInsert = users.map(u => ({
-        id: crypto.randomUUID(),
-        user_id: u.id,
-        admin_id: adminUser.id,
-        title: title.trim(),
-        message: message.trim(),
-        type: messageType,
-        is_admin_message: true,
-      }));
-      const { error: notificationError } = await supabase
-        .from('notifications')
-        .insert(notificationsToInsert);
-
-      if (notificationError) throw notificationError;
 
       toast({
         title: '✅ Message Sent!',
@@ -128,7 +112,7 @@ export const AdminMessageCenter: React.FC<AdminMessageCenterProps> = ({ isOpen, 
         .in('id', userIds);
       if (usersError) throw usersError;
 
-      // Insert into admin_messages
+      // Insert into admin_messages ONLY
       const adminMessagesToInsert = users.map(u => ({
         admin_id: adminUser.id,
         user_id: u.id,
@@ -140,22 +124,6 @@ export const AdminMessageCenter: React.FC<AdminMessageCenterProps> = ({ isOpen, 
       }));
       const { error: adminMessageError } = await supabase.from('admin_messages').insert(adminMessagesToInsert);
       if (adminMessageError) throw adminMessageError;
-
-      // Insert into notifications, supply id for each (required in types)
-      const notificationsToInsert = users.map(u => ({
-        id: crypto.randomUUID(),
-        user_id: u.id,
-        admin_id: adminUser.id,
-        title: title.trim(),
-        message: message.trim(),
-        type: messageType,
-        is_admin_message: true,
-      }));
-      const { error: notificationError } = await supabase
-        .from('notifications')
-        .insert(notificationsToInsert);
-
-      if (notificationError) throw notificationError;
 
       toast({
         title: '✅ Message Sent!',
