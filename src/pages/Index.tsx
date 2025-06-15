@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AuthModal } from '@/components/AuthModal';
@@ -13,6 +12,8 @@ import { NotificationCenter } from '@/components/NotificationCenter';
 import { WelcomeAnimation } from '@/components/WelcomeAnimation';
 import { useUnreadAdminMessagesContext } from "@/hooks/UnreadAdminMessagesContext";
 import { Leaderboard } from "@/components/Leaderboard";
+import { Button } from "@/components/ui/button";
+import { Crown } from "lucide-react";
 
 const Index = () => {
   const {
@@ -80,7 +81,7 @@ const Index = () => {
     <div className="min-h-screen bg-gradient-to-br from-purple-600 via-pink-600 to-orange-500">
       <WelcomeAnimation show={showWelcome} userName={user.user_metadata?.name || user.email || "User"} />
       <NotificationCenter isOpen={showNotifications} onClose={() => setShowNotifications(false)} />
-      <div className="fixed top-3 right-3 z-50">
+      <div className="fixed top-3 right-3 z-50 flex gap-2">
         <button
           onClick={() => setShowNotifications(true)}
           className="relative bg-white/20 hover:bg-white/30 text-white text-lg px-4 py-2 rounded-xl shadow-lg transition-all duration-200"
@@ -93,6 +94,19 @@ const Index = () => {
             </span>
           )}
         </button>
+        {/* Add Sign Out Button */}
+        <Button
+          variant="outline"
+          className="bg-white/20 border-white/30 text-white hover:bg-white/30"
+          onClick={() => {
+            if (window.confirm("Are you sure you want to sign out?")) {
+              // Sign the user out
+              if (typeof signOut === "function") signOut();
+            }
+          }}
+        >
+          Sign Out
+        </Button>
       </div>
       <div className="container mx-auto px-4 py-8">
         <div className="text-center mb-8">
