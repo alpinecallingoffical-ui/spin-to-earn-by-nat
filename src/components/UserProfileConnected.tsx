@@ -13,7 +13,7 @@ interface UserProfileConnectedProps {
 }
 
 export const UserProfileConnected: React.FC<UserProfileConnectedProps> = ({ onSwitchToHistory }) => {
-  const { userData, refetch } = useUserData();
+  const { userData, refetch, loading, profileTimeout } = useUserData();
   const { signOut } = useAuth();
   const { toast } = useToast();
   const { getTotalMultiplierSavings, getTodaysBenefits } = useVipBenefits();
@@ -140,10 +140,33 @@ export const UserProfileConnected: React.FC<UserProfileConnectedProps> = ({ onSw
     refetch();
   };
 
-  if (!userData) {
+  if (loading) {
     return (
-      <div className="text-center text-white">
-        <p>Loading profile...</p>
+      <div className="flex flex-col items-center justify-center min-h-48">
+        <div className="flex items-center space-x-2">
+          <span className="animate-spin text-purple-300 text-xl">🎰</span>
+          <p className="text-white">Loading profile...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!userData && !loading && !profileTimeout) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-48">
+        <span className="animate-bounce text-yellow-300 text-3xl mb-2">⏳</span>
+        <p className="text-white text-lg font-semibold mb-1">Setting up your profile...</p>
+        <p className="text-white/70 text-sm">This usually takes a few seconds. Please wait!</p>
+      </div>
+    );
+  }
+
+  if (profileTimeout) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-48">
+        <span className="text-red-400 text-3xl mb-2">❌</span>
+        <p className="text-white font-semibold mb-1">There was a problem setting up your profile.</p>
+        <p className="text-white/70 text-sm">Please try logging out and in again.<br />If the problem persists, contact support.</p>
       </div>
     );
   }

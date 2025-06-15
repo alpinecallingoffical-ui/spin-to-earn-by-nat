@@ -11,6 +11,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { NotificationCenter } from '@/components/NotificationCenter';
 import { WelcomeAnimation } from '@/components/WelcomeAnimation';
 import { useUnreadAdminMessages } from "@/hooks/useUnreadAdminMessages";
+import { Leaderboard } from "@/components/Leaderboard";
 
 const Index = () => {
   const {
@@ -95,7 +96,7 @@ const Index = () => {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="max-w-4xl mx-auto">
-          <TabsList className="grid w-full grid-cols-6 bg-white/20 backdrop-blur-sm">
+          <TabsList className="grid w-full grid-cols-7 bg-white/20 backdrop-blur-sm"> 
             <TabsTrigger value="spin" className="text-white data-[state=active]:bg-white/30">
               🎰 Spin
             </TabsTrigger>
@@ -113,6 +114,9 @@ const Index = () => {
             </TabsTrigger>
             <TabsTrigger value="profile" className="text-white data-[state=active]:bg-white/30">
               👤 Profile
+            </TabsTrigger>
+            <TabsTrigger value="leaderboard" className="text-white data-[state=active]:bg-white/30">
+              🏆 Leaderboard
             </TabsTrigger>
           </TabsList>
 
@@ -139,6 +143,10 @@ const Index = () => {
 
             <TabsContent value="profile" className="space-y-6">
               <UserProfileConnected onSwitchToHistory={handleSwitchToHistory} />
+            </TabsContent>
+
+            <TabsContent value="leaderboard" className="space-y-6">
+              <Leaderboard />
             </TabsContent>
           </div>
         </Tabs>

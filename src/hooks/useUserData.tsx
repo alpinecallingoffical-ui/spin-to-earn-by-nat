@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
@@ -31,6 +30,7 @@ export const useUserData = () => {
   const [canSpin, setCanSpin] = useState(false);
   const [loading, setLoading] = useState(true);
   const [previousCoins, setPreviousCoins] = useState<number | null>(null);
+  const [profileTimeout, setProfileTimeout] = useState(false);
 
   const calculateCanSpin = (coins: number, spinLimit: number, todaySpinCount: number) => {
     // Grand Master level (3000+ coins) gets unlimited spins
@@ -70,6 +70,7 @@ export const useUserData = () => {
       return;
     }
 
+    setLoading(true); // always set loading on new fetch
     try {
       console.log('Fetching user data for:', user.id);
       
@@ -79,6 +80,38 @@ export const useUserData = () => {
         .select('*')
         .eq('id', user.id)
         .single();
+
+      // Handle the case where profile doesn't yet exist (trigger still running)
+      if (profileError && profileError.code === 'PGRST116') {
+        // "No rows returned" - show a setup message and retry for up to 10 seconds
+        setUserData(null);
+        setProfileTimeout(false);
+        let retryCount = 0;
+        const maxRetry = 10;
+        const interval = setInterval(async () => {
+          retryCount++;
+          const { data: p, error: e } = await supabase
+            .from('users')
+            .select('*')
+            .eq('id', user.id)
+            .single();
+          if (p) {
+            setUserData(p);
+            clearInterval(interval);
+            setProfileTimeout(false);
+            setLoading(false);
+            // ... continue fetching
+            fetchUserData(); // continue as normal
+            return;
+          }
+          if (retryCount >= maxRetry) {
+            setProfileTimeout(true);
+            clearInterval(interval);
+            setLoading(false);
+          }
+        }, 1000);
+        return;
+      }
 
       if (profileError) throw profileError;
       console.log('User profile fetched:', profile);
@@ -251,5 +284,6 @@ export const useUserData = () => {
     loading,
     recordSpin,
     refetch: fetchUserData,
+    profileTimeout, // add this
   };
 };

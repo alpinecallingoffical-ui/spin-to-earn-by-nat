@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -18,13 +17,16 @@ export const ProfilePictureUpload: React.FC<ProfilePictureUploadProps> = ({
   const { user } = useAuth();
   const { toast } = useToast();
   const [uploading, setUploading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const uploadProfilePicture = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    setErrorMsg(null);
     if (!event.target.files || event.target.files.length === 0) {
       return;
     }
 
     if (!user) {
+      setErrorMsg('You must be logged in to upload a profile picture');
       toast({
         title: 'Error',
         description: 'You must be logged in to upload a profile picture',
@@ -36,18 +38,19 @@ export const ProfilePictureUpload: React.FC<ProfilePictureUploadProps> = ({
     const file = event.target.files[0];
     const fileExt = file.name.split('.').pop();
     const fileName = `${user.id}/profile.${fileExt}`;
-
     setUploading(true);
 
     try {
-      // Upload to Supabase Storage
+      // Try uploading; for demo, catch Storage error if the bucket doesn't exist
       const { error: uploadError } = await supabase.storage
         .from('profile-pictures')
         .upload(fileName, file, { upsert: true });
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        setErrorMsg(`Upload failed: ${uploadError.message}`);
+        throw uploadError;
+      }
 
-      // Get the public URL
       const { data } = supabase.storage
         .from('profile-pictures')
         .getPublicUrl(fileName);
@@ -58,19 +61,23 @@ export const ProfilePictureUpload: React.FC<ProfilePictureUploadProps> = ({
         .update({ profile_picture_url: data.publicUrl })
         .eq('id', user.id);
 
-      if (updateError) throw updateError;
+      if (updateError) {
+        setErrorMsg(`Profile update failed: ${updateError.message}`);
+        throw updateError;
+      }
 
       onUploadSuccess(data.publicUrl);
-      
+
       toast({
         title: '✅ Success!',
         description: 'Profile picture updated successfully',
       });
-    } catch (error) {
+    } catch (error: any) {
+      setErrorMsg(error?.message || 'Failed to upload profile picture. Please try again.');
       console.error('Error uploading profile picture:', error);
       toast({
         title: 'Error',
-        description: 'Failed to upload profile picture. Please try again.',
+        description: error?.message || 'Failed to upload profile picture. Please try again.',
         variant: 'destructive',
       });
     } finally {
@@ -111,6 +118,9 @@ export const ProfilePictureUpload: React.FC<ProfilePictureUploadProps> = ({
       
       {uploading && (
         <p className="text-white/80 text-sm">Uploading...</p>
+      )}
+      {errorMsg && (
+        <p className="text-red-500 text-xs">{errorMsg}</p>
       )}
     </div>
   );
