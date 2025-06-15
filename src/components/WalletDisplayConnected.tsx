@@ -7,7 +7,6 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { WithdrawalHistory } from '@/components/WithdrawalHistory';
-import { NotificationCenter } from '@/components/NotificationCenter';
 import { AdminMessageCenter } from '@/components/AdminMessageCenter';
 import { useNotifications } from '@/hooks/useNotifications';
 import { EmailService } from '@/services/emailService';
@@ -27,12 +26,10 @@ export const WalletDisplayConnected: React.FC<WalletDisplayConnectedProps> = ({
   const {
     toast
   } = useToast();
-  const {
-    unreadCount
-  } = useNotifications();
+  // Removed useNotifications, isNotificationOpen, and NotificationCenter references here
   const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
-  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  // Removed: const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [isAdminMessageOpen, setIsAdminMessageOpen] = useState(false);
   const [esewaNumber, setEsewaNumber] = useState('');
   const [withdrawAmount, setWithdrawAmount] = useState('');
@@ -137,14 +134,9 @@ export const WalletDisplayConnected: React.FC<WalletDisplayConnectedProps> = ({
         <div className="flex items-center justify-center space-x-2 mb-4">
           <span className="text-3xl">🪙</span>
           <span className="text-2xl font-bold text-white">Your Wallet</span>
+          {/* Removed notification button here */}
           <div className="flex items-center space-x-2 ml-4">
-            <Button onClick={() => setIsNotificationOpen(true)} className="bg-white/20 hover:bg-white/30 text-white p-2 rounded-full">
-              🔔
-              {unreadCount > 0 && <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                  {unreadCount > 9 ? '9+' : unreadCount}
-                </span>}
-            </Button>
-            
+            {/* No notification icon here */}
             {isAdmin}
           </div>
         </div>
@@ -212,9 +204,6 @@ export const WalletDisplayConnected: React.FC<WalletDisplayConnectedProps> = ({
           <WithdrawalHistory />
         </DialogContent>
       </Dialog>
-
-      {/* Notification Center */}
-      <NotificationCenter isOpen={isNotificationOpen} onClose={() => setIsNotificationOpen(false)} />
 
       {/* Admin Message Center */}
       {isAdmin && <AdminMessageCenter isOpen={isAdminMessageOpen} onClose={() => setIsAdminMessageOpen(false)} />}
