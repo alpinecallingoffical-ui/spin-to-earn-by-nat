@@ -75,42 +75,6 @@ export type Database = {
         }
         Relationships: []
       }
-      notifications: {
-        Row: {
-          admin_id: string | null
-          created_at: string | null
-          id: string
-          is_admin_message: boolean | null
-          message: string
-          read: boolean
-          title: string
-          type: string
-          user_id: string
-        }
-        Insert: {
-          admin_id?: string | null
-          created_at?: string | null
-          id: string
-          is_admin_message?: boolean | null
-          message: string
-          read?: boolean
-          title: string
-          type?: string
-          user_id: string
-        }
-        Update: {
-          admin_id?: string | null
-          created_at?: string | null
-          id?: string
-          is_admin_message?: boolean | null
-          message?: string
-          read?: boolean
-          title?: string
-          type?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       referrals: {
         Row: {
           bonus_given: number
