@@ -12,33 +12,33 @@ export type Database = {
       admin_messages: {
         Row: {
           admin_id: string
-          created_at: string
+          created_at: string | null
           id: string
           message: string
           message_type: string
           sent_at: string | null
-          sent_to_all: boolean | null
           title: string
+          user_id: string
         }
         Insert: {
           admin_id: string
-          created_at?: string
+          created_at?: string | null
           id?: string
           message: string
           message_type?: string
           sent_at?: string | null
-          sent_to_all?: boolean | null
-          title?: string
+          title: string
+          user_id: string
         }
         Update: {
           admin_id?: string
-          created_at?: string
+          created_at?: string | null
           id?: string
           message?: string
           message_type?: string
           sent_at?: string | null
-          sent_to_all?: boolean | null
           title?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -84,7 +84,7 @@ export type Database = {
         Insert: {
           admin_id?: string | null
           created_at?: string | null
-          id?: string
+          id: string
           is_admin_message?: boolean | null
           message: string
           read?: boolean
@@ -103,22 +103,7 @@ export type Database = {
           type?: string
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "notifications_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "user_daily_stats"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "notifications_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       referrals: {
         Row: {
