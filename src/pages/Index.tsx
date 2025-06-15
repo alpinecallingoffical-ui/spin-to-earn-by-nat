@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AuthModal } from '@/components/AuthModal';
@@ -47,6 +48,9 @@ const Index = () => {
     setActiveTab('history');
   };
 
+  // Debug log for notification state
+  console.log('[Notification-Debug] unreadCount:', unreadCount);
+
   if (loading) {
     return <div className="min-h-screen bg-gradient-to-br from-purple-600 via-pink-600 to-orange-500 flex items-center justify-center">
         <div className="text-white text-2xl font-bold">🎰 Loading...</div>
@@ -80,6 +84,7 @@ const Index = () => {
         <button
           onClick={() => setShowNotifications(true)}
           className="relative bg-white/20 hover:bg-white/30 text-white text-lg px-4 py-2 rounded-xl shadow-lg transition-all duration-200"
+          aria-label="Notifications"
         >
           <span>🔔 Notifications</span>
           {unreadCount > 0 && (

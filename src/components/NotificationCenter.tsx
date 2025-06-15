@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useAdminMessages } from '@/hooks/useAdminMessages';
@@ -16,7 +17,7 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, 
   const { unreadCount, refreshUnreadCount } = useUnreadAdminMessagesContext();
   const [selected, setSelected] = useState<null | (typeof messages)[number]>(null);
 
-  // Call this to mark a message as read and refresh unread count
+  // Mark as read and refresh unread count
   const markAsRead = async (msg: { id: string; read?: boolean }) => {
     if (!user || !msg || msg.read) return;
     await supabase
@@ -24,7 +25,7 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, 
       .update({ read: true })
       .eq('id', msg.id)
       .eq('user_id', user.id);
-    await refreshUnreadCount(); // Make sure to refresh immediately after marking as read
+    await refreshUnreadCount();
   };
 
   // When opening a message, mark it as read
@@ -71,7 +72,7 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, 
           <DialogHeader>
             <DialogTitle className="text-2xl font-bold flex items-center justify-between">
               <span>📨 Admin Messages</span>
-              {/* Notification Dot */}
+              {/* Notification Dot (Debug + visual, always tied to unreadCount) */}
               {unreadCount > 0 && (
                 <span className="ml-2 bg-red-500 text-white rounded-full text-xs font-bold px-2 py-0.5">
                   {unreadCount}
