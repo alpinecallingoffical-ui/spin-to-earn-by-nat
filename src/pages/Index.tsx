@@ -43,6 +43,11 @@ const Index = () => {
     }
   }, [user]);
 
+  useEffect(() => {
+    // For debugging: log the current unreadCount on each render
+    console.log("Unread admin messages count:", unreadCount);
+  }, [unreadCount]);
+
   const handleSwitchToHistory = () => {
     setActiveTab('history');
   };
@@ -74,6 +79,10 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-600 via-pink-600 to-orange-500">
+      {/* For debugging: Show unread count on dashboard */}
+      <div className="fixed top-0 left-0 z-50 bg-yellow-200 text-black px-2 text-xs">
+        Debug: unreadCount = {unreadCount}
+      </div>
       <WelcomeAnimation show={showWelcome} userName={user.user_metadata?.name || user.email || "User"} />
       <NotificationCenter isOpen={showNotifications} onClose={() => setShowNotifications(false)} />
       <div className="fixed top-3 right-3 z-50">
