@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
+
+import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useAdminMessages } from '@/hooks/useAdminMessages';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 
 interface NotificationCenterProps {
@@ -14,18 +14,7 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, 
   const { user } = useAuth();
   const [selected, setSelected] = useState<null | (typeof messages)[number]>(null);
 
-  // Mark all messages as read when notification center is opened
-  useEffect(() => {
-    if (!isOpen || !user) return;
-    const markAllRead = async () => {
-      await supabase
-        .from('admin_messages')
-        .update({ read: true })
-        .eq('user_id', user.id)
-        .eq('read', false); // only mark unread
-    };
-    markAllRead();
-  }, [isOpen, user]);
+  // Removed markAllRead - can't mark as read since there is no "read" column
 
   const formatDate = (dateString: string | null) => {
     if (!dateString) return '';
