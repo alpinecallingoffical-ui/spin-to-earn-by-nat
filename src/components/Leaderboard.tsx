@@ -1,89 +1,107 @@
 
 import React, { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 
-interface LeaderboardUser {
-  id: string;
+interface BoardUser {
+  user_id: string;
   name: string;
   profile_picture_url?: string;
   coins: number;
+  rank: number;
 }
 
 export const Leaderboard: React.FC = () => {
-  const [users, setUsers] = useState<LeaderboardUser[]>([]);
+  const [users, setUsers] = useState<BoardUser[]>([]);
   const [loading, setLoading] = useState(true);
+  const [date, setDate] = useState<string>(() => new Date().toISOString().slice(0, 10));
+  const [snapshotMessage, setSnapshotMessage] = useState<string>("");
 
-  // Fetch users ordered by coins DESC
-  const fetchUsers = async () => {
+  // Fetch leaderboard snapshot for selected date
+  const fetchLeaderboard = async (targetDate?: string) => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("users")
-      .select("id, name, profile_picture_url, coins")
-      .order("coins", { ascending: false })
-      .limit(20);
+    const useDate = targetDate || new Date().toISOString().slice(0, 10);
 
-    if (!error) setUsers(data ?? []);
+    const { data, error } = await supabase
+      .from("daily_leaderboard")
+      .select("user_id, name, profile_picture_url, coins, rank")
+      .eq("leaderboard_date", useDate)
+      .order("rank", { ascending: true });
+
+    if (!error) {
+      setUsers(data ?? []);
+    }
     setLoading(false);
   };
 
-  useEffect(() => {
-    fetchUsers();
-    // Subscribe to real-time updates (coins change)
-    const userChannel = supabase
-      .channel("leaderboard-users")
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "users",
-        },
-        (payload) => {
-          fetchUsers();
-        }
-      )
-      .subscribe();
+  // For testing: Allow admin to snapshot manually on UI
+  const triggerSnapshot = async () => {
+    setSnapshotMessage("Taking snapshot...");
+    try {
+      const resp = await fetch("https://chwqwteyqzwtrcodvbdy.supabase.co/functions/v1/snapshot-leaderboard", {
+        method: "POST"
+      });
+      const j = await resp.json();
+      setSnapshotMessage(j.message ? j.message : "Snapshot done!");
+      // Refresh after snapshot
+      fetchLeaderboard(date);
+    } catch (e) {
+      setSnapshotMessage("Failed to take snapshot");
+    }
+  };
 
-    return () => {
-      supabase.removeChannel(userChannel);
-    };
-  }, []);
+  useEffect(() => {
+    fetchLeaderboard(date);
+  }, [date]);
 
   return (
     <div className="bg-gradient-to-br from-purple-700/50 to-pink-600/40 p-6 rounded-2xl shadow-xl max-w-2xl mx-auto">
-      <h2 className="text-2xl font-bold text-white mb-6 text-center">🏆 Leaderboard</h2>
+      <h2 className="text-2xl font-bold text-white mb-4 text-center">🏆 Daily Leaderboard</h2>
+      <div className="flex justify-between items-center mb-4">
+        <span className="text-white/70 text-sm">
+          Date: <input type="date" value={date} onChange={e => { setDate(e.target.value); fetchLeaderboard(e.target.value); }} className="rounded px-2 py-1 text-black" />
+        </span>
+        <button onClick={triggerSnapshot} className="bg-blue-500 text-white px-3 py-1 rounded shadow hover:bg-blue-600 text-xs">Snapshot Now</button>
+      </div>
+      {snapshotMessage && (
+        <div className="text-xs text-white/70 mb-2">{snapshotMessage}</div>
+      )}
       {loading ? (
-        <div className="text-center text-white/60">Loading leaderboard...</div>
+        <div className="text-center text-white/60">Loading leaderboard snapshot...</div>
+      ) : users.length === 0 ? (
+        <div className="text-center text-white/60">No leaderboard for this date yet.</div>
       ) : (
-        <table className="w-full text-white">
-          <thead>
-            <tr>
-              <th className="text-left p-2">#</th>
-              <th className="text-left p-2">Player</th>
-              <th className="text-left p-2">Coins</th>
-            </tr>
-          </thead>
-          <tbody>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>#</TableHead>
+              <TableHead>Player</TableHead>
+              <TableHead>Coins</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {users.map((u, idx) => (
-              <tr key={u.id} className={`border-t border-white/10 ${idx === 0 ? 'bg-yellow-400/10' : ''}`}>
-                <td className="p-2">{idx + 1}</td>
-                <td className="p-2 flex items-center space-x-3">
-                  {u.profile_picture_url ? (
-                    <img
-                      src={u.profile_picture_url}
-                      alt={u.name}
-                      className="w-8 h-8 rounded-full border-2 border-white/30 object-cover"
-                    />
-                  ) : (
-                    <span className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-xl">🎰</span>
-                  )}
-                  <span className="font-bold">{u.name}</span>
-                </td>
-                <td className="p-2 font-mono font-semibold">{u.coins.toLocaleString()} 🪙</td>
-              </tr>
+              <TableRow key={u.user_id} className={u.rank === 1 ? "bg-yellow-400/10" : ""}>
+                <TableCell>{u.rank}</TableCell>
+                <TableCell>
+                  <span className="flex items-center gap-2">
+                    {u.profile_picture_url ? (
+                      <img
+                        src={u.profile_picture_url}
+                        alt={u.name}
+                        className="w-8 h-8 rounded-full border-2 border-white/30 object-cover"
+                      />
+                    ) : (
+                      <span className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-xl">🎰</span>
+                    )}
+                    <span className="font-bold">{u.name}</span>
+                  </span>
+                </TableCell>
+                <TableCell className="font-mono font-semibold">{u.coins.toLocaleString()} 🪙</TableCell>
+              </TableRow>
             ))}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       )}
     </div>
   );

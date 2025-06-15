@@ -48,6 +48,39 @@ export type Database = {
         }
         Relationships: []
       }
+      daily_leaderboard: {
+        Row: {
+          coins: number
+          created_at: string
+          id: string
+          leaderboard_date: string
+          name: string
+          profile_picture_url: string | null
+          rank: number
+          user_id: string
+        }
+        Insert: {
+          coins: number
+          created_at?: string
+          id?: string
+          leaderboard_date: string
+          name: string
+          profile_picture_url?: string | null
+          rank: number
+          user_id: string
+        }
+        Update: {
+          coins?: number
+          created_at?: string
+          id?: string
+          leaderboard_date?: string
+          name?: string
+          profile_picture_url?: string | null
+          rank?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       game_scores: {
         Row: {
           achieved_at: string
