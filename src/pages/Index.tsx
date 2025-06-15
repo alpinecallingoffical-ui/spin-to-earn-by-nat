@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AuthModal } from '@/components/AuthModal';
@@ -11,6 +10,7 @@ import { AboutSection } from '@/components/AboutSection';
 import { useAuth } from '@/hooks/useAuth';
 import { NotificationCenter } from '@/components/NotificationCenter';
 import { WelcomeAnimation } from '@/components/WelcomeAnimation';
+import { useUnreadAdminMessages } from "@/hooks/useUnreadAdminMessages";
 
 const Index = () => {
   const {
@@ -22,6 +22,7 @@ const Index = () => {
   const [activeTab, setActiveTab] = useState('spin');
   const [showNotifications, setShowNotifications] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
+  const { unreadCount } = useUnreadAdminMessages();
 
   useEffect(() => {
     // Check for referral code in URL
@@ -77,9 +78,14 @@ const Index = () => {
       <div className="fixed top-3 right-3 z-50">
         <button
           onClick={() => setShowNotifications(true)}
-          className="bg-white/20 hover:bg-white/30 text-white text-lg px-4 py-2 rounded-xl shadow-lg transition-all duration-200"
+          className="relative bg-white/20 hover:bg-white/30 text-white text-lg px-4 py-2 rounded-xl shadow-lg transition-all duration-200"
         >
-          🔔 Notifications
+          <span>🔔 Notifications</span>
+          {unreadCount > 0 && (
+            <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs font-bold rounded-full px-2 py-0.5 shadow-lg border-2 border-white animate-bounce">
+              {unreadCount > 9 ? "9+" : unreadCount}
+            </span>
+          )}
         </button>
       </div>
       <div className="container mx-auto px-4 py-8">
