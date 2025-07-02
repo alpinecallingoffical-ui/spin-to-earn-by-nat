@@ -151,7 +151,7 @@ export const UserProfileConnected: React.FC<UserProfileConnectedProps> = ({ onSw
     );
   }
 
-  if (!userData && !loading && !profileTimeout) {
+  if (!userData && !loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-48">
         <span className="animate-bounce text-yellow-300 text-3xl mb-2">⏳</span>

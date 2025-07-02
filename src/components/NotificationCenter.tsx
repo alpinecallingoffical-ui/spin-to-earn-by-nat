@@ -135,8 +135,8 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, 
                     key={msg.id}
                     type="button"
                     onClick={() => openMessage(msg)}
-                    className={`w-full text-left rounded-xl p-4 border ${getTypeBg(msg.message_type)} ring-2 ring-white/10 transition hover:ring-white/30 hover:bg-white/10 focus:outline-none relative overflow-x-auto`}
-                    style={{ cursor: 'pointer', wordBreak: "break-word", whiteSpace: 'normal' }}
+                    className={`w-full text-left rounded-xl p-4 border ${getTypeBg(msg.message_type)} ring-2 ring-white/10 transition hover:ring-white/30 hover:bg-white/10 focus:outline-none relative`}
+                    style={{ cursor: 'pointer' }}
                     tabIndex={0}
                   >
                     <div className="flex items-start space-x-3">
@@ -144,8 +144,8 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, 
                         {getTypeIcon(msg.message_type)}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center space-x-2 flex-wrap">
-                          <h4 className="text-white font-semibold break-words">{msg.title}</h4>
+                        <div className="flex items-center space-x-2 flex-wrap mb-2">
+                          <h4 className="text-white font-semibold break-words max-w-full">{msg.title}</h4>
                           <span className="bg-orange-500 text-white text-xs px-2 py-1 rounded-full font-bold">
                             ADMIN
                           </span>
@@ -153,9 +153,9 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, 
                             <span className="ml-2 bg-red-500 text-white rounded-full w-2 h-2 inline-block shrink-0" aria-label="Unread" />
                           )}
                         </div>
-                        <p className="text-white/80 text-sm mb-2 mt-1 break-words whitespace-pre-line line-clamp-2">
-                          {msg.message}
-                        </p>
+                        <div className="text-white/80 text-sm mb-2 mt-1 break-words whitespace-pre-wrap max-w-full overflow-hidden">
+                          <p className="line-clamp-3 leading-relaxed">{msg.message}</p>
+                        </div>
                         {/* Show level name if coins found */}
                         {levelName && (
                           <div className="flex items-center text-xs mt-1">
@@ -188,8 +188,10 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, 
                 <span className="bg-orange-500 text-white text-xs px-2 py-1 rounded-full font-bold ml-2">ADMIN</span>
               </DialogTitle>
             </DialogHeader>
-            <div className="mt-4">
-              <p className="text-white/90 text-base whitespace-pre-line break-words">{selected.message}</p>
+            <div className="mt-4 max-w-full">
+              <div className="text-white/90 text-base whitespace-pre-wrap break-words overflow-wrap-anywhere leading-relaxed">
+                {selected.message}
+              </div>
               {/* Show level name in detail if coins present */}
               {(() => {
                 const coins = extractCoins(selected.message);
