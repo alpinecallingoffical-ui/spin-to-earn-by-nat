@@ -151,12 +151,12 @@ export const UserProfileConnected: React.FC<UserProfileConnectedProps> = ({ onSw
     );
   }
 
-  if (!userData && !loading) {
+  if (!userData && !loading && profileTimeout) {
     return (
       <div className="flex flex-col items-center justify-center min-h-48">
-        <span className="animate-bounce text-yellow-300 text-3xl mb-2">⏳</span>
-        <p className="text-white text-lg font-semibold mb-1">Setting up your profile...</p>
-        <p className="text-white/70 text-sm">This usually takes a few seconds. Please wait!</p>
+        <span className="text-red-400 text-3xl mb-2">❌</span>
+        <p className="text-white font-semibold mb-1">There was a problem loading your profile.</p>
+        <p className="text-white/70 text-sm">Please try refreshing the page.</p>
       </div>
     );
   }

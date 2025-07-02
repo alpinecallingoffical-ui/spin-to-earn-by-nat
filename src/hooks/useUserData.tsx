@@ -83,32 +83,35 @@ export const useUserData = () => {
 
       // Handle the case where profile doesn't yet exist (trigger still running)
       if (profileError && profileError.code === 'PGRST116') {
-        // "No rows returned" - show a setup message and retry for up to 10 seconds
-        setUserData(null);
-        setProfileTimeout(false);
-        let retryCount = 0;
-        const maxRetry = 10;
-        const interval = setInterval(async () => {
-          retryCount++;
-          const { data: p, error: e } = await supabase
+        // "No rows returned" - wait briefly and try once more, but don't show setup message
+        console.log('Profile not found, trying once more...');
+        setTimeout(async () => {
+          const { data: retryProfile, error: retryError } = await supabase
             .from('users')
             .select('*')
             .eq('id', user.id)
             .single();
-          if (p) {
-            setUserData(p);
-            clearInterval(interval);
-            setProfileTimeout(false);
+          
+          if (retryProfile) {
+            setUserData(retryProfile);
             setLoading(false);
-            // ... continue fetching
-            fetchUserData(); // continue as normal
-            return;
-          }
-          if (retryCount >= maxRetry) {
+            // Continue with spins fetch
+            const { data: todaySpins } = await supabase
+              .from('spins')
+              .select('*')
+              .eq('user_id', user.id)
+              .gte('spun_at', new Date().toISOString().split('T')[0])
+              .order('spun_at', { ascending: false });
+            
+            setSpins(todaySpins || []);
+            const todaySpinCount = todaySpins?.length || 0;
+            const userSpinLimit = retryProfile?.daily_spin_limit || 5;
+            const canSpinStatus = calculateCanSpin(retryProfile.coins, userSpinLimit, todaySpinCount);
+            setCanSpin(canSpinStatus);
+          } else {
             setProfileTimeout(true);
-            clearInterval(interval);
-            setLoading(false);
           }
+          setLoading(false);
         }, 1000);
         return;
       }
