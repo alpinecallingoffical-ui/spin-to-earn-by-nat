@@ -1,7 +1,7 @@
+
 import React, { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
-import { Crown } from "lucide-react";
 
 interface BoardUser {
   user_id: string;
@@ -56,11 +56,7 @@ export const Leaderboard: React.FC = () => {
 
   return (
     <div className="bg-gradient-to-br from-purple-700/50 to-pink-600/40 p-6 rounded-2xl shadow-xl max-w-2xl mx-auto">
-      <h2 className="text-2xl font-bold text-white mb-4 text-center flex items-center justify-center gap-2">
-        🏆 Daily Leaderboard
-        {/* Crown at the top! */}
-        <Crown className="inline-block text-yellow-400 w-7 h-7 drop-shadow ml-2" />
-      </h2>
+      <h2 className="text-2xl font-bold text-white mb-4 text-center">🏆 Daily Leaderboard</h2>
       <div className="flex justify-between items-center mb-4">
         <span className="text-white/70 text-sm">
           Date: <input type="date" value={date} onChange={e => { setDate(e.target.value); fetchLeaderboard(e.target.value); }} className="rounded px-2 py-1 text-black" />
@@ -86,12 +82,7 @@ export const Leaderboard: React.FC = () => {
           <TableBody>
             {users.map((u, idx) => (
               <TableRow key={u.user_id} className={u.rank === 1 ? "bg-yellow-400/10" : ""}>
-                <TableCell>
-                  {u.rank}
-                  {u.rank === 1 && (
-                    <Crown className="inline-block text-yellow-400 w-5 h-5 ml-2 align-middle" />
-                  )}
-                </TableCell>
+                <TableCell>{u.rank}</TableCell>
                 <TableCell>
                   <span className="flex items-center gap-2">
                     {u.profile_picture_url ? (

@@ -10,23 +10,20 @@ import { AboutSection } from '@/components/AboutSection';
 import { useAuth } from '@/hooks/useAuth';
 import { NotificationCenter } from '@/components/NotificationCenter';
 import { WelcomeAnimation } from '@/components/WelcomeAnimation';
-import { useUnreadAdminMessagesContext } from "@/hooks/UnreadAdminMessagesContext";
+import { useUnreadAdminMessages } from "@/hooks/useUnreadAdminMessages";
 import { Leaderboard } from "@/components/Leaderboard";
-import { Button } from "@/components/ui/button";
-import { Crown } from "lucide-react";
 
 const Index = () => {
   const {
     user,
-    loading,
-    signOut
+    loading
   } = useAuth();
   const [showAuth, setShowAuth] = useState(false);
   const [referralCode, setReferralCode] = useState<string>('');
   const [activeTab, setActiveTab] = useState('spin');
   const [showNotifications, setShowNotifications] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
-  const { unreadCount } = useUnreadAdminMessagesContext();
+  const { unreadCount } = useUnreadAdminMessages();
 
   useEffect(() => {
     // Check for referral code in URL
@@ -49,9 +46,6 @@ const Index = () => {
   const handleSwitchToHistory = () => {
     setActiveTab('history');
   };
-
-  // Debug log for notification state
-  console.log('[Notification-Debug] unreadCount:', unreadCount);
 
   if (loading) {
     return <div className="min-h-screen bg-gradient-to-br from-purple-600 via-pink-600 to-orange-500 flex items-center justify-center">
@@ -82,11 +76,10 @@ const Index = () => {
     <div className="min-h-screen bg-gradient-to-br from-purple-600 via-pink-600 to-orange-500">
       <WelcomeAnimation show={showWelcome} userName={user.user_metadata?.name || user.email || "User"} />
       <NotificationCenter isOpen={showNotifications} onClose={() => setShowNotifications(false)} />
-      <div className="fixed top-3 right-3 z-50 flex gap-2">
+      <div className="fixed top-3 right-3 z-50">
         <button
           onClick={() => setShowNotifications(true)}
           className="relative bg-white/20 hover:bg-white/30 text-white text-lg px-4 py-2 rounded-xl shadow-lg transition-all duration-200"
-          aria-label="Notifications"
         >
           <span>🔔 Notifications</span>
           {unreadCount > 0 && (
