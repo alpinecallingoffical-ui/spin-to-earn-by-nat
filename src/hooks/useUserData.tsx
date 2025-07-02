@@ -22,6 +22,16 @@ interface SpinRecord {
   spun_at: string;
 }
 
+// Simple referral code generator
+const generateReferralCode = () => {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let result = '';
+  for (let i = 0; i < 8; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return result;
+};
+
 export const useUserData = () => {
   const { user } = useAuth();
   const { playGrandMasterSound, playVipLevelUpSound } = useVipSounds();
@@ -81,35 +91,58 @@ export const useUserData = () => {
         .eq('id', user.id)
         .single();
 
-      // Handle the case where profile doesn't yet exist (trigger still running)
+      // Handle the case where profile doesn't yet exist
       if (profileError && profileError.code === 'PGRST116') {
-        // "No rows returned" - show a setup message and retry for up to 10 seconds
-        setUserData(null);
-        setProfileTimeout(false);
-        let retryCount = 0;
-        const maxRetry = 10;
-        const interval = setInterval(async () => {
-          retryCount++;
-          const { data: p, error: e } = await supabase
+        console.log('Profile not found, creating new profile...');
+        
+        // Create user profile if it doesn't exist
+        try {
+          const newUserData = {
+            id: user.id,
+            name: user.user_metadata?.name || user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
+            email: user.email,
+            phone: user.phone,
+            coins: 0,
+            daily_spin_limit: 5,
+            referral_code: generateReferralCode(),
+            referred_by: null
+          };
+
+          const { data: createdProfile, error: createError } = await supabase
             .from('users')
-            .select('*')
-            .eq('id', user.id)
+            .insert([newUserData])
+            .select()
             .single();
-          if (p) {
-            setUserData(p);
-            clearInterval(interval);
-            setProfileTimeout(false);
+
+          if (createError) {
+            console.error('Error creating profile:', createError);
+            setProfileTimeout(true);
             setLoading(false);
-            // ... continue fetching
-            fetchUserData(); // continue as normal
             return;
           }
-          if (retryCount >= maxRetry) {
-            setProfileTimeout(true);
-            clearInterval(interval);
-            setLoading(false);
-          }
-        }, 1000);
+
+          console.log('Profile created successfully:', createdProfile);
+          setUserData(createdProfile);
+          
+          // Continue with spins fetch
+          const { data: todaySpins } = await supabase
+            .from('spins')
+            .select('*')
+            .eq('user_id', user.id)
+            .gte('spun_at', new Date().toISOString().split('T')[0])
+            .order('spun_at', { ascending: false });
+          
+          setSpins(todaySpins || []);
+          const todaySpinCount = todaySpins?.length || 0;
+          const userSpinLimit = createdProfile.daily_spin_limit || 5;
+          const canSpinStatus = calculateCanSpin(createdProfile.coins, userSpinLimit, todaySpinCount);
+          setCanSpin(canSpinStatus);
+          setLoading(false);
+        } catch (error) {
+          console.error('Failed to create user profile:', error);
+          setProfileTimeout(true);
+          setLoading(false);
+        }
         return;
       }
 
