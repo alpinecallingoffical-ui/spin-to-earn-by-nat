@@ -171,6 +171,17 @@ export const UserProfileConnected: React.FC<UserProfileConnectedProps> = ({ onSw
     );
   }
 
+  if (!userData) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-48">
+        <div className="flex items-center space-x-2">
+          <span className="animate-spin text-purple-300 text-xl">🎰</span>
+          <p className="text-white">Loading profile...</p>
+        </div>
+      </div>
+    );
+  }
+
   const vipInfo = getVipLevel(userData.coins);
   const features = getVipFeatures(userData.coins);
 
