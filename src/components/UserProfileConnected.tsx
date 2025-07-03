@@ -141,7 +141,6 @@ export const UserProfileConnected: React.FC<UserProfileConnectedProps> = ({ onSw
     refetch();
   };
 
-  // Simple check - if no userData, show basic message
   if (!userData) {
     return (
       <div className="flex flex-col items-center justify-center min-h-48">
