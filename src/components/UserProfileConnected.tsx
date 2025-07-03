@@ -14,7 +14,7 @@ interface UserProfileConnectedProps {
 }
 
 export const UserProfileConnected: React.FC<UserProfileConnectedProps> = ({ onSwitchToHistory }) => {
-  const { userData, refetch, loading } = useUserData();
+  const { userData, refetch } = useUserData();
   const { signOut } = useAuth();
   const { toast } = useToast();
   const { getTotalMultiplierSavings, getTodaysBenefits } = useVipBenefits();
@@ -141,33 +141,12 @@ export const UserProfileConnected: React.FC<UserProfileConnectedProps> = ({ onSw
     refetch();
   };
 
-  // Show loading state only briefly
-  if (loading && !userData) {
+  // Simple check - if no userData, show basic message
+  if (!userData) {
     return (
       <div className="flex flex-col items-center justify-center min-h-48">
-        <div className="flex items-center space-x-2">
-          <span className="animate-spin text-purple-300 text-xl">🎰</span>
-          <p className="text-white">Loading your profile...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // If no user data after loading, show error
-  if (!loading && !userData) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-48">
-        <span className="text-red-400 text-3xl mb-2">❌</span>
-        <p className="text-white font-semibold mb-1">Unable to load profile</p>
-        <p className="text-white/70 text-sm text-center">
-          Please try refreshing the page or logging out and back in.
-        </p>
-        <Button 
-          onClick={() => window.location.reload()} 
-          className="mt-4 bg-blue-500 hover:bg-blue-600"
-        >
-          Refresh Page
-        </Button>
+        <span className="text-white text-2xl mb-2">👤</span>
+        <p className="text-white">Loading profile...</p>
       </div>
     );
   }
