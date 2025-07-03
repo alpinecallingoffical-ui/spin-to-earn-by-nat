@@ -22,16 +22,6 @@ interface SpinRecord {
   spun_at: string;
 }
 
-// Simple referral code generator
-const generateReferralCode = () => {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  let result = '';
-  for (let i = 0; i < 8; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return result;
-};
-
 export const useUserData = () => {
   const { user } = useAuth();
   const { playGrandMasterSound, playVipLevelUpSound } = useVipSounds();
@@ -91,58 +81,35 @@ export const useUserData = () => {
         .eq('id', user.id)
         .single();
 
-      // Handle the case where profile doesn't yet exist
+      // Handle the case where profile doesn't yet exist (trigger still running)
       if (profileError && profileError.code === 'PGRST116') {
-        console.log('Profile not found, creating new profile...');
-        
-        // Create user profile if it doesn't exist
-        try {
-          const newUserData = {
-            id: user.id,
-            name: user.user_metadata?.name || user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
-            email: user.email,
-            phone: user.phone,
-            coins: 0,
-            daily_spin_limit: 5,
-            referral_code: generateReferralCode(),
-            referred_by: null
-          };
-
-          const { data: createdProfile, error: createError } = await supabase
+        // "No rows returned" - show a setup message and retry for up to 10 seconds
+        setUserData(null);
+        setProfileTimeout(false);
+        let retryCount = 0;
+        const maxRetry = 10;
+        const interval = setInterval(async () => {
+          retryCount++;
+          const { data: p, error: e } = await supabase
             .from('users')
-            .insert([newUserData])
-            .select()
+            .select('*')
+            .eq('id', user.id)
             .single();
-
-          if (createError) {
-            console.error('Error creating profile:', createError);
-            setProfileTimeout(true);
+          if (p) {
+            setUserData(p);
+            clearInterval(interval);
+            setProfileTimeout(false);
             setLoading(false);
+            // ... continue fetching
+            fetchUserData(); // continue as normal
             return;
           }
-
-          console.log('Profile created successfully:', createdProfile);
-          setUserData(createdProfile);
-          
-          // Continue with spins fetch
-          const { data: todaySpins } = await supabase
-            .from('spins')
-            .select('*')
-            .eq('user_id', user.id)
-            .gte('spun_at', new Date().toISOString().split('T')[0])
-            .order('spun_at', { ascending: false });
-          
-          setSpins(todaySpins || []);
-          const todaySpinCount = todaySpins?.length || 0;
-          const userSpinLimit = createdProfile.daily_spin_limit || 5;
-          const canSpinStatus = calculateCanSpin(createdProfile.coins, userSpinLimit, todaySpinCount);
-          setCanSpin(canSpinStatus);
-          setLoading(false);
-        } catch (error) {
-          console.error('Failed to create user profile:', error);
-          setProfileTimeout(true);
-          setLoading(false);
-        }
+          if (retryCount >= maxRetry) {
+            setProfileTimeout(true);
+            clearInterval(interval);
+            setLoading(false);
+          }
+        }, 1000);
         return;
       }
 

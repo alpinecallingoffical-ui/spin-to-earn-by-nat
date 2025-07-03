@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AuthModal } from '@/components/AuthModal';
@@ -12,14 +13,11 @@ import { NotificationCenter } from '@/components/NotificationCenter';
 import { WelcomeAnimation } from '@/components/WelcomeAnimation';
 import { useUnreadAdminMessagesContext } from "@/hooks/UnreadAdminMessagesContext";
 import { Leaderboard } from "@/components/Leaderboard";
-import { Button } from "@/components/ui/button";
-import { Crown } from "lucide-react";
 
 const Index = () => {
   const {
     user,
-    loading,
-    signOut
+    loading
   } = useAuth();
   const [showAuth, setShowAuth] = useState(false);
   const [referralCode, setReferralCode] = useState<string>('');
@@ -82,7 +80,7 @@ const Index = () => {
     <div className="min-h-screen bg-gradient-to-br from-purple-600 via-pink-600 to-orange-500">
       <WelcomeAnimation show={showWelcome} userName={user.user_metadata?.name || user.email || "User"} />
       <NotificationCenter isOpen={showNotifications} onClose={() => setShowNotifications(false)} />
-      <div className="fixed top-3 right-3 z-50 flex gap-2">
+      <div className="fixed top-3 right-3 z-50">
         <button
           onClick={() => setShowNotifications(true)}
           className="relative bg-white/20 hover:bg-white/30 text-white text-lg px-4 py-2 rounded-xl shadow-lg transition-all duration-200"
