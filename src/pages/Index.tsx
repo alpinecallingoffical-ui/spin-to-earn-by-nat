@@ -18,7 +18,8 @@ import { Crown } from "lucide-react";
 const Index = () => {
   const {
     user,
-    loading
+    loading,
+    signOut
   } = useAuth();
   const [showAuth, setShowAuth] = useState(false);
   const [referralCode, setReferralCode] = useState<string>('');
@@ -94,19 +95,6 @@ const Index = () => {
             </span>
           )}
         </button>
-        {/* Add Sign Out Button */}
-        <Button
-          variant="outline"
-          className="bg-white/20 border-white/30 text-white hover:bg-white/30"
-          onClick={() => {
-            if (window.confirm("Are you sure you want to sign out?")) {
-              // Sign the user out
-              if (typeof signOut === "function") signOut();
-            }
-          }}
-        >
-          Sign Out
-        </Button>
       </div>
       <div className="container mx-auto px-4 py-8">
         <div className="text-center mb-8">
