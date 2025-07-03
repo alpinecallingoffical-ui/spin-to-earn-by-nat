@@ -98,12 +98,11 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, 
     return null;
   };
 
-  // Responsive: cap width and ensure scroll for overflow. Always wrap long text.
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="bg-gradient-to-br from-purple-600 to-pink-600 text-white border-none max-w-2xl max-h-[80vh] p-0 flex flex-col">
-          <DialogHeader>
+        <DialogContent className="bg-gradient-to-br from-purple-600 to-pink-600 text-white border-none w-[95vw] max-w-4xl max-h-[90vh] p-0 flex flex-col">
+          <DialogHeader className="p-6 pb-4">
             <DialogTitle className="text-2xl font-bold flex items-center justify-between">
               <span>📨 Admin Messages</span>
               {unreadCount > 0 && (
@@ -113,10 +112,7 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, 
               )}
             </DialogTitle>
           </DialogHeader>
-          <div
-            className="flex-1 overflow-y-auto space-y-3 px-4 pb-6 pt-2"
-            style={{ maxHeight: '60vh', minHeight: '120px' }}
-          >
+          <div className="flex-1 overflow-y-auto space-y-3 px-6 pb-6">
             {loading ? (
               <div className="text-center py-8 text-white/60">Loading...</div>
             ) : messages.length === 0 ? (
@@ -126,70 +122,74 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, 
                 <p className="text-white/40 text-sm">You'll see important announcements here.</p>
               </div>
             ) : (
-              messages.map((msg) => {
-                // For each message, if coin/Crown is present, extract coin and get level
-                const coins = extractCoins(msg.message);
-                const levelName = coins !== null ? getUserLevelName(coins) : null;
-                return (
-                  <button
-                    key={msg.id}
-                    type="button"
-                    onClick={() => openMessage(msg)}
-                    className={`w-full text-left rounded-xl p-4 border ${getTypeBg(msg.message_type)} ring-2 ring-white/10 transition hover:ring-white/30 hover:bg-white/10 focus:outline-none relative`}
-                    style={{ cursor: 'pointer' }}
-                    tabIndex={0}
-                  >
-                    <div className="flex items-start space-x-3">
-                      <div className="text-2xl flex-shrink-0">
-                        {getTypeIcon(msg.message_type)}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center space-x-2 flex-wrap mb-2">
-                          <h4 className="text-white font-semibold break-words max-w-full">{msg.title}</h4>
-                          <span className="bg-orange-500 text-white text-xs px-2 py-1 rounded-full font-bold">
-                            ADMIN
-                          </span>
-                          {!msg.read && (
-                            <span className="ml-2 bg-red-500 text-white rounded-full w-2 h-2 inline-block shrink-0" aria-label="Unread" />
-                          )}
+              <div className="space-y-4">
+                {messages.map((msg) => {
+                  // For each message, if coin/Crown is present, extract coin and get level
+                  const coins = extractCoins(msg.message);
+                  const levelName = coins !== null ? getUserLevelName(coins) : null;
+                  return (
+                    <div
+                      key={msg.id}
+                      className={`rounded-xl p-4 border ${getTypeBg(msg.message_type)} ring-2 ring-white/10 transition hover:ring-white/30 hover:bg-white/10 cursor-pointer`}
+                      onClick={() => openMessage(msg)}
+                    >
+                      <div className="flex items-start space-x-3">
+                        <div className="text-2xl flex-shrink-0 mt-1">
+                          {getTypeIcon(msg.message_type)}
                         </div>
-                        <div className="text-white/80 text-sm mb-2 mt-1 break-words whitespace-pre-wrap max-w-full overflow-hidden">
-                          <p className="line-clamp-3 leading-relaxed">{msg.message}</p>
-                        </div>
-                        {/* Show level name if coins found */}
-                        {levelName && (
-                          <div className="flex items-center text-xs mt-1">
-                            <span className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-2 py-0.5 rounded-full mr-2">{levelName}</span>
-                            {coins !== null && (
-                              <span className="bg-yellow-500 text-white px-2 py-0.5 rounded-full"> {coins} Coins </span>
-                            )}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between mb-2">
+                            <div className="flex items-center space-x-2 flex-wrap">
+                              <h4 className="text-white font-semibold break-words">{msg.title}</h4>
+                              <span className="bg-orange-500 text-white text-xs px-2 py-1 rounded-full font-bold">
+                                ADMIN
+                              </span>
+                              {!msg.read && (
+                                <span className="bg-red-500 text-white rounded-full w-2 h-2 inline-block" aria-label="Unread" />
+                              )}
+                            </div>
                           </div>
-                        )}
-                        <p className="text-white/60 text-xs mt-1">
-                          {formatDate(msg.sent_at || msg.created_at || '')}
-                        </p>
+                          <div className="text-white/80 text-sm mb-3 break-words">
+                            <p className="line-clamp-4 leading-relaxed whitespace-pre-wrap">
+                              {msg.message.length > 150 ? `${msg.message.substring(0, 150)}...` : msg.message}
+                            </p>
+                          </div>
+                          {/* Show level name if coins found */}
+                          {levelName && (
+                            <div className="flex items-center text-xs mb-2">
+                              <span className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-2 py-0.5 rounded-full mr-2">{levelName}</span>
+                              {coins !== null && (
+                                <span className="bg-yellow-500 text-white px-2 py-0.5 rounded-full">{coins} Coins</span>
+                              )}
+                            </div>
+                          )}
+                          <p className="text-white/60 text-xs">
+                            {formatDate(msg.sent_at || msg.created_at || '')}
+                          </p>
+                        </div>
                       </div>
                     </div>
-                  </button>
-                );
-              })
+                  );
+                })}
+              </div>
             )}
           </div>
         </DialogContent>
       </Dialog>
+      
       {/* Detail Dialog for selected message */}
       {selected && (
         <Dialog open={!!selected} onOpenChange={() => setSelected(null)}>
-          <DialogContent className="bg-gradient-to-br from-purple-600 to-pink-600 text-white border-none max-w-md">
+          <DialogContent className="bg-gradient-to-br from-purple-600 to-pink-600 text-white border-none w-[95vw] max-w-2xl max-h-[90vh] overflow-hidden">
             <DialogHeader>
-              <DialogTitle className="flex items-center space-x-2 text-xl">
+              <DialogTitle className="flex items-center space-x-2 text-xl pr-8">
                 <span>{getTypeIcon(selected.message_type)}</span>
-                <span className="break-words">{selected.title}</span>
+                <span className="break-words flex-1">{selected.title}</span>
                 <span className="bg-orange-500 text-white text-xs px-2 py-1 rounded-full font-bold ml-2">ADMIN</span>
               </DialogTitle>
             </DialogHeader>
-            <div className="mt-4 max-w-full">
-              <div className="text-white/90 text-base whitespace-pre-wrap break-words overflow-wrap-anywhere leading-relaxed">
+            <div className="mt-4 overflow-y-auto max-h-[70vh] pr-2">
+              <div className="text-white/90 text-base whitespace-pre-wrap break-words leading-relaxed">
                 {selected.message}
               </div>
               {/* Show level name in detail if coins present */}
@@ -197,7 +197,7 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, 
                 const coins = extractCoins(selected.message);
                 const levelName = coins !== null ? getUserLevelName(coins) : null;
                 return levelName ? (
-                  <div className="flex items-center text-xs mt-3">
+                  <div className="flex items-center text-xs mt-4">
                     <span className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-2 py-0.5 rounded-full mr-2">{levelName}</span>
                     {coins !== null && (
                       <span className="bg-yellow-500 text-white px-2 py-0.5 rounded-full">{coins} Coins</span>
@@ -205,7 +205,7 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, 
                   </div>
                 ) : null;
               })()}
-              <p className="mt-3 text-white/60 text-sm">
+              <p className="mt-4 text-white/60 text-sm border-t border-white/20 pt-3">
                 {formatDate(selected.sent_at || selected.created_at || '')}
               </p>
             </div>
@@ -215,4 +215,3 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, 
     </>
   );
 };
-

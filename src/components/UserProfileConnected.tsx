@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,7 +14,7 @@ interface UserProfileConnectedProps {
 }
 
 export const UserProfileConnected: React.FC<UserProfileConnectedProps> = ({ onSwitchToHistory }) => {
-  const { userData, refetch, loading, profileTimeout } = useUserData();
+  const { userData, refetch, loading } = useUserData();
   const { signOut } = useAuth();
   const { toast } = useToast();
   const { getTotalMultiplierSavings, getTodaysBenefits } = useVipBenefits();
@@ -140,60 +141,49 @@ export const UserProfileConnected: React.FC<UserProfileConnectedProps> = ({ onSw
     refetch();
   };
 
-  if (loading) {
+  // Show loading state only briefly
+  if (loading && !userData) {
     return (
       <div className="flex flex-col items-center justify-center min-h-48">
         <div className="flex items-center space-x-2">
           <span className="animate-spin text-purple-300 text-xl">🎰</span>
-          <p className="text-white">Loading profile...</p>
+          <p className="text-white">Loading your profile...</p>
         </div>
       </div>
     );
   }
 
-  if (!userData && !loading && profileTimeout) {
+  // If no user data after loading, show error
+  if (!loading && !userData) {
     return (
       <div className="flex flex-col items-center justify-center min-h-48">
         <span className="text-red-400 text-3xl mb-2">❌</span>
-        <p className="text-white font-semibold mb-1">There was a problem loading your profile.</p>
-        <p className="text-white/70 text-sm">Please try refreshing the page.</p>
+        <p className="text-white font-semibold mb-1">Unable to load profile</p>
+        <p className="text-white/70 text-sm text-center">
+          Please try refreshing the page or logging out and back in.
+        </p>
+        <Button 
+          onClick={() => window.location.reload()} 
+          className="mt-4 bg-blue-500 hover:bg-blue-600"
+        >
+          Refresh Page
+        </Button>
       </div>
     );
   }
 
-  if (profileTimeout) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-48">
-        <span className="text-red-400 text-3xl mb-2">❌</span>
-        <p className="text-white font-semibold mb-1">There was a problem setting up your profile.</p>
-        <p className="text-white/70 text-sm">Please try logging out and in again.<br />If the problem persists, contact support.</p>
-      </div>
-    );
-  }
-
-  if (!userData) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-48">
-        <div className="flex items-center space-x-2">
-          <span className="animate-spin text-purple-300 text-xl">🎰</span>
-          <p className="text-white">Loading profile...</p>
-        </div>
-      </div>
-    );
-  }
-
-  const vipInfo = getVipLevel(userData.coins);
-  const features = getVipFeatures(userData.coins);
+  const vipInfo = getVipLevel(userData?.coins || 0);
+  const features = getVipFeatures(userData?.coins || 0);
 
   return (
     <div className="space-y-6">
       {/* VIP Status Card with Enhanced Animations */}
       <div className={`${vipInfo.color} ${vipInfo.glow} rounded-2xl p-6 text-white relative overflow-hidden ${vipInfo.animation}`}>
         {/* Enhanced animated background for VIP levels */}
-        {userData.coins >= 1000 && (
+        {(userData?.coins || 0) >= 1000 && (
           <div className="absolute inset-0 opacity-30">
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent transform skew-x-12 animate-pulse"></div>
-            {userData.coins >= 3000 && (
+            {(userData?.coins || 0) >= 3000 && (
               <>
                 <div className="absolute inset-0 bg-gradient-to-l from-transparent via-yellow-300 to-transparent transform -skew-x-12 animate-pulse delay-1000"></div>
                 <div className="absolute top-0 left-0 w-4 h-4 bg-white rounded-full animate-ping"></div>
@@ -206,9 +196,9 @@ export const UserProfileConnected: React.FC<UserProfileConnectedProps> = ({ onSw
         
         <div className="flex items-center justify-between mb-4 relative z-10">
           <div className="flex items-center space-x-3">
-            <div className={`text-4xl ${userData.coins >= 1000 ? 'animate-bounce' : ''}`}>
+            <div className={`text-4xl ${(userData?.coins || 0) >= 1000 ? 'animate-bounce' : ''}`}>
               {vipInfo.emoji}
-              {userData.coins >= 3000 && <span className="ml-2 animate-spin">✨</span>}
+              {(userData?.coins || 0) >= 3000 && <span className="ml-2 animate-spin">✨</span>}
             </div>
             <div>
               <h2 className="text-2xl font-bold flex items-center">
@@ -216,17 +206,17 @@ export const UserProfileConnected: React.FC<UserProfileConnectedProps> = ({ onSw
                 {vipInfo.isVerified && (
                   <VerifiedBadge size="lg" className="ml-2" />
                 )}
-                {userData.coins >= 3000 && <span className="ml-2 text-yellow-300 animate-pulse">♔</span>}
+                {(userData?.coins || 0) >= 3000 && <span className="ml-2 text-yellow-300 animate-pulse">♔</span>}
               </h2>
               <p className="text-white/80">
-                {userData.coins >= 3000 ? 'VERIFIED GRAND MASTER!' : 'Status Level'}
+                {(userData?.coins || 0) >= 3000 ? 'VERIFIED GRAND MASTER!' : 'Status Level'}
               </p>
             </div>
           </div>
           <div className="text-right">
             <p className="text-3xl font-bold flex items-center">
-              {userData.coins.toLocaleString()}
-              {userData.coins >= 1000 && <span className="ml-2 text-yellow-300 animate-pulse">💰</span>}
+              {(userData?.coins || 0).toLocaleString()}
+              {(userData?.coins || 0) >= 1000 && <span className="ml-2 text-yellow-300 animate-pulse">💰</span>}
             </p>
             <p className="text-white/80">Total Coins</p>
           </div>
@@ -252,7 +242,7 @@ export const UserProfileConnected: React.FC<UserProfileConnectedProps> = ({ onSw
       <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-6">
         <h3 className="text-white text-lg font-bold mb-4 flex items-center">
           🎁 Your {vipInfo.level} Benefits
-          {userData.coins >= 3000 && <span className="ml-2 animate-spin">👑</span>}
+          {(userData?.coins || 0) >= 3000 && <span className="ml-2 animate-spin">👑</span>}
         </h3>
         
         <div className="grid grid-cols-1 gap-3">
@@ -292,7 +282,7 @@ export const UserProfileConnected: React.FC<UserProfileConnectedProps> = ({ onSw
         </div>
 
         {/* Special VIP Level Messages */}
-        {userData.coins >= 3000 && (
+        {(userData?.coins || 0) >= 3000 && (
           <div className="mt-4 p-4 bg-gradient-to-r from-purple-600/30 to-pink-600/30 rounded-xl border border-purple-400/50">
             <div className="text-center">
               <p className="text-yellow-300 font-bold text-lg animate-pulse flex items-center justify-center">
@@ -305,20 +295,20 @@ export const UserProfileConnected: React.FC<UserProfileConnectedProps> = ({ onSw
           </div>
         )}
         
-        {userData.coins >= 2000 && userData.coins < 3000 && (
+        {(userData?.coins || 0) >= 2000 && (userData?.coins || 0) < 3000 && (
           <div className="mt-4 p-4 bg-gradient-to-r from-blue-600/30 to-purple-600/30 rounded-xl border border-blue-400/50">
             <div className="text-center">
               <p className="text-blue-300 font-bold animate-pulse">💎 Elite Master Status Active! 💎</p>
-              <p className="text-white/90">Only {3000 - userData.coins} more coins to Verified Grand Master!</p>
+              <p className="text-white/90">Only {3000 - (userData?.coins || 0)} more coins to Verified Grand Master!</p>
             </div>
           </div>
         )}
         
-        {userData.coins >= 1000 && userData.coins < 2000 && (
+        {(userData?.coins || 0) >= 1000 && (userData?.coins || 0) < 2000 && (
           <div className="mt-4 p-4 bg-gradient-to-r from-yellow-600/30 to-orange-600/30 rounded-xl border border-yellow-400/50">
             <div className="text-center">
               <p className="text-yellow-300 font-bold animate-pulse">⭐ VIP Status Active! ⭐</p>
-              <p className="text-white/90">Only {2000 - userData.coins} more coins to Elite Master!</p>
+              <p className="text-white/90">Only {2000 - (userData?.coins || 0)} more coins to Elite Master!</p>
             </div>
           </div>
         )}
@@ -328,12 +318,12 @@ export const UserProfileConnected: React.FC<UserProfileConnectedProps> = ({ onSw
       <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-6">
         <div className="flex items-center space-x-4 mb-4">
           <ProfilePictureUpload 
-            currentPictureUrl={userData.profile_picture_url}
+            currentPictureUrl={userData?.profile_picture_url}
             onUploadSuccess={handleProfilePictureUpload}
           />
           <div>
             <h3 className="text-white text-xl font-bold flex items-center">
-              {userData.name}
+              {userData?.name || 'User'}
               {vipInfo.isVerified && (
                 <VerifiedBadge size="md" className="ml-2" />
               )}
@@ -349,12 +339,12 @@ export const UserProfileConnected: React.FC<UserProfileConnectedProps> = ({ onSw
           <div className="bg-white/20 rounded-xl p-3 text-center">
             <p className="text-white/80 text-sm">Daily Spin Limit</p>
             <p className="text-white font-bold text-lg flex items-center justify-center">
-              {userData.coins >= 3000 ? (
+              {(userData?.coins || 0) >= 3000 ? (
                 <span className="text-yellow-300 animate-pulse">♾️ Unlimited</span>
               ) : (
-                <span>{userData.daily_spin_limit}</span>
+                <span>{userData?.daily_spin_limit || 5}</span>
               )}
-              {userData.coins >= 1000 && userData.coins < 3000 && (
+              {(userData?.coins || 0) >= 1000 && (userData?.coins || 0) < 3000 && (
                 <span className="ml-2 text-yellow-300 animate-bounce">🔥</span>
               )}
             </p>
@@ -362,7 +352,7 @@ export const UserProfileConnected: React.FC<UserProfileConnectedProps> = ({ onSw
           <div className="bg-white/20 rounded-xl p-3 text-center">
             <p className="text-white/80 text-sm">Member Since</p>
             <p className="text-white font-bold text-lg">
-              {new Date(userData.created_at).toLocaleDateString()}
+              {userData?.created_at ? new Date(userData.created_at).toLocaleDateString() : 'Today'}
             </p>
           </div>
         </div>
@@ -391,7 +381,7 @@ export const UserProfileConnected: React.FC<UserProfileConnectedProps> = ({ onSw
             <label className="text-white/80 text-sm block mb-2">Your Referral Code</label>
             <div className="flex space-x-2">
               <Input
-                value={userData.referral_code}
+                value={userData?.referral_code || ''}
                 readOnly
                 className="bg-white/20 border-white/30 text-white placeholder-white/50"
               />
@@ -410,7 +400,7 @@ export const UserProfileConnected: React.FC<UserProfileConnectedProps> = ({ onSw
               <li>• Get 100 bonus coins for each friend who joins</li>
               <li>• Your friend gets 50 welcome bonus coins</li>
               <li>• Start earning today!</li>
-              {userData.coins >= 1000 && (
+              {(userData?.coins || 0) >= 1000 && (
                 <li className="text-yellow-300 font-semibold">• VIP members get 2x referral bonuses! ✨</li>
               )}
             </ul>
@@ -440,7 +430,7 @@ export const UserProfileConnected: React.FC<UserProfileConnectedProps> = ({ onSw
           <div className="bg-white/10 rounded-xl p-4 space-y-3">
             <h4 className="text-white font-semibold mb-2 flex items-center">
               📞 Contact Support
-              {userData.coins >= 2000 && <span className="ml-2 text-blue-300 text-xs">(Priority Support)</span>}
+              {(userData?.coins || 0) >= 2000 && <span className="ml-2 text-blue-300 text-xs">(Priority Support)</span>}
             </h4>
             
             <Button
