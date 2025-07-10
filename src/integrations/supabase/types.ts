@@ -19,6 +19,7 @@ export type Database = {
           admin_id: string | null
           created_at: string | null
           id: string
+          image_url: string | null
           message: string
           message_type: string
           read: boolean
@@ -32,6 +33,7 @@ export type Database = {
           admin_id?: string | null
           created_at?: string | null
           id?: string
+          image_url?: string | null
           message: string
           message_type?: string
           read?: boolean
@@ -45,6 +47,7 @@ export type Database = {
           admin_id?: string | null
           created_at?: string | null
           id?: string
+          image_url?: string | null
           message?: string
           message_type?: string
           read?: boolean

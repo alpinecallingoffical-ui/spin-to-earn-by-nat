@@ -153,6 +153,16 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, 
                             <p className="line-clamp-4 leading-relaxed whitespace-pre-wrap">
                               {msg.message.length > 150 ? `${msg.message.substring(0, 150)}...` : msg.message}
                             </p>
+                            {(msg as any).image_url && (
+                              <img 
+                                src={(msg as any).image_url} 
+                                alt="Message image" 
+                                className="mt-2 max-w-48 h-24 object-cover rounded-lg border border-white/20"
+                                onError={(e) => {
+                                  e.currentTarget.style.display = 'none';
+                                }}
+                              />
+                            )}
                           </div>
                           {/* Show level name if coins found */}
                           {levelName && (
@@ -192,6 +202,16 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, 
               <div className="text-white/90 text-base whitespace-pre-wrap break-words leading-relaxed">
                 {selected.message}
               </div>
+              {(selected as any).image_url && (
+                <img 
+                  src={(selected as any).image_url} 
+                  alt="Message image" 
+                  className="mt-4 max-w-full h-auto rounded-lg border border-white/20"
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                  }}
+                />
+              )}
               {/* Show level name in detail if coins present */}
               {(() => {
                 const coins = extractCoins(selected.message);

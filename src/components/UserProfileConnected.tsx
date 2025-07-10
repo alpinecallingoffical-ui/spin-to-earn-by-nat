@@ -301,7 +301,7 @@ export const UserProfileConnected: React.FC<UserProfileConnectedProps> = ({ onSw
           />
           <div>
             <h3 className="text-white text-xl font-bold flex items-center">
-              {userData?.name || 'User'}
+              {userData?.name || userData?.email?.split('@')[0] || 'User'}
               {vipInfo.isVerified && (
                 <VerifiedBadge size="md" className="ml-2" />
               )}

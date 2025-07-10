@@ -19,6 +19,7 @@ export const AdminMessageCenter: React.FC<AdminMessageCenterProps> = ({ isOpen, 
   const { toast } = useToast();
   const [title, setTitle] = useState('');
   const [message, setMessage] = useState('');
+  const [imageUrl, setImageUrl] = useState('');
   const [messageType, setMessageType] = useState<'info' | 'success' | 'warning' | 'error'>('info');
   const [loading, setLoading] = useState(false);
 
@@ -58,6 +59,7 @@ export const AdminMessageCenter: React.FC<AdminMessageCenterProps> = ({ isOpen, 
         title: title.trim(),
         message: message.trim(),
         message_type: messageType,
+        image_url: imageUrl.trim() || null,
       }));
       const { error: adminMessageError } = await supabase.from('admin_messages').insert(adminMessagesToInsert);
       if (adminMessageError) throw adminMessageError;
@@ -70,6 +72,7 @@ export const AdminMessageCenter: React.FC<AdminMessageCenterProps> = ({ isOpen, 
       // Reset form
       setTitle('');
       setMessage('');
+      setImageUrl('');
       setMessageType('info');
       onClose();
     } catch (error: any) {
@@ -121,6 +124,7 @@ export const AdminMessageCenter: React.FC<AdminMessageCenterProps> = ({ isOpen, 
         title: title.trim(),
         message: message.trim(),
         message_type: messageType,
+        image_url: imageUrl.trim() || null,
       }));
       const { error: adminMessageError } = await supabase.from('admin_messages').insert(adminMessagesToInsert);
       if (adminMessageError) throw adminMessageError;
@@ -133,6 +137,7 @@ export const AdminMessageCenter: React.FC<AdminMessageCenterProps> = ({ isOpen, 
       // Reset form
       setTitle('');
       setMessage('');
+      setImageUrl('');
       setMessageType('info');
       onClose();
     } catch (error: any) {
@@ -243,6 +248,18 @@ export const AdminMessageCenter: React.FC<AdminMessageCenterProps> = ({ isOpen, 
               />
             </div>
 
+            <div>
+              <label className="text-sm font-medium mb-2 block">Image URL (Optional)</label>
+              <Input
+                type="url"
+                placeholder="https://example.com/image.jpg"
+                value={imageUrl}
+                onChange={(e) => setImageUrl(e.target.value)}
+                className="bg-white/20 border-white/30 text-white placeholder-white/70"
+              />
+              <p className="text-xs text-white/60 mt-1">Add an image URL to include a picture in your message</p>
+            </div>
+
             {/* Preview */}
             <div className="bg-white/20 p-3 rounded-lg">
               <p className="text-sm mb-2">📋 <strong>Preview:</strong></p>
@@ -252,6 +269,16 @@ export const AdminMessageCenter: React.FC<AdminMessageCenterProps> = ({ isOpen, 
                   <span className="font-semibold">{title || 'Your Title Here'}</span>
                 </div>
                 <p className="text-sm text-white/80">{message || 'Your message content will appear here...'}</p>
+                {imageUrl && (
+                  <img 
+                    src={imageUrl} 
+                    alt="Message preview" 
+                    className="mt-2 max-w-32 h-16 object-cover rounded-lg border border-white/20"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                    }}
+                  />
+                )}
                 {/* User Details Preview */}
                 <p className="text-xs text-white/60 mt-2">
                   Example Recipient: <span className="font-semibold">[User Name]</span> (<span className="font-mono">user@gmail.com</span>)
