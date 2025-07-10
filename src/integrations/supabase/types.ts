@@ -16,7 +16,7 @@ export type Database = {
     Tables: {
       admin_messages: {
         Row: {
-          admin_id: string
+          admin_id: string | null
           created_at: string | null
           id: string
           message: string
@@ -29,7 +29,7 @@ export type Database = {
           user_name: string | null
         }
         Insert: {
-          admin_id: string
+          admin_id?: string | null
           created_at?: string | null
           id?: string
           message: string
@@ -42,7 +42,7 @@ export type Database = {
           user_name?: string | null
         }
         Update: {
-          admin_id?: string
+          admin_id?: string | null
           created_at?: string | null
           id?: string
           message?: string
