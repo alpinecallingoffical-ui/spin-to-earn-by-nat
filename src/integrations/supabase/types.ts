@@ -92,6 +92,54 @@ export type Database = {
         }
         Relationships: []
       }
+      friend_requests: {
+        Row: {
+          created_at: string
+          id: string
+          requested_id: string
+          requester_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          requested_id: string
+          requester_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          requested_id?: string
+          requester_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      friendships: {
+        Row: {
+          created_at: string
+          id: string
+          user1_id: string
+          user2_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          user1_id: string
+          user2_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          user1_id?: string
+          user2_id?: string
+        }
+        Relationships: []
+      }
       game_scores: {
         Row: {
           achieved_at: string
@@ -462,6 +510,10 @@ export type Database = {
       }
     }
     Functions: {
+      accept_friend_request: {
+        Args: { request_id: string }
+        Returns: boolean
+      }
       approve_withdrawal_with_notification: {
         Args: { withdrawal_id: string; admin_notes?: string }
         Returns: boolean
@@ -498,6 +550,18 @@ export type Database = {
           video_title_param: string
           reward_amount: number
         }
+        Returns: boolean
+      }
+      reject_friend_request: {
+        Args: { request_id: string }
+        Returns: boolean
+      }
+      remove_friend: {
+        Args: { friend_user_id: string }
+        Returns: boolean
+      }
+      send_friend_request: {
+        Args: { target_user_id: string }
         Returns: boolean
       }
       send_message_to_all_users: {
