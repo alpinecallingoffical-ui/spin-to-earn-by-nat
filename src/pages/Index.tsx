@@ -13,8 +13,10 @@ import { WelcomeAnimation } from '@/components/WelcomeAnimation';
 import { useUnreadAdminMessagesContext } from "@/hooks/UnreadAdminMessagesContext";
 import { Leaderboard } from "@/components/Leaderboard";
 import { Button } from "@/components/ui/button";
-import { Crown } from "lucide-react";
+import { Crown, MessageCircle } from "lucide-react";
 import { AdBanner } from "@/components/AdBanner";
+import { ChatList } from "@/components/ChatList";
+import { useChat } from "@/hooks/useChat";
 
 const Index = () => {
   const {
@@ -27,7 +29,9 @@ const Index = () => {
   const [activeTab, setActiveTab] = useState('spin');
   const [showNotifications, setShowNotifications] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
+  const [showChatList, setShowChatList] = useState(false);
   const { unreadCount } = useUnreadAdminMessagesContext();
+  const { getTotalUnreadCount } = useChat();
 
   useEffect(() => {
     // Check for referral code in URL
@@ -83,7 +87,20 @@ const Index = () => {
     <div className="min-h-screen bg-gradient-to-br from-purple-600 via-pink-600 to-orange-500">
       <WelcomeAnimation show={showWelcome} userName={user.user_metadata?.name || user.email || "User"} />
       <NotificationCenter isOpen={showNotifications} onClose={() => setShowNotifications(false)} />
+      <ChatList isOpen={showChatList} onClose={() => setShowChatList(false)} />
       <div className="fixed top-3 right-3 z-50 flex gap-2">
+        <button
+          onClick={() => setShowChatList(true)}
+          className="relative bg-white/20 hover:bg-white/30 text-white text-lg px-4 py-2 rounded-xl shadow-lg transition-all duration-200"
+          aria-label="Messages"
+        >
+          <MessageCircle className="w-5 h-5" />
+          {getTotalUnreadCount() > 0 && (
+            <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs font-bold rounded-full px-2 py-0.5 shadow-lg border-2 border-white animate-bounce">
+              {getTotalUnreadCount() > 9 ? "9+" : getTotalUnreadCount()}
+            </span>
+          )}
+        </button>
         <button
           onClick={() => setShowNotifications(true)}
           className="relative bg-white/20 hover:bg-white/30 text-white text-lg px-4 py-2 rounded-xl shadow-lg transition-all duration-200"
