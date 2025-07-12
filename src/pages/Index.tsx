@@ -14,6 +14,7 @@ import { useUnreadAdminMessagesContext } from "@/hooks/UnreadAdminMessagesContex
 import { Leaderboard } from "@/components/Leaderboard";
 import { Button } from "@/components/ui/button";
 import { Crown } from "lucide-react";
+import { AdBanner } from "@/components/AdBanner";
 
 const Index = () => {
   const {
@@ -101,6 +102,8 @@ const Index = () => {
           <h1 className="text-4xl font-bold text-white mb-2">🎰 Spin to Earn</h1>
           <p className="text-white/80">Welcome back! Ready to spin and win?</p>
         </div>
+
+        <AdBanner />
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="max-w-4xl mx-auto">
           <TabsList className="grid w-full grid-cols-7 bg-white/20 backdrop-blur-sm"> 
