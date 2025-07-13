@@ -21,7 +21,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   onClose
 }) => {
   const { user } = useAuth();
-  const { messages, sendMessage, fetchMessages, markMessagesAsRead } = useChat();
+  const { messages, sendMessage, fetchMessages, markMessagesAsRead, refetchConversations } = useChat();
   const [newMessage, setNewMessage] = useState('');
   const [sending, setSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -43,7 +43,11 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
     const success = await sendMessage(otherUserId, newMessage);
     if (success) {
       setNewMessage('');
-      fetchMessages(otherUserId);
+      // Refresh both messages and conversations
+      await Promise.all([
+        fetchMessages(otherUserId),
+        refetchConversations()
+      ]);
     }
     setSending(false);
   };

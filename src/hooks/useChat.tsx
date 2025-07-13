@@ -49,7 +49,12 @@ export const useChat = () => {
         .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
         .order('last_message_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
+
+      console.log('Raw conversations data:', conversationsData);
 
       const conversationsWithUnread = await Promise.all(
         (conversationsData || []).filter(conv => conv.user1 && conv.user2).map(async (conv) => {
@@ -160,8 +165,10 @@ export const useChat = () => {
         },
         (payload) => {
           console.log('Message event:', payload);
-          // Refresh conversations and messages when there are changes
-          fetchConversations();
+          // Refresh conversations when there are changes
+          setTimeout(() => {
+            fetchConversations();
+          }, 500);
         }
       )
       .subscribe();
@@ -176,7 +183,9 @@ export const useChat = () => {
           table: 'conversations'
         },
         () => {
-          fetchConversations();
+          setTimeout(() => {
+            fetchConversations();
+          }, 500);
         }
       )
       .subscribe();
