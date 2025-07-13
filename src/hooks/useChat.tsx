@@ -55,6 +55,8 @@ export const useChat = () => {
         (conversationsData || []).filter(conv => conv.user1 && conv.user2).map(async (conv) => {
           const otherUser = conv.user1?.id === user.id ? conv.user2 : conv.user1;
           
+          if (!otherUser) return null;
+          
           // Get unread message count
           const { count } = await supabase
             .from('messages')
@@ -74,7 +76,8 @@ export const useChat = () => {
         })
       );
 
-      setConversations(conversationsWithUnread);
+      // Filter out null values and set conversations
+      setConversations(conversationsWithUnread.filter(conv => conv !== null));
     } catch (error) {
       console.error('Error fetching conversations:', error);
     } finally {
@@ -113,11 +116,11 @@ export const useChat = () => {
 
       if (error) throw error;
       
-      // Refresh messages after sending
-      setTimeout(() => {
-        fetchMessages(receiverId);
-        fetchConversations();
-      }, 100);
+      // Refresh messages and conversations immediately
+      await Promise.all([
+        fetchMessages(receiverId),
+        fetchConversations()
+      ]);
       
       return true;
     } catch (error) {

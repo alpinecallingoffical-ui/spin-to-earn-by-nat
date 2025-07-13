@@ -76,6 +76,7 @@ export const TasksSection = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState<string | null>(null);
   const [spinCount, setSpinCount] = useState(0);
+  const [adClickCount, setAdClickCount] = useState(0);
 
   const getVipMultiplier = (coins: number) => {
     if (coins >= 3000) return 10; // Grand Master
@@ -98,6 +99,33 @@ export const TasksSection = () => {
       setTasks(data || []);
     } catch (error) {
       console.error('Error fetching tasks:', error);
+    }
+  };
+
+  const fetchAdClickCount = async () => {
+    if (!user) return;
+
+    const today = new Date().toISOString().split('T')[0];
+    const storedCount = localStorage.getItem(`adClicks_${user.id}_${today}`);
+    setAdClickCount(storedCount ? parseInt(storedCount) : 0);
+  };
+
+  const handleAdClick = () => {
+    const today = new Date().toISOString().split('T')[0];
+    const newCount = adClickCount + 1;
+    setAdClickCount(newCount);
+    localStorage.setItem(`adClicks_${user.id}_${today}`, newCount.toString());
+    
+    if (newCount >= 3) {
+      toast({
+        title: '🎉 Video Task Unlocked!',
+        description: 'You can now complete the "Watch 3 Videos" task!',
+      });
+    } else {
+      toast({
+        title: '📺 Ad Clicked!',
+        description: `${newCount}/3 clicks completed. Watch ${3 - newCount} more ads to unlock video task.`,
+      });
     }
   };
 
@@ -172,6 +200,16 @@ export const TasksSection = () => {
       return;
     }
 
+    // Check if it's a video task and user has clicked 3 ads
+    if (task.task_type === 'watch_videos' && adClickCount < 3) {
+      toast({
+        title: 'Task Not Available',
+        description: `You need to click 3 ads first. Current: ${adClickCount}/3 ads clicked`,
+        variant: 'destructive',
+      });
+      return;
+    }
+
     setLoading(taskId);
     try {
       const { data, error } = await supabase.rpc('complete_task', {
@@ -209,6 +247,7 @@ export const TasksSection = () => {
       createDailyTasks();
       fetchTasks();
       fetchSpinCount();
+      fetchAdClickCount();
     }
   }, [user]);
 
@@ -237,6 +276,9 @@ export const TasksSection = () => {
   const canCompleteTask = (task: Task) => {
     if (task.task_type === 'complete_spins') {
       return spinCount >= 5;
+    }
+    if (task.task_type === 'watch_videos') {
+      return adClickCount >= 3;
     }
     return true;
   };
@@ -300,8 +342,16 @@ export const TasksSection = () => {
               {/* Native Ad Banner for video tasks */}
               {task.task_type === 'watch_videos' && (
                 <div className="mb-4 bg-white/5 rounded-xl p-3">
-                  <script async data-cfasync="false" src="//pl26764757.profitableratecpm.com/4d9960b6efb23f4e467d89dff8789907/invoke.js"></script>
-                  <div id="container-4d9960b6efb23f4e467d89dff8789907"></div>
+                  <div className="text-center mb-2">
+                    <p className="text-white/80 text-sm">Click on the ad below to unlock this task ({adClickCount}/3)</p>
+                  </div>
+                  <div 
+                    onClick={handleAdClick}
+                    className="cursor-pointer hover:bg-white/10 rounded-lg p-2 transition-colors"
+                  >
+                    <script async data-cfasync="false" src="//pl26764757.profitableratecpm.com/4d9960b6efb23f4e467d89dff8789907/invoke.js"></script>
+                    <div id="container-4d9960b6efb23f4e467d89dff8789907"></div>
+                  </div>
                 </div>
               )}
               
@@ -315,6 +365,22 @@ export const TasksSection = () => {
                   </div>
                   
                   <p className="text-white/80 text-sm mb-3">{task.task_description}</p>
+                  
+                  {/* Show progress for video tasks */}
+                  {task.task_type === 'watch_videos' && (
+                    <div className="mb-3">
+                      <div className="flex items-center justify-between text-sm text-white/80 mb-1">
+                        <span>Progress: {adClickCount}/3 ads clicked</span>
+                        <span>{Math.round((adClickCount / 3) * 100)}%</span>
+                      </div>
+                      <div className="w-full bg-white/20 rounded-full h-2">
+                        <div 
+                          className="bg-gradient-to-r from-purple-500 to-pink-600 h-2 rounded-full transition-all duration-300" 
+                          style={{width: `${Math.min((adClickCount / 3) * 100, 100)}%`}}
+                        ></div>
+                      </div>
+                    </div>
+                  )}
                   
                   {/* Show progress for spin tasks */}
                   {task.task_type === 'complete_spins' && (
