@@ -46,13 +46,14 @@ export const useChat = () => {
           user1:users!conversations_user1_id_fkey(id, name, profile_picture_url),
           user2:users!conversations_user2_id_fkey(id, name, profile_picture_url)
         `)
+        .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
         .order('last_message_at', { ascending: false });
 
       if (error) throw error;
 
       const conversationsWithUnread = await Promise.all(
-        (conversationsData || []).map(async (conv) => {
-          const otherUser = conv.user1.id === user.id ? conv.user2 : conv.user1;
+        (conversationsData || []).filter(conv => conv.user1 && conv.user2).map(async (conv) => {
+          const otherUser = conv.user1?.id === user.id ? conv.user2 : conv.user1;
           
           // Get unread message count
           const { count } = await supabase
