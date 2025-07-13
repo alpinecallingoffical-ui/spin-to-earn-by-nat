@@ -339,7 +339,7 @@ export const TasksSection = () => {
 
           return (
             <div key={task.id} className={`bg-white/10 backdrop-blur-sm rounded-xl p-4 border-l-4 ${task.status === 'completed' ? 'border-green-500' : 'border-white/30'}`}>
-              {/* Adsterra Native Ad Banner for video tasks */}
+              {/* Adsterra Social Banner for video tasks */}
               {task.task_type === 'watch_videos' && (
                 <div className="mb-4 bg-white/5 rounded-xl p-3">
                   <div className="text-center mb-2">
@@ -349,16 +349,7 @@ export const TasksSection = () => {
                     onClick={handleAdClick}
                     className="cursor-pointer hover:bg-white/10 rounded-lg p-2 transition-colors"
                   >
-                    <script type="text/javascript">
-                      {`atOptions = {
-                        'key' : 'your-adsterra-key-here',
-                        'format' : 'iframe',
-                        'height' : 250,
-                        'width' : 300,
-                        'params' : {}
-                      };`}
-                    </script>
-                    <script type="text/javascript" src="//www.topcreativeformat.com/your-adsterra-key-here/invoke.js"></script>
+                    <script type='text/javascript' src='//pl26764830.profitableratecpm.com/62/0e/07/620e07d0ee0422f2a09925177a190c4b.js'></script>
                   </div>
                 </div>
               )}
