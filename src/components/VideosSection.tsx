@@ -295,10 +295,18 @@ export const VideosSection = () => {
                 </Button>
               </div>
               
-              {/* Native Ad Banner */}
+              {/* Adsterra Native Ad Banner */}
               <div className="bg-white/10 rounded-xl p-4 mb-4">
-                <script async data-cfasync="false" src="//pl26764757.profitableratecpm.com/4d9960b6efb23f4e467d89dff8789907/invoke.js"></script>
-                <div id="container-4d9960b6efb23f4e467d89dff8789907"></div>
+                <script type="text/javascript">
+                  {`atOptions = {
+                    'key' : 'your-adsterra-key-here',
+                    'format' : 'iframe',
+                    'height' : 250,
+                    'width' : 300,
+                    'params' : {}
+                  };`}
+                </script>
+                <script type="text/javascript" src="//www.topcreativeformat.com/your-adsterra-key-here/invoke.js"></script>
               </div>
               
               <div className="text-6xl mb-4">{selectedVideo.thumbnail}</div>

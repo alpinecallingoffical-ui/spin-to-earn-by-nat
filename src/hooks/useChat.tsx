@@ -39,13 +39,10 @@ export const useChat = () => {
 
     setLoading(true);
     try {
+      // First get conversations involving the current user
       const { data: conversationsData, error } = await supabase
         .from('conversations')
-        .select(`
-          *,
-          user1:users!conversations_user1_id_fkey(id, name, profile_picture_url),
-          user2:users!conversations_user2_id_fkey(id, name, profile_picture_url)
-        `)
+        .select('*')
         .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
         .order('last_message_at', { ascending: false });
 
@@ -56,17 +53,34 @@ export const useChat = () => {
 
       console.log('Raw conversations data:', conversationsData);
 
-      const conversationsWithUnread = await Promise.all(
-        (conversationsData || []).filter(conv => conv.user1 && conv.user2).map(async (conv) => {
-          const otherUser = conv.user1?.id === user.id ? conv.user2 : conv.user1;
+      if (!conversationsData || conversationsData.length === 0) {
+        setConversations([]);
+        setLoading(false);
+        return;
+      }
+
+      // Manually fetch user data for each conversation
+      const conversationsWithUsers = await Promise.all(
+        conversationsData.map(async (conv) => {
+          const otherUserId = conv.user1_id === user.id ? conv.user2_id : conv.user1_id;
           
-          if (!otherUser) return null;
-          
+          // Fetch other user data
+          const { data: otherUserData, error: userError } = await supabase
+            .from('users')
+            .select('id, name, profile_picture_url')
+            .eq('id', otherUserId)
+            .single();
+
+          if (userError || !otherUserData) {
+            console.error('Error fetching user data:', userError);
+            return null;
+          }
+
           // Get unread message count
           const { count } = await supabase
             .from('messages')
             .select('*', { count: 'exact', head: true })
-            .eq('sender_id', otherUser.id)
+            .eq('sender_id', otherUserId)
             .eq('receiver_id', user.id)
             .eq('read', false);
 
@@ -75,14 +89,14 @@ export const useChat = () => {
             user1_id: conv.user1_id,
             user2_id: conv.user2_id,
             last_message_at: conv.last_message_at,
-            other_user: otherUser,
+            other_user: otherUserData,
             unread_count: count || 0
           };
         })
       );
 
       // Filter out null values and set conversations
-      setConversations(conversationsWithUnread.filter(conv => conv !== null));
+      setConversations(conversationsWithUsers.filter(conv => conv !== null));
     } catch (error) {
       console.error('Error fetching conversations:', error);
     } finally {
