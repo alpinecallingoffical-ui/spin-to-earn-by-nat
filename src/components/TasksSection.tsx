@@ -75,6 +75,7 @@ export const TasksSection = () => {
   const { userData, refetch } = useUserData();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState<string | null>(null);
+  const [spinCount, setSpinCount] = useState(0);
 
   const getVipMultiplier = (coins: number) => {
     if (coins >= 3000) return 10; // Grand Master
@@ -97,6 +98,23 @@ export const TasksSection = () => {
       setTasks(data || []);
     } catch (error) {
       console.error('Error fetching tasks:', error);
+    }
+  };
+
+  const fetchSpinCount = async () => {
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('spins')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .gte('spun_at', new Date().toISOString().split('T')[0]);
+
+      if (error) throw error;
+      setSpinCount(data?.length || 0);
+    } catch (error) {
+      console.error('Error fetching spin count:', error);
     }
   };
 
@@ -141,6 +159,19 @@ export const TasksSection = () => {
   const completeTask = async (taskId: string) => {
     if (!user) return;
 
+    const task = tasks.find(t => t.id === taskId);
+    if (!task) return;
+
+    // Check if it's a spin task and user has completed 5 spins
+    if (task.task_type === 'complete_spins' && spinCount < 5) {
+      toast({
+        title: 'Task Not Available',
+        description: `You need to complete 5 spins today. Current: ${spinCount}/5`,
+        variant: 'destructive',
+      });
+      return;
+    }
+
     setLoading(taskId);
     try {
       const { data, error } = await supabase.rpc('complete_task', {
@@ -150,16 +181,13 @@ export const TasksSection = () => {
       if (error) throw error;
 
       if (data) {
-        const task = tasks.find(t => t.id === taskId);
-        if (task) {
-          const multiplier = getVipMultiplier(userData?.coins || 0);
-          const finalReward = task.reward_coins * multiplier;
-          
-          toast({
-            title: '🎉 Task Completed!',
-            description: `You earned ${finalReward} coins for completing "${task.task_title}"${multiplier > 1 ? ` (${multiplier}x VIP bonus!)` : ''}`,
-          });
-        }
+        const multiplier = getVipMultiplier(userData?.coins || 0);
+        const finalReward = task.reward_coins * multiplier;
+        
+        toast({
+          title: '🎉 Task Completed!',
+          description: `You earned ${finalReward} coins for completing "${task.task_title}"${multiplier > 1 ? ` (${multiplier}x VIP bonus!)` : ''}`,
+        });
         
         await fetchTasks();
         await refetch();
@@ -180,6 +208,7 @@ export const TasksSection = () => {
     if (user) {
       createDailyTasks();
       fetchTasks();
+      fetchSpinCount();
     }
   }, [user]);
 
@@ -203,6 +232,13 @@ export const TasksSection = () => {
 
   const getTaskTemplate = (taskType: string) => {
     return taskTemplates.find(template => template.task_type === taskType);
+  };
+
+  const canCompleteTask = (task: Task) => {
+    if (task.task_type === 'complete_spins') {
+      return spinCount >= 5;
+    }
+    return true;
   };
 
   const completedTasks = tasks.filter(task => task.status === 'completed').length;
@@ -257,9 +293,18 @@ export const TasksSection = () => {
 
           const finalReward = task.reward_coins * vipMultiplier;
           const isLoading = loading === task.id;
+          const canComplete = canCompleteTask(task);
 
           return (
             <div key={task.id} className={`bg-white/10 backdrop-blur-sm rounded-xl p-4 border-l-4 ${task.status === 'completed' ? 'border-green-500' : 'border-white/30'}`}>
+              {/* Native Ad Banner for video tasks */}
+              {task.task_type === 'watch_videos' && (
+                <div className="mb-4 bg-white/5 rounded-xl p-3">
+                  <script async data-cfasync="false" src="//pl26764757.profitableratecpm.com/4d9960b6efb23f4e467d89dff8789907/invoke.js"></script>
+                  <div id="container-4d9960b6efb23f4e467d89dff8789907"></div>
+                </div>
+              )}
+              
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <div className="flex items-center space-x-2 mb-2">
@@ -270,6 +315,22 @@ export const TasksSection = () => {
                   </div>
                   
                   <p className="text-white/80 text-sm mb-3">{task.task_description}</p>
+                  
+                  {/* Show progress for spin tasks */}
+                  {task.task_type === 'complete_spins' && (
+                    <div className="mb-3">
+                      <div className="flex items-center justify-between text-sm text-white/80 mb-1">
+                        <span>Progress: {spinCount}/5 spins</span>
+                        <span>{Math.round((spinCount / 5) * 100)}%</span>
+                      </div>
+                      <div className="w-full bg-white/20 rounded-full h-2">
+                        <div 
+                          className="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full transition-all duration-300" 
+                          style={{width: `${Math.min((spinCount / 5) * 100, 100)}%`}}
+                        ></div>
+                      </div>
+                    </div>
+                  )}
                   
                   <div className="flex flex-wrap items-center gap-2">
                     <Badge className={`${getCategoryColor(template)} text-white text-xs`}>
@@ -302,10 +363,14 @@ export const TasksSection = () => {
                   ) : (
                     <Button 
                       onClick={() => completeTask(task.id)}
-                      disabled={isLoading}
-                      className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white"
+                      disabled={isLoading || !canComplete}
+                      className={`${canComplete 
+                        ? 'bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700' 
+                        : 'bg-gray-500 opacity-50'} text-white`}
                     >
-                      {isLoading ? '⏳ Processing...' : '✅ Complete Task'}
+                      {isLoading ? '⏳ Processing...' : 
+                       !canComplete ? '🔒 Locked' : 
+                       '✅ Complete Task'}
                     </Button>
                   )}
                 </div>

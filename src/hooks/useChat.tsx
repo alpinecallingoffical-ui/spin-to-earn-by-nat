@@ -146,17 +146,32 @@ export const useChat = () => {
     if (!user) return;
 
     const messagesSubscription = supabase
-      .channel('messages')
+      .channel('messages_channel')
       .on(
         'postgres_changes',
         {
           event: '*',
           schema: 'public',
-          table: 'messages',
-          filter: `or(sender_id.eq.${user.id},receiver_id.eq.${user.id})`
+          table: 'messages'
+        },
+        (payload) => {
+          console.log('Message event:', payload);
+          // Refresh conversations and messages when there are changes
+          fetchConversations();
+        }
+      )
+      .subscribe();
+
+    const conversationsSubscription = supabase
+      .channel('conversations_channel')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'conversations'
         },
         () => {
-          // Refresh conversations and messages when there are changes
           fetchConversations();
         }
       )
@@ -164,6 +179,7 @@ export const useChat = () => {
 
     return () => {
       supabase.removeChannel(messagesSubscription);
+      supabase.removeChannel(conversationsSubscription);
     };
   }, [user]);
 
