@@ -104,6 +104,9 @@ export const VideosSection = () => {
   const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
   const [watchedVideos, setWatchedVideos] = useState<VideoWatch[]>([]);
   const [loading, setLoading] = useState(false);
+  const [showAdModal, setShowAdModal] = useState(false);
+  const [adWaitTime, setAdWaitTime] = useState(0);
+  const [canClaimReward, setCanClaimReward] = useState(false);
 
   const getVipMultiplier = (coins: number) => {
     if (coins >= 3000) return 10; // Grand Master
@@ -133,50 +136,84 @@ export const VideosSection = () => {
     if (!user) return;
 
     setSelectedVideo(video);
+    setShowAdModal(true);
+    setAdWaitTime(0);
+    setCanClaimReward(false);
+    
+    // Start the 10-second timer
+    const timer = setInterval(() => {
+      setAdWaitTime(prev => {
+        if (prev >= 9) {
+          setCanClaimReward(true);
+          clearInterval(timer);
+          return 10;
+        }
+        return prev + 1;
+      });
+    }, 1000);
+  };
+
+  const claimVideoReward = async () => {
+    if (!selectedVideo || !canClaimReward) return;
+
     setLoading(true);
     
-    // Simulate watching the video
-    setTimeout(async () => {
-      try {
-        const { data, error } = await supabase.rpc('record_video_watch', {
-          user_uuid: user.id,
-          video_id_param: video.id,
-          video_title_param: video.title,
-          reward_amount: video.reward
-        });
+    try {
+      const { data, error } = await supabase.rpc('record_video_watch', {
+        user_uuid: user.id,
+        video_id_param: selectedVideo.id,
+        video_title_param: selectedVideo.title,
+        reward_amount: selectedVideo.reward
+      });
 
-        if (error) throw error;
+      if (error) throw error;
 
-        if (data) {
-          const multiplier = getVipMultiplier(userData?.coins || 0);
-          const finalReward = video.reward * multiplier;
-          
-          toast({
-            title: '🎬 Video Watched!',
-            description: `You earned ${finalReward} coins for watching "${video.title}"${multiplier > 1 ? ` (${multiplier}x VIP bonus!)` : ''}`,
-          });
-          
-          await fetchWatchedVideos();
-          await refetch();
-        } else {
-          toast({
-            title: 'Already Watched',
-            description: 'You have already watched this video today!',
-            variant: 'destructive',
-          });
-        }
-      } catch (error) {
-        console.error('Error recording video watch:', error);
+      if (data) {
+        const multiplier = getVipMultiplier(userData?.coins || 0);
+        const finalReward = selectedVideo.reward * multiplier;
+        
         toast({
-          title: 'Error',
-          description: 'Failed to record video watch. Please try again.',
+          title: '🎬 Video Watched!',
+          description: `You earned ${finalReward} coins for watching "${selectedVideo.title}"${multiplier > 1 ? ` (${multiplier}x VIP bonus!)` : ''}`,
+        });
+        
+        await fetchWatchedVideos();
+        await refetch();
+      } else {
+        toast({
+          title: 'Already Watched',
+          description: 'You have already watched this video today!',
           variant: 'destructive',
         });
-      } finally {
-        setLoading(false);
-        setSelectedVideo(null);
       }
-    }, 3000);
+    } catch (error) {
+      console.error('Error recording video watch:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to record video watch. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+      setSelectedVideo(null);
+      setShowAdModal(false);
+      setAdWaitTime(0);
+      setCanClaimReward(false);
+    }
+  };
+
+  const closeAdModal = () => {
+    if (!canClaimReward) {
+      toast({
+        title: 'No Reward',
+        description: 'You need to wait 10 seconds to earn the reward!',
+        variant: 'destructive',
+      });
+    }
+    setSelectedVideo(null);
+    setShowAdModal(false);
+    setAdWaitTime(0);
+    setCanClaimReward(false);
   };
 
   useEffect(() => {
@@ -241,23 +278,62 @@ export const VideosSection = () => {
         </div>
       </div>
 
-      {/* Video Player Modal */}
-      {selectedVideo && (
+      {/* Ad Modal */}
+      {showAdModal && selectedVideo && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-6 max-w-md w-full">
             <div className="text-center">
-              <div className="text-6xl mb-4">{selectedVideo.thumbnail}</div>
-              <h3 className="text-white text-xl font-bold mb-2">{selectedVideo.title}</h3>
-              <p className="text-white/80 mb-4">Watching video... Please wait</p>
-              <div className="w-full bg-white/20 rounded-full h-2 mb-4">
-                <div className="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full animate-pulse" style={{width: '60%'}}></div>
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-white text-lg font-bold">Watch Ad to Earn Coins</h3>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={closeAdModal}
+                  className="text-white hover:bg-white/20"
+                >
+                  ✕
+                </Button>
               </div>
-              <p className="text-white/60 text-sm">
-                Earning {selectedVideo.reward * vipMultiplier} coins...
-                {vipMultiplier > 1 && (
-                  <span className="text-yellow-300 font-bold"> ({vipMultiplier}x VIP bonus!)</span>
-                )}
-              </p>
+              
+              {/* Native Ad Banner */}
+              <div className="bg-white/10 rounded-xl p-4 mb-4">
+                <script async data-cfasync="false" src="//pl26764757.profitableratecpm.com/4d9960b6efb23f4e467d89dff8789907/invoke.js"></script>
+                <div id="container-4d9960b6efb23f4e467d89dff8789907"></div>
+              </div>
+              
+              <div className="text-6xl mb-4">{selectedVideo.thumbnail}</div>
+              <h4 className="text-white text-lg font-bold mb-2">{selectedVideo.title}</h4>
+              
+              {!canClaimReward ? (
+                <>
+                  <p className="text-white/80 mb-4">
+                    Please wait {10 - adWaitTime} seconds to claim your reward
+                  </p>
+                  <div className="w-full bg-white/20 rounded-full h-3 mb-4">
+                    <div 
+                      className="bg-gradient-to-r from-green-500 to-blue-500 h-3 rounded-full transition-all duration-1000" 
+                      style={{width: `${(adWaitTime / 10) * 100}%`}}
+                    ></div>
+                  </div>
+                  <p className="text-white/60 text-sm">
+                    Will earn {selectedVideo.reward * vipMultiplier} coins
+                    {vipMultiplier > 1 && (
+                      <span className="text-yellow-300 font-bold"> ({vipMultiplier}x VIP bonus!)</span>
+                    )}
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="text-green-400 mb-4 font-bold">✅ You can now claim your reward!</p>
+                  <Button
+                    onClick={claimVideoReward}
+                    disabled={loading}
+                    className="w-full bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 text-white mb-4"
+                  >
+                    {loading ? '⏳ Claiming...' : `🎁 Claim ${selectedVideo.reward * vipMultiplier} Coins`}
+                  </Button>
+                </>
+              )}
             </div>
           </div>
         </div>

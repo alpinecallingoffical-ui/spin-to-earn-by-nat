@@ -111,6 +111,13 @@ export const useChat = () => {
       });
 
       if (error) throw error;
+      
+      // Refresh messages after sending
+      setTimeout(() => {
+        fetchMessages(receiverId);
+        fetchConversations();
+      }, 100);
+      
       return true;
     } catch (error) {
       console.error('Error sending message:', error);
