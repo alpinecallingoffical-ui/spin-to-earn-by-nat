@@ -8,6 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserData } from '@/hooks/useUserData';
 import { DailyCheckIn } from './DailyCheckIn';
+import { AdsterraAd } from './AdsterraAd';
 
 interface Task {
   id: string;
@@ -341,16 +342,11 @@ export const TasksSection = () => {
             <div key={task.id} className={`bg-white/10 backdrop-blur-sm rounded-xl p-4 border-l-4 ${task.status === 'completed' ? 'border-green-500' : 'border-white/30'}`}>
               {/* Adsterra Social Banner for video tasks */}
               {task.task_type === 'watch_videos' && (
-                <div className="mb-4 bg-white/5 rounded-xl p-3">
+                <div className="mb-4 bg-white/5 rounded-xl p-3 mobile-spacing">
                   <div className="text-center mb-2">
-                    <p className="text-white/80 text-sm">Click on the ad below to unlock this task ({adClickCount}/3)</p>
+                    <p className="text-white/80 text-sm mobile-text-fix">Click on the ad below to unlock this task ({adClickCount}/3)</p>
                   </div>
-                  <div 
-                    onClick={handleAdClick}
-                    className="cursor-pointer hover:bg-white/10 rounded-lg p-2 transition-colors"
-                  >
-                    <script type='text/javascript' src='//pl26764830.profitableratecpm.com/62/0e/07/620e07d0ee0422f2a09925177a190c4b.js'></script>
-                  </div>
+                  <AdsterraAd onAdClick={handleAdClick} />
                 </div>
               )}
               

@@ -22,8 +22,27 @@ export const useAdminMessages = () => {
   const [messages, setMessages] = useState<AdminMessage[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // We'll use the notifications "reading" system for the read/unread state (optional)
-  // Or you can extend admin_messages to add a read flag in the future
+  const markAsRead = async (messageId: string) => {
+    if (!user) return;
+    
+    try {
+      const { error } = await supabase
+        .from('admin_messages')
+        .update({ read: true })
+        .eq('id', messageId)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+      
+      setMessages(prev => 
+        prev.map(msg => 
+          msg.id === messageId ? { ...msg, read: true } : msg
+        )
+      );
+    } catch (error) {
+      console.error('Error marking message as read:', error);
+    }
+  };
 
   useEffect(() => {
     if (!user) return;
@@ -48,7 +67,7 @@ export const useAdminMessages = () => {
 
     fetch();
 
-    // Optionally listen to inserts/changes (real-time)
+    // Real-time subscription for new messages
     const channel = supabase
       .channel('admin-messages-realtime')
       .on(
@@ -70,5 +89,36 @@ export const useAdminMessages = () => {
     };
   }, [user]);
 
-  return { messages, loading };
+  return { messages, loading, markAsRead };
+};
+
+// Function to send update messages to all users
+export const sendUpdateMessage = async (title: string, message: string) => {
+  try {
+    const { data: users, error: usersError } = await supabase
+      .from('users')
+      .select('id, name, email');
+
+    if (usersError) throw usersError;
+
+    const messagesToInsert = users.map(user => ({
+      user_id: user.id,
+      user_name: user.name,
+      user_email: user.email,
+      title,
+      message,
+      message_type: 'info' as const,
+      sent_at: new Date().toISOString(),
+    }));
+
+    const { error } = await supabase
+      .from('admin_messages')
+      .insert(messagesToInsert);
+
+    if (error) throw error;
+    return true;
+  } catch (error) {
+    console.error('Error sending update message:', error);
+    return false;
+  }
 };

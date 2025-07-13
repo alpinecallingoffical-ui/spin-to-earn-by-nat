@@ -7,6 +7,7 @@ import { Play, Eye, ThumbsUp, Clock } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserData } from '@/hooks/useUserData';
+import { AdsterraAd } from './AdsterraAd';
 
 interface Video {
   id: string;
@@ -296,8 +297,8 @@ export const VideosSection = () => {
               </div>
               
               {/* Adsterra Social Banner */}
-              <div className="bg-white/10 rounded-xl p-4 mb-4">
-                <script type='text/javascript' src='//pl26764830.profitableratecpm.com/62/0e/07/620e07d0ee0422f2a09925177a190c4b.js'></script>
+              <div className="bg-white/10 rounded-xl p-4 mb-4 mobile-spacing">
+                <AdsterraAd />
               </div>
               
               <div className="text-6xl mb-4">{selectedVideo.thumbnail}</div>
