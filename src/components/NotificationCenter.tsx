@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useAdminMessages } from '@/hooks/useAdminMessages';
+import { useNotifications } from '@/hooks/useNotifications';
 import { useAuth } from '@/hooks/useAuth';
 import { useUnreadAdminMessagesContext } from "@/hooks/UnreadAdminMessagesContext";
 import { supabase } from '@/integrations/supabase/client';
@@ -34,18 +35,38 @@ function getUserLevelName(coins: number | undefined | null): string {
 
 export const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, onClose }) => {
   const { messages, loading } = useAdminMessages();
+  const { notifications, loading: notificationsLoading, markAsRead: markNotificationRead } = useNotifications();
   const { user } = useAuth();
   const { unreadCount, refreshUnreadCount } = useUnreadAdminMessagesContext();
-  const [selected, setSelected] = useState<null | (typeof messages)[number]>(null);
+  const [selected, setSelected] = useState<null | any>(null);
 
-  const markAsRead = async (msg: { id: string; read?: boolean }) => {
+  // Combine admin messages and system notifications
+  const allMessages = [
+    ...notifications.map(n => ({
+      ...n,
+      message_type: n.type,
+      sent_at: n.created_at,
+      isSystemNotification: true
+    })),
+    ...messages.map(m => ({
+      ...m,
+      isSystemNotification: false
+    }))
+  ].sort((a, b) => new Date(b.sent_at || b.created_at).getTime() - new Date(a.sent_at || a.created_at).getTime());
+
+  const markAsRead = async (msg: any) => {
     if (!user || !msg || msg.read) return;
-    await supabase
-      .from('admin_messages')
-      .update({ read: true })
-      .eq('id', msg.id)
-      .eq('user_id', user.id);
-    await refreshUnreadCount();
+    
+    if (msg.isSystemNotification) {
+      await markNotificationRead(msg.id);
+    } else {
+      await supabase
+        .from('admin_messages')
+        .update({ read: true })
+        .eq('id', msg.id)
+        .eq('user_id', user.id);
+      await refreshUnreadCount();
+    }
   };
 
   const openMessage = (msg: typeof selected) => {
@@ -104,26 +125,26 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, 
         <DialogContent className="bg-gradient-to-br from-purple-600 to-pink-600 text-white border-none w-[95vw] max-w-4xl max-h-[90vh] p-0 flex flex-col">
           <DialogHeader className="p-6 pb-4">
             <DialogTitle className="text-2xl font-bold flex items-center justify-between">
-              <span>📨 Admin Messages</span>
-              {unreadCount > 0 && (
+              <span>📨 All Notifications</span>
+              {(unreadCount + (notifications?.filter(n => !n.read).length || 0)) > 0 && (
                 <span className="ml-2 bg-red-500 text-white rounded-full text-xs font-bold px-2 py-0.5">
-                  {unreadCount}
+                  {unreadCount + (notifications?.filter(n => !n.read).length || 0)}
                 </span>
               )}
             </DialogTitle>
           </DialogHeader>
           <div className="flex-1 overflow-y-auto space-y-3 px-6 pb-6">
-            {loading ? (
+            {(loading || notificationsLoading) ? (
               <div className="text-center py-8 text-white/60">Loading...</div>
-            ) : messages.length === 0 ? (
+            ) : allMessages.length === 0 ? (
               <div className="text-center py-8">
                 <p className="text-white/60 text-lg">📢</p>
-                <p className="text-white/60">No admin messages yet!</p>
+                <p className="text-white/60">No notifications yet!</p>
                 <p className="text-white/40 text-sm">You'll see important announcements here.</p>
               </div>
             ) : (
               <div className="space-y-4">
-                {messages.map((msg) => {
+                {allMessages.map((msg) => {
                   // For each message, if coin/Crown is present, extract coin and get level
                   const coins = extractCoins(msg.message);
                   const levelName = coins !== null ? getUserLevelName(coins) : null;
@@ -141,9 +162,15 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, 
                           <div className="flex items-start justify-between mb-2">
                             <div className="flex items-center space-x-2 flex-wrap">
                               <h4 className="text-white font-semibold break-words">{msg.title}</h4>
-                              <span className="bg-orange-500 text-white text-xs px-2 py-1 rounded-full font-bold">
-                                ADMIN
-                              </span>
+                              {msg.isSystemNotification ? (
+                                <span className="bg-blue-500 text-white text-xs px-2 py-1 rounded-full font-bold">
+                                  SYSTEM
+                                </span>
+                              ) : (
+                                <span className="bg-orange-500 text-white text-xs px-2 py-1 rounded-full font-bold">
+                                  ADMIN
+                                </span>
+                              )}
                               {!msg.read && (
                                 <span className="bg-red-500 text-white rounded-full w-2 h-2 inline-block" aria-label="Unread" />
                               )}
@@ -195,7 +222,11 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, 
               <DialogTitle className="flex items-center space-x-2 text-xl pr-8">
                 <span>{getTypeIcon(selected.message_type)}</span>
                 <span className="break-words flex-1">{selected.title}</span>
-                <span className="bg-orange-500 text-white text-xs px-2 py-1 rounded-full font-bold ml-2">ADMIN</span>
+                {selected.isSystemNotification ? (
+                  <span className="bg-blue-500 text-white text-xs px-2 py-1 rounded-full font-bold ml-2">SYSTEM</span>
+                ) : (
+                  <span className="bg-orange-500 text-white text-xs px-2 py-1 rounded-full font-bold ml-2">ADMIN</span>
+                )}
               </DialogTitle>
             </DialogHeader>
             <div className="mt-4 overflow-y-auto max-h-[70vh] pr-2">
