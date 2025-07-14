@@ -36,9 +36,9 @@ export const useFriends = () => {
     if (!user) return;
 
     try {
-      // Get friendships and join with user data
+      // Use type assertion for friendships table since it's not in generated types
       const { data: friendshipsData, error: friendshipsError } = await supabase
-        .from('friendships')
+        .from('friendships' as any)
         .select(`
           *,
           user1:users!friendships_user1_id_fkey(id, name, email, profile_picture_url, coins, created_at),
@@ -48,9 +48,9 @@ export const useFriends = () => {
       if (friendshipsError) throw friendshipsError;
 
       // Extract friend data (the other user in each friendship)
-      const friendsData = friendshipsData?.map(friendship => {
-        return friendship.user1.id === user.id ? friendship.user2 : friendship.user1;
-      }) || [];
+      const friendsData = friendshipsData?.map((friendship: any) => {
+        return friendship.user1?.id === user.id ? friendship.user2 : friendship.user1;
+      }).filter(Boolean) || [];
 
       setFriends(friendsData);
     } catch (error) {
@@ -67,9 +67,9 @@ export const useFriends = () => {
     if (!user) return;
 
     try {
-      // Get pending requests where current user is the recipient
+      // Use type assertion for friend_requests table since it's not in generated types
       const { data: requestsData, error: requestsError } = await supabase
-        .from('friend_requests')
+        .from('friend_requests' as any)
         .select(`
           *,
           requester:users!friend_requests_requester_id_fkey(name, email, profile_picture_url)
@@ -79,7 +79,7 @@ export const useFriends = () => {
 
       if (requestsError) throw requestsError;
 
-      setFriendRequests(requestsData || []);
+      setFriendRequests((requestsData as any) || []);
     } catch (error) {
       console.error('Error fetching friend requests:', error);
     }
