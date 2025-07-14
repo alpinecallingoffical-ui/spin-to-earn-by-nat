@@ -337,6 +337,42 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          admin_id: string | null
+          created_at: string
+          id: string
+          is_admin_message: boolean
+          message: string
+          read: boolean
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          admin_id?: string | null
+          created_at?: string
+          id?: string
+          is_admin_message?: boolean
+          message: string
+          read?: boolean
+          title: string
+          type?: string
+          user_id: string
+        }
+        Update: {
+          admin_id?: string | null
+          created_at?: string
+          id?: string
+          is_admin_message?: boolean
+          message?: string
+          read?: boolean
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       referrals: {
         Row: {
           bonus_given: number
@@ -557,6 +593,7 @@ export type Database = {
       }
       users: {
         Row: {
+          banned: boolean
           coins: number
           created_at: string
           daily_spin_limit: number | null
@@ -569,6 +606,7 @@ export type Database = {
           referred_by: string | null
         }
         Insert: {
+          banned?: boolean
           coins?: number
           created_at?: string
           daily_spin_limit?: number | null
@@ -581,6 +619,7 @@ export type Database = {
           referred_by?: string | null
         }
         Update: {
+          banned?: boolean
           coins?: number
           created_at?: string
           daily_spin_limit?: number | null

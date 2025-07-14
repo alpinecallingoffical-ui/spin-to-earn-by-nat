@@ -11,6 +11,21 @@ export const SpinWheelConnected: React.FC = () => {
   const { canSpin, recordSpin, userData } = useUserData();
   const { toast } = useToast();
 
+  if (!userData) {
+    return <div className="text-white">Loading user data...</div>;
+  }
+
+  if (userData.banned) {
+    return (
+      <div className="text-center p-8">
+        <div className="bg-red-500/20 border border-red-400 rounded-lg p-6">
+          <h2 className="text-red-400 text-xl font-bold mb-2">🚫 Account Suspended</h2>
+          <p className="text-white/80">Your account has been temporarily suspended. Please contact support for more information.</p>
+        </div>
+      </div>
+    );
+  }
+
   const prizes = [5, 10, 20, 50, 100, 5, 10, 20];
   const colors = [
     '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4',

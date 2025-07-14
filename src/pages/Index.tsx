@@ -9,6 +9,7 @@ import { MoreSection } from '@/components/MoreSection';
 import { AboutSection } from '@/components/AboutSection';
 import { useAuth } from '@/hooks/useAuth';
 import { NotificationCenter } from '@/components/NotificationCenter';
+import { useNotifications } from '@/hooks/useNotifications';
 import { WelcomeAnimation } from '@/components/WelcomeAnimation';
 import { useUnreadAdminMessagesContext } from "@/hooks/UnreadAdminMessagesContext";
 import { Leaderboard } from "@/components/Leaderboard";
@@ -32,6 +33,7 @@ const Index = () => {
   const [showChatList, setShowChatList] = useState(false);
   const { unreadCount } = useUnreadAdminMessagesContext();
   const { getTotalUnreadCount } = useChat();
+  const { unreadCount: systemNotificationCount } = useNotifications();
 
   useEffect(() => {
     // Check for referral code in URL
@@ -107,9 +109,9 @@ const Index = () => {
           aria-label="Notifications"
         >
           <span>🔔 Notifications</span>
-          {unreadCount > 0 && (
+          {(unreadCount + systemNotificationCount) > 0 && (
             <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs font-bold rounded-full px-2 py-0.5 shadow-lg border-2 border-white animate-bounce">
-              {unreadCount > 9 ? "9+" : unreadCount}
+              {(unreadCount + systemNotificationCount) > 9 ? "9+" : (unreadCount + systemNotificationCount)}
             </span>
           )}
         </button>

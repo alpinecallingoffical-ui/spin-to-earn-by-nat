@@ -14,6 +14,7 @@ interface UserData {
   created_at: string;
   daily_spin_limit: number;
   profile_picture_url?: string;
+  banned?: boolean;
 }
 
 interface SpinRecord {

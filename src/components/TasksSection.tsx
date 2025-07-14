@@ -79,6 +79,17 @@ export const TasksSection = () => {
   const [spinCount, setSpinCount] = useState(0);
   const [adClickCount, setAdClickCount] = useState(0);
 
+  if (userData?.banned) {
+    return (
+      <div className="text-center p-8">
+        <div className="bg-red-500/20 border border-red-400 rounded-lg p-6">
+          <h2 className="text-red-400 text-xl font-bold mb-2">🚫 Account Suspended</h2>
+          <p className="text-white/80">Your account has been temporarily suspended. You cannot complete tasks at this time.</p>
+        </div>
+      </div>
+    );
+  }
+
   const getVipMultiplier = (coins: number) => {
     if (coins >= 3000) return 10; // Grand Master
     if (coins >= 2000) return 5;  // Elite Master
