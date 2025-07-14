@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useChat } from '@/hooks/useChat';
 import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 import { X, Send, MessageCircle } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -27,8 +28,22 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    fetchMessages(otherUserId);
-    markMessagesAsRead(otherUserId);
+    const initializeChat = async () => {
+      // First ensure conversation exists or is created
+      try {
+        await supabase.rpc('get_or_create_conversation', {
+          other_user_id: otherUserId
+        });
+      } catch (error) {
+        console.error('Error creating/getting conversation:', error);
+      }
+      
+      // Then fetch messages and mark as read
+      await fetchMessages(otherUserId);
+      await markMessagesAsRead(otherUserId);
+    };
+    
+    initializeChat();
   }, [otherUserId]);
 
   useEffect(() => {
