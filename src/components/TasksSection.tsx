@@ -79,6 +79,14 @@ export const TasksSection = () => {
   const [spinCount, setSpinCount] = useState(0);
   const [adClickCount, setAdClickCount] = useState(0);
 
+  const getVipMultiplier = (coins: number) => {
+    if (coins >= 3000) return 10; // Grand Master
+    if (coins >= 2000) return 5;  // Elite Master
+    if (coins >= 1000) return 2;  // VIP
+    return 1; // Regular
+  };
+
+  // Early return AFTER all hooks are defined
   if (userData?.banned) {
     return (
       <div className="text-center p-8">
@@ -89,13 +97,6 @@ export const TasksSection = () => {
       </div>
     );
   }
-
-  const getVipMultiplier = (coins: number) => {
-    if (coins >= 3000) return 10; // Grand Master
-    if (coins >= 2000) return 5;  // Elite Master
-    if (coins >= 1000) return 2;  // VIP
-    return 1; // Regular
-  };
 
   const fetchTasks = async () => {
     if (!user) return;

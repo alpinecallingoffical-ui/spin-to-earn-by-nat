@@ -27,17 +27,6 @@ export const GamesSection = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const { userData, refetch } = useUserData();
-
-  if (userData?.banned) {
-    return (
-      <div className="text-center p-8">
-        <div className="bg-red-500/20 border border-red-400 rounded-lg p-6">
-          <h2 className="text-red-400 text-xl font-bold mb-2">🚫 Account Suspended</h2>
-          <p className="text-white/80">Your account has been temporarily suspended. You cannot play games at this time.</p>
-        </div>
-      </div>
-    );
-  }
   const [games] = useState<Game[]>([
     {
       id: '1',
@@ -83,6 +72,18 @@ export const GamesSection = () => {
     if (coins >= 1000) return 2;  // VIP
     return 1; // Regular
   };
+
+  // Early return AFTER all hooks are defined
+  if (userData?.banned) {
+    return (
+      <div className="text-center p-8">
+        <div className="bg-red-500/20 border border-red-400 rounded-lg p-6">
+          <h2 className="text-red-400 text-xl font-bold mb-2">🚫 Account Suspended</h2>
+          <p className="text-white/80">Your account has been temporarily suspended. You cannot play games at this time.</p>
+        </div>
+      </div>
+    );
+  }
 
   const playGame = (gameId: string) => {
     setCurrentGame(gameId);

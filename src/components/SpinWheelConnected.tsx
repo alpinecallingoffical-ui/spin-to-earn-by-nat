@@ -11,6 +11,21 @@ export const SpinWheelConnected: React.FC = () => {
   const { canSpin, recordSpin, userData } = useUserData();
   const { toast } = useToast();
 
+  const prizes = [5, 10, 20, 50, 100, 5, 10, 20];
+  const colors = [
+    '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4',
+    '#FFEAA7', '#DDA0DD', '#98D8C8', '#F7DC6F'
+  ];
+
+  // Get VIP level info
+  const getVipLevel = (coins: number) => {
+    if (coins >= 3000) return { level: 'Grand Master', multiplier: 10, isUnlimited: true };
+    if (coins >= 2000) return { level: 'Elite Master', multiplier: 5, isUnlimited: false };
+    if (coins >= 1000) return { level: 'VIP', multiplier: 2, isUnlimited: false };
+    return { level: 'Regular', multiplier: 1, isUnlimited: false };
+  };
+
+  // Early returns AFTER all hooks are defined
   if (!userData) {
     return <div className="text-white">Loading user data...</div>;
   }
@@ -25,20 +40,6 @@ export const SpinWheelConnected: React.FC = () => {
       </div>
     );
   }
-
-  const prizes = [5, 10, 20, 50, 100, 5, 10, 20];
-  const colors = [
-    '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4',
-    '#FFEAA7', '#DDA0DD', '#98D8C8', '#F7DC6F'
-  ];
-
-  // Get VIP level info
-  const getVipLevel = (coins: number) => {
-    if (coins >= 3000) return { level: 'Grand Master', multiplier: 10, isUnlimited: true };
-    if (coins >= 2000) return { level: 'Elite Master', multiplier: 5, isUnlimited: false };
-    if (coins >= 1000) return { level: 'VIP', multiplier: 2, isUnlimited: false };
-    return { level: 'Regular', multiplier: 1, isUnlimited: false };
-  };
 
   const handleSpin = async () => {
     if (!canSpin || isSpinning) return;
