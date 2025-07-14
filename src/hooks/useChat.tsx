@@ -128,20 +128,36 @@ export const useChat = () => {
     if (!user || !content.trim()) return false;
 
     try {
+      console.log('Sending message to:', receiverId, 'Content:', content);
+      
       const { data, error } = await supabase.rpc('send_message', {
         receiver_id: receiverId,
         content: content.trim()
       });
 
-      if (error) throw error;
+      console.log('Send message response:', { data, error });
+
+      if (error) {
+        console.error('Supabase RPC error:', error);
+        throw error;
+      }
       
-      // Refresh messages and conversations immediately
-      await Promise.all([
-        fetchMessages(receiverId),
-        fetchConversations()
-      ]);
-      
-      return true;
+      if (data) {
+        console.log('Message sent successfully, message ID:', data);
+        
+        // Wait a bit before refreshing to ensure the message is properly inserted
+        setTimeout(async () => {
+          await Promise.all([
+            fetchMessages(receiverId),
+            fetchConversations()
+          ]);
+        }, 500);
+        
+        return true;
+      } else {
+        console.error('No data returned from send_message function');
+        return false;
+      }
     } catch (error) {
       console.error('Error sending message:', error);
       return false;

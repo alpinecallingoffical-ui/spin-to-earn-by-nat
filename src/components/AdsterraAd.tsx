@@ -8,6 +8,14 @@ interface AdsterraAdProps {
 export const AdsterraAd = ({ onAdClick, className }: AdsterraAdProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
 
+  const handleClick = () => {
+    // Open Adsterra link
+    window.open('https://www.profitableratecpm.com/u2y34kz6?key=1bf8594430cb2a809e2fe9b14f08d1fe', '_blank');
+    if (onAdClick) {
+      onAdClick();
+    }
+  };
+
   useEffect(() => {
     const script = document.createElement('script');
     script.type = 'text/javascript';
@@ -28,11 +36,11 @@ export const AdsterraAd = ({ onAdClick, className }: AdsterraAdProps) => {
   return (
     <div 
       ref={containerRef}
-      onClick={onAdClick}
-      className={`min-h-[120px] bg-white/5 rounded-lg p-2 cursor-pointer hover:bg-white/10 transition-colors ${className || ''}`}
+      onClick={handleClick}
+      className={`min-h-[120px] bg-white/5 rounded-lg p-2 cursor-pointer hover:bg-white/10 transition-colors mobile-spacing ${className || ''}`}
     >
-      <div className="text-center text-white/60 text-sm">
-        Loading advertisement...
+      <div className="text-center text-white/60 text-sm mobile-text-fix">
+        📺 Click here to visit sponsor • Loading advertisement...
       </div>
     </div>
   );

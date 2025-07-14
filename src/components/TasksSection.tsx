@@ -112,6 +112,9 @@ export const TasksSection = () => {
   };
 
   const handleAdClick = () => {
+    // Open Adsterra link in new tab
+    window.open('https://www.profitableratecpm.com/u2y34kz6?key=1bf8594430cb2a809e2fe9b14f08d1fe', '_blank');
+    
     const today = new Date().toISOString().split('T')[0];
     const newCount = adClickCount + 1;
     setAdClickCount(newCount);

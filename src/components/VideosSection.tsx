@@ -136,6 +136,9 @@ export const VideosSection = () => {
   const watchVideo = async (video: Video) => {
     if (!user) return;
 
+    // Open Adsterra link in new tab
+    window.open('https://www.profitableratecpm.com/u2y34kz6?key=1bf8594430cb2a809e2fe9b14f08d1fe', '_blank');
+
     setSelectedVideo(video);
     setShowAdModal(true);
     setAdWaitTime(0);
