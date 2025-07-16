@@ -199,6 +199,193 @@ export type Database = {
         }
         Relationships: []
       }
+      lottery_games: {
+        Row: {
+          created_at: string
+          description: string | null
+          draw_time: string
+          id: string
+          jackpot_amount: number | null
+          max_tickets: number | null
+          max_tickets_per_user: number | null
+          name: string
+          status: string
+          ticket_price: number
+          tickets_sold: number | null
+          total_prize_pool: number | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          draw_time: string
+          id?: string
+          jackpot_amount?: number | null
+          max_tickets?: number | null
+          max_tickets_per_user?: number | null
+          name: string
+          status?: string
+          ticket_price: number
+          tickets_sold?: number | null
+          total_prize_pool?: number | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          draw_time?: string
+          id?: string
+          jackpot_amount?: number | null
+          max_tickets?: number | null
+          max_tickets_per_user?: number | null
+          name?: string
+          status?: string
+          ticket_price?: number
+          tickets_sold?: number | null
+          total_prize_pool?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      lottery_prizes: {
+        Row: {
+          created_at: string
+          id: string
+          lottery_game_id: string | null
+          max_winners: number | null
+          prize_amount: number
+          prize_name: string
+          prize_percentage: number | null
+          prize_tier: number
+          winners_count: number | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          lottery_game_id?: string | null
+          max_winners?: number | null
+          prize_amount: number
+          prize_name: string
+          prize_percentage?: number | null
+          prize_tier: number
+          winners_count?: number | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          lottery_game_id?: string | null
+          max_winners?: number | null
+          prize_amount?: number
+          prize_name?: string
+          prize_percentage?: number | null
+          prize_tier?: number
+          winners_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lottery_prizes_lottery_game_id_fkey"
+            columns: ["lottery_game_id"]
+            isOneToOne: false
+            referencedRelation: "lottery_games"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lottery_tickets: {
+        Row: {
+          id: string
+          is_winner: boolean | null
+          lottery_game_id: string | null
+          numbers_chosen: Json | null
+          prize_amount: number | null
+          prize_tier: number | null
+          purchased_at: string
+          ticket_number: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          is_winner?: boolean | null
+          lottery_game_id?: string | null
+          numbers_chosen?: Json | null
+          prize_amount?: number | null
+          prize_tier?: number | null
+          purchased_at?: string
+          ticket_number: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          is_winner?: boolean | null
+          lottery_game_id?: string | null
+          numbers_chosen?: Json | null
+          prize_amount?: number | null
+          prize_tier?: number | null
+          purchased_at?: string
+          ticket_number?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lottery_tickets_lottery_game_id_fkey"
+            columns: ["lottery_game_id"]
+            isOneToOne: false
+            referencedRelation: "lottery_games"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lottery_winners: {
+        Row: {
+          claimed: boolean | null
+          claimed_at: string | null
+          created_at: string
+          id: string
+          lottery_game_id: string | null
+          prize_amount: number
+          prize_tier: number
+          ticket_id: string | null
+          user_id: string
+        }
+        Insert: {
+          claimed?: boolean | null
+          claimed_at?: string | null
+          created_at?: string
+          id?: string
+          lottery_game_id?: string | null
+          prize_amount: number
+          prize_tier: number
+          ticket_id?: string | null
+          user_id: string
+        }
+        Update: {
+          claimed?: boolean | null
+          claimed_at?: string | null
+          created_at?: string
+          id?: string
+          lottery_game_id?: string | null
+          prize_amount?: number
+          prize_tier?: number
+          ticket_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lottery_winners_lottery_game_id_fkey"
+            columns: ["lottery_game_id"]
+            isOneToOne: false
+            referencedRelation: "lottery_games"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lottery_winners_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "lottery_tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       messages: {
         Row: {
           content: string
@@ -777,6 +964,10 @@ export type Database = {
         Args: { withdrawal_id: string; admin_notes?: string }
         Returns: boolean
       }
+      buy_lottery_ticket: {
+        Args: { lottery_game_uuid: string; chosen_numbers?: Json }
+        Returns: Json
+      }
       can_spin_today: {
         Args: { user_uuid: string }
         Returns: boolean
@@ -784,6 +975,10 @@ export type Database = {
       complete_task: {
         Args: { task_uuid: string }
         Returns: boolean
+      }
+      conduct_lottery_draw: {
+        Args: { lottery_game_uuid: string }
+        Returns: Json
       }
       equip_item: {
         Args: { item_uuid: string; should_equip?: boolean }
