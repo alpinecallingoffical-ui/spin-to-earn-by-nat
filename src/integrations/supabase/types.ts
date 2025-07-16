@@ -172,6 +172,33 @@ export type Database = {
         }
         Relationships: []
       }
+      item_categories: {
+        Row: {
+          created_at: string
+          description: string | null
+          display_order: number | null
+          icon: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          display_order?: number | null
+          icon?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          display_order?: number | null
+          icon?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
       messages: {
         Row: {
           content: string
@@ -267,6 +294,41 @@ export type Database = {
         }
         Relationships: []
       }
+      purchase_history: {
+        Row: {
+          id: string
+          item_id: string | null
+          purchased_at: string
+          quantity: number | null
+          total_price: number
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          item_id?: string | null
+          purchased_at?: string
+          quantity?: number | null
+          total_price: number
+          user_id: string
+        }
+        Update: {
+          id?: string
+          item_id?: string | null
+          purchased_at?: string
+          quantity?: number | null
+          total_price?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchase_history_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "shop_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       referrals: {
         Row: {
           bonus_given: number
@@ -316,6 +378,65 @@ export type Database = {
             columns: ["referrer_id"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shop_items: {
+        Row: {
+          category_id: string | null
+          created_at: string
+          description: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean | null
+          is_limited: boolean | null
+          item_data: Json | null
+          item_type: string
+          limited_quantity: number | null
+          name: string
+          price: number
+          sold_count: number | null
+          updated_at: string
+        }
+        Insert: {
+          category_id?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          is_limited?: boolean | null
+          item_data?: Json | null
+          item_type: string
+          limited_quantity?: number | null
+          name: string
+          price: number
+          sold_count?: number | null
+          updated_at?: string
+        }
+        Update: {
+          category_id?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          is_limited?: boolean | null
+          item_data?: Json | null
+          item_type?: string
+          limited_quantity?: number | null
+          name?: string
+          price?: number
+          sold_count?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shop_items_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "item_categories"
             referencedColumns: ["id"]
           },
         ]
@@ -485,6 +606,41 @@ export type Database = {
         }
         Relationships: []
       }
+      user_inventory: {
+        Row: {
+          id: string
+          is_equipped: boolean | null
+          item_id: string | null
+          purchased_at: string
+          quantity: number | null
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          is_equipped?: boolean | null
+          item_id?: string | null
+          purchased_at?: string
+          quantity?: number | null
+          user_id: string
+        }
+        Update: {
+          id?: string
+          is_equipped?: boolean | null
+          item_id?: string | null
+          purchased_at?: string
+          quantity?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_inventory_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "shop_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       users: {
         Row: {
           banned: boolean
@@ -629,6 +785,10 @@ export type Database = {
         Args: { task_uuid: string }
         Returns: boolean
       }
+      equip_item: {
+        Args: { item_uuid: string; should_equip?: boolean }
+        Returns: boolean
+      }
       generate_referral_code: {
         Args: Record<PropertyKey, never>
         Returns: string
@@ -639,6 +799,10 @@ export type Database = {
       }
       mark_messages_read: {
         Args: { sender_id: string }
+        Returns: boolean
+      }
+      purchase_item: {
+        Args: { item_uuid: string; purchase_quantity?: number }
         Returns: boolean
       }
       record_game_score: {
@@ -676,8 +840,8 @@ export type Database = {
         Returns: boolean
       }
       send_message: {
-        Args: { receiver_id: string; content: string }
-        Returns: string
+        Args: { message: string } | { receiver_id: string; content: string }
+        Returns: undefined
       }
       send_message_to_all_users: {
         Args: {
