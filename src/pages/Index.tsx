@@ -24,7 +24,8 @@ const Index = () => {
   const {
     user,
     loading,
-    signOut
+    signOut,
+    isNewLogin
   } = useAuth();
   const [showAuth, setShowAuth] = useState(false);
   const [referralCode, setReferralCode] = useState<string>('');
@@ -46,13 +47,13 @@ const Index = () => {
   }, []);
 
   useEffect(() => {
-    if (user) {
+    if (user && isNewLogin) {
       setShowWelcome(true);
       // Hide welcome after 2.5s
       const timeout = setTimeout(() => setShowWelcome(false), 2500);
       return () => clearTimeout(timeout);
     }
-  }, [user]);
+  }, [user, isNewLogin]);
 
   const handleSwitchToHistory = () => {
     setActiveTab('history');
@@ -126,15 +127,12 @@ const Index = () => {
         <AdBanner />
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="max-w-4xl mx-auto">
-          <TabsList className="grid w-full grid-cols-8 bg-white/20 backdrop-blur-sm"> 
+          <TabsList className="grid w-full grid-cols-7 bg-white/20 backdrop-blur-sm"> 
             <TabsTrigger value="spin" className="text-white data-[state=active]:bg-white/30">
               🎰 Spin
             </TabsTrigger>
             <TabsTrigger value="wallet" className="text-white data-[state=active]:bg-white/30">
               💰 Wallet
-            </TabsTrigger>
-            <TabsTrigger value="shop" className="text-white data-[state=active]:bg-white/30">
-              🛒 Shop
             </TabsTrigger>
             <TabsTrigger value="history" className="text-white data-[state=active]:bg-white/30">
               📊 History
@@ -161,11 +159,6 @@ const Index = () => {
             <TabsContent value="wallet" className="space-y-6">
               <WalletDisplayConnected onSwitchToHistory={handleSwitchToHistory} />
             </TabsContent>
-
-            <TabsContent value="shop" className="space-y-6">
-              <ShopSection />
-            </TabsContent>
-
 
             <TabsContent value="history" className="space-y-6">
               <SpinHistoryConnected />

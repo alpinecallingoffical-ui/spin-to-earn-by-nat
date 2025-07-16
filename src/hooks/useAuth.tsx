@@ -6,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 export const useAuth = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isNewLogin, setIsNewLogin] = useState(false);
 
   useEffect(() => {
     console.log('Setting up auth listener...');
@@ -20,6 +21,9 @@ export const useAuth = () => {
         // Handle successful sign in
         if (event === 'SIGNED_IN' && session?.user) {
           console.log('User signed in successfully:', session.user.id);
+          setIsNewLogin(true);
+          // Reset the flag after showing welcome
+          setTimeout(() => setIsNewLogin(false), 3000);
         }
         
         if (event === 'SIGNED_OUT') {
@@ -46,5 +50,5 @@ export const useAuth = () => {
     }
   };
 
-  return { user, loading, signOut };
+  return { user, loading, signOut, isNewLogin };
 };
