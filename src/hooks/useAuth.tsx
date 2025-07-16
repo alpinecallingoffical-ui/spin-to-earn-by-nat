@@ -7,6 +7,7 @@ export const useAuth = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [isNewLogin, setIsNewLogin] = useState(false);
+  const [hasInitialSession, setHasInitialSession] = useState(false);
 
   useEffect(() => {
     console.log('Setting up auth listener...');
@@ -18,8 +19,8 @@ export const useAuth = () => {
         setUser(session?.user ?? null);
         setLoading(false);
         
-        // Handle successful sign in
-        if (event === 'SIGNED_IN' && session?.user) {
+        // Handle successful sign in - only for actual new logins, not session restoration
+        if (event === 'SIGNED_IN' && session?.user && hasInitialSession) {
           console.log('User signed in successfully:', session.user.id);
           setIsNewLogin(true);
           // Reset the flag after showing welcome
@@ -37,6 +38,7 @@ export const useAuth = () => {
       console.log('Initial session:', session);
       setUser(session?.user ?? null);
       setLoading(false);
+      setHasInitialSession(true); // Mark that we've checked for initial session
     });
 
     return () => subscription.unsubscribe();
