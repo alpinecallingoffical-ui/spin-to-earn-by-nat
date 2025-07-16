@@ -8,6 +8,8 @@ import { useToast } from '@/hooks/use-toast';
 import { useVipBenefits } from '@/hooks/useVipBenefits';
 import { ProfilePictureUpload } from './ProfilePictureUpload';
 import { VerifiedBadge } from './VerifiedBadge';
+import { AvatarDisplay } from './AvatarDisplay';
+import { PowerUpManager } from './PowerUpManager';
 
 interface UserProfileConnectedProps {
   onSwitchToHistory?: () => void;
@@ -292,13 +294,19 @@ export const UserProfileConnected: React.FC<UserProfileConnectedProps> = ({ onSw
         )}
       </div>
 
-      {/* User Info Card with Profile Picture Upload */}
+      {/* User Info Card with Enhanced Avatar Display */}
       <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-6">
         <div className="flex items-center space-x-4 mb-4">
-          <ProfilePictureUpload 
-            currentPictureUrl={userData?.profile_picture_url}
-            onUploadSuccess={handleProfilePictureUpload}
-          />
+          <div className="flex flex-col items-center space-y-2">
+            <AvatarDisplay 
+              profilePictureUrl={userData?.profile_picture_url}
+              size="lg"
+            />
+            <ProfilePictureUpload 
+              currentPictureUrl={userData?.profile_picture_url}
+              onUploadSuccess={handleProfilePictureUpload}
+            />
+          </div>
           <div>
             <h3 className="text-white text-xl font-bold flex items-center">
               {userData?.name || userData?.email?.split('@')[0] || 'User'}
@@ -334,6 +342,12 @@ export const UserProfileConnected: React.FC<UserProfileConnectedProps> = ({ onSw
             </p>
           </div>
         </div>
+      </div>
+
+      {/* Power-up Management */}
+      <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-6">
+        <h3 className="text-white text-lg font-bold mb-4">⚡ Power-ups</h3>
+        <PowerUpManager />
       </div>
 
       {/* Quick Actions */}

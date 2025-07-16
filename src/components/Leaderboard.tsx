@@ -4,6 +4,7 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@
 import { Crown, MessageCircle } from "lucide-react";
 import { ChatWindow } from "./ChatWindow";
 import { useAuth } from "@/hooks/useAuth";
+import { AvatarDisplay } from "./AvatarDisplay";
 
 interface BoardUser {
   user_id: string;
@@ -117,15 +118,10 @@ export const Leaderboard: React.FC = () => {
                   </TableCell>
                   <TableCell>
                     <span className="flex items-center gap-2">
-                      {u.profile_picture_url ? (
-                        <img
-                          src={u.profile_picture_url}
-                          alt={u.name}
-                          className="w-8 h-8 rounded-full border-2 border-white/30 object-cover"
-                        />
-                      ) : (
-                        <span className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-xl">🎰</span>
-                      )}
+                      <AvatarDisplay 
+                        profilePictureUrl={u.profile_picture_url}
+                        size="sm"
+                      />
                       <span className="font-bold">{u.name}</span>
                     </span>
                   </TableCell>

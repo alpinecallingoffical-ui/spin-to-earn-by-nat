@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useUserData } from '@/hooks/useUserData';
 import { useToast } from '@/hooks/use-toast';
+import { useEquippedItems } from '@/hooks/useEquippedItems';
 
 export const SpinWheelConnected: React.FC = () => {
   const [isSpinning, setIsSpinning] = useState(false);
@@ -10,6 +11,7 @@ export const SpinWheelConnected: React.FC = () => {
   const [lastWin, setLastWin] = useState<number | null>(null);
   const { canSpin, recordSpin, userData } = useUserData();
   const { toast } = useToast();
+  const { getPowerUpMultiplier, hasActivePowerUp } = useEquippedItems();
 
   const prizes = [5, 10, 20, 50, 100, 5, 10, 20];
   const colors = [
@@ -63,6 +65,18 @@ export const SpinWheelConnected: React.FC = () => {
 
     // Apply VIP multiplier
     wonAmount = Math.floor(wonAmount * vipInfo.multiplier);
+    
+    // Apply power-up effects
+    if (hasActivePowerUp('double_coins')) {
+      wonAmount = getPowerUpMultiplier(wonAmount, 'double_coins');
+    }
+    
+    if (hasActivePowerUp('lucky_multiplier')) {
+      // 10x chance for rare rewards
+      if (Math.random() < 0.1) {
+        wonAmount = getPowerUpMultiplier(wonAmount, 'lucky_multiplier');
+      }
+    }
 
     // Enhanced animation duration for VIP levels
     const animationDuration = vipInfo.level !== 'Regular' ? 4000 : 3000;
