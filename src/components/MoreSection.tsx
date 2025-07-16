@@ -4,6 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TasksSection } from './TasksSection';
 import { VideosSection } from './VideosSection';
 import { GamesSection } from './GamesSection';
+import { BenefitsSection } from './BenefitsSection';
 import ShopSection from './ShopSection';
 
 export const MoreSection = () => {
@@ -14,9 +15,12 @@ export const MoreSection = () => {
       <h2 className="text-white text-3xl font-bold mb-6 text-center">🎮 MORES - Entertainment Hub</h2>
       
       <Tabs value={activeMoreTab} onValueChange={setActiveMoreTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-4 bg-white/20 backdrop-blur-sm mb-6">
+        <TabsList className="grid w-full grid-cols-5 bg-white/20 backdrop-blur-sm mb-6">
           <TabsTrigger value="shop" className="text-white data-[state=active]:bg-white/30">
             🛒 Shop
+          </TabsTrigger>
+          <TabsTrigger value="benefits" className="text-white data-[state=active]:bg-white/30">
+            🎁 Your Benefits
           </TabsTrigger>
           <TabsTrigger value="tasks" className="text-white data-[state=active]:bg-white/30">
             ✅ Tasks
@@ -31,6 +35,10 @@ export const MoreSection = () => {
 
         <TabsContent value="shop" className="space-y-4">
           <ShopSection />
+        </TabsContent>
+
+        <TabsContent value="benefits" className="space-y-4">
+          <BenefitsSection />
         </TabsContent>
 
         <TabsContent value="tasks" className="space-y-4">
