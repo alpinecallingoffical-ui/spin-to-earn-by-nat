@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useShop } from '@/hooks/useShop';
 import { useUserData } from '@/hooks/useUserData';
+import LotterySection from '@/components/LotterySection';
 import { 
   ShoppingCart, 
   Coins, 
@@ -17,7 +18,8 @@ import {
   Package,
   History,
   Star,
-  Check
+  Check,
+  Ticket
 } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
@@ -270,8 +272,12 @@ const ShopSection: React.FC = () => {
       </div>
 
       {/* Shop Items */}
-      <Tabs defaultValue={categories[0]?.id} className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+      <Tabs defaultValue="lottery" className="w-full">
+        <TabsList className="grid w-full grid-cols-5">
+          <TabsTrigger value="lottery" className="flex items-center gap-2">
+            <Ticket className="h-4 w-4" />
+            Lottery
+          </TabsTrigger>
           {categories.map((category) => (
             <TabsTrigger key={category.id} value={category.id} className="flex items-center gap-2">
               {getCategoryIcon(category.name)}
@@ -279,6 +285,10 @@ const ShopSection: React.FC = () => {
             </TabsTrigger>
           ))}
         </TabsList>
+
+        <TabsContent value="lottery" className="space-y-4">
+          <LotterySection />
+        </TabsContent>
 
         {categories.map((category) => (
           <TabsContent key={category.id} value={category.id} className="space-y-4">

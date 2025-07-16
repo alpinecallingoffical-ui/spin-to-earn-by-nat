@@ -19,7 +19,6 @@ import { AdBanner } from "@/components/AdBanner";
 import { ChatList } from "@/components/ChatList";
 import { useChat } from "@/hooks/useChat";
 import ShopSection from "@/components/ShopSection";
-import LotterySection from "@/components/LotterySection";
 
 const Index = () => {
   const {
@@ -127,7 +126,7 @@ const Index = () => {
         <AdBanner />
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="max-w-4xl mx-auto">
-          <TabsList className="grid w-full grid-cols-9 bg-white/20 backdrop-blur-sm"> 
+          <TabsList className="grid w-full grid-cols-8 bg-white/20 backdrop-blur-sm"> 
             <TabsTrigger value="spin" className="text-white data-[state=active]:bg-white/30">
               🎰 Spin
             </TabsTrigger>
@@ -136,9 +135,6 @@ const Index = () => {
             </TabsTrigger>
             <TabsTrigger value="shop" className="text-white data-[state=active]:bg-white/30">
               🛒 Shop
-            </TabsTrigger>
-            <TabsTrigger value="lottery" className="text-white data-[state=active]:bg-white/30">
-              🎫 Lottery
             </TabsTrigger>
             <TabsTrigger value="history" className="text-white data-[state=active]:bg-white/30">
               📊 History
@@ -170,9 +166,6 @@ const Index = () => {
               <ShopSection />
             </TabsContent>
 
-            <TabsContent value="lottery" className="space-y-6">
-              <LotterySection />
-            </TabsContent>
 
             <TabsContent value="history" className="space-y-6">
               <SpinHistoryConnected />
