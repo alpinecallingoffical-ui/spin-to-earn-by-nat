@@ -18,7 +18,8 @@ const EquippedItemsContext = createContext<EquippedItemsContextType | undefined>
 
 export const EquippedItemsProvider = ({ children }: { children: ReactNode }) => {
   const { user } = useAuth();
-  const { userInventory, loading } = useShop();
+  const shopHook = useShop();
+  const { userInventory = [], loading = true } = shopHook || {};
   const [equippedTheme, setEquippedTheme] = useState<any | null>(null);
   const [equippedAvatar, setEquippedAvatar] = useState<any | null>(null);
   const [equippedDecoration, setEquippedDecoration] = useState<any | null>(null);
@@ -158,7 +159,18 @@ export const EquippedItemsProvider = ({ children }: { children: ReactNode }) => 
 export const useEquippedItems = () => {
   const context = useContext(EquippedItemsContext);
   if (context === undefined) {
-    throw new Error('useEquippedItems must be used within an EquippedItemsProvider');
+    // Return default values instead of throwing error during initial render
+    return {
+      equippedTheme: null,
+      equippedAvatar: null,
+      equippedDecoration: null,
+      activePowerUps: [],
+      applyTheme: () => {},
+      removePowerUp: () => {},
+      addPowerUp: () => {},
+      hasActivePowerUp: () => false,
+      getPowerUpMultiplier: (baseValue: number) => baseValue
+    };
   }
   return context;
 };
