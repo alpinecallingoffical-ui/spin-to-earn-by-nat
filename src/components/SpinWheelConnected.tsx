@@ -46,6 +46,29 @@ export const SpinWheelConnected: React.FC = () => {
   const handleSpin = async () => {
     if (!canSpin || isSpinning) return;
 
+    // Check if user has less than 1000 coins (new player) - show ads
+    if (userData && userData.coins < 1000) {
+      // Open ad in new tab
+      window.open('https://www.example-ads.com/spin-ad', '_blank');
+      
+      // Wait a moment for user to engage with ad
+      toast({
+        title: 'Watch Ad First!',
+        description: 'Please watch the ad to support us and then return to spin!',
+      });
+      
+      // Continue with spin after a short delay
+      setTimeout(() => {
+        proceedWithSpin();
+      }, 2000);
+      return;
+    }
+
+    // For users with 1000+ coins, spin directly
+    proceedWithSpin();
+  };
+
+  const proceedWithSpin = async () => {
     setIsSpinning(true);
     setLastWin(null);
 
