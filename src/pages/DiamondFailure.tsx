@@ -14,7 +14,12 @@ const DiamondFailure: React.FC = () => {
 
   useEffect(() => {
     const handleFailure = async () => {
-      const purchaseId = searchParams.get('purchase_id');
+      let purchaseId = searchParams.get('purchase_id');
+      
+      // Clean the purchase_id if it has additional query parameters
+      if (purchaseId && purchaseId.includes('?')) {
+        purchaseId = purchaseId.split('?')[0];
+      }
       
       if (!purchaseId) {
         toast({
