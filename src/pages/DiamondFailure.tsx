@@ -59,7 +59,7 @@ const DiamondFailure: React.FC = () => {
   }, [searchParams, navigate]);
 
   const handleRetryPurchase = () => {
-    navigate('/', { state: { activeTab: 'shop', subTab: 'diamonds' } });
+    navigate('/', { state: { activeTab: 'mores' } });
   };
 
   const handleGoHome = () => {

@@ -23,7 +23,7 @@ import {
 } from 'lucide-react';
 
 const DiamondShop: React.FC = () => {
-  const { userData } = useUserData();
+  const { userData, refetch: refetchUserData } = useUserData();
   const {
     packages,
     purchaseHistory,
@@ -109,6 +109,8 @@ const DiamondShop: React.FC = () => {
       if (success) {
         setConvertAmount('');
         setShowConverter(false);
+        // Refresh user data to show updated coins and diamonds
+        refetchUserData();
       }
     }
   };
