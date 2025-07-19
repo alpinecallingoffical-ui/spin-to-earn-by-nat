@@ -197,6 +197,13 @@ export const useDiamonds = () => {
     };
   }, []);
 
+  const refetchData = async () => {
+    await Promise.all([
+      fetchPackages(),
+      fetchPurchaseHistory()
+    ]);
+  };
+
   return {
     packages,
     purchaseHistory,
@@ -205,6 +212,7 @@ export const useDiamonds = () => {
     createPurchase,
     convertDiamondsToCoins,
     fetchPackages,
-    fetchPurchaseHistory
+    fetchPurchaseHistory,
+    refetchData
   };
 };

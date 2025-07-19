@@ -30,7 +30,8 @@ const DiamondShop: React.FC = () => {
     loading,
     purchasing,
     createPurchase,
-    convertDiamondsToCoins
+    convertDiamondsToCoins,
+    refetchData
   } = useDiamonds();
 
   const [showHistory, setShowHistory] = useState(false);
@@ -109,8 +110,11 @@ const DiamondShop: React.FC = () => {
       if (success) {
         setConvertAmount('');
         setShowConverter(false);
-        // Refresh user data to show updated coins and diamonds
-        refetchUserData();
+        // Refresh both user data and diamond data to show updated coins and diamonds
+        await Promise.all([
+          refetchUserData(),
+          refetchData()
+        ]);
       }
     }
   };

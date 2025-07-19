@@ -6,12 +6,14 @@ import { CheckCircle, Diamond, Gift } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useUserData } from '@/hooks/useUserData';
+import { useDiamonds } from '@/hooks/useDiamonds';
 
 const DiamondSuccess: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { toast } = useToast();
   const { refetch: refetchUserData } = useUserData();
+  const { refetchData: refetchDiamondData } = useDiamonds();
   const [processing, setProcessing] = useState(true);
   const [purchaseDetails, setPurchaseDetails] = useState<any>(null);
 
@@ -86,11 +88,14 @@ const DiamondSuccess: React.FC = () => {
 
         setPurchaseDetails(purchase);
         
-        // Refresh user data to show updated diamonds
-        refetchUserData();
+        // Refresh both user data and diamond data to show updated diamonds
+        await Promise.all([
+          refetchUserData(),
+          refetchDiamondData()
+        ]);
         
         toast({
-          title: "Success!",
+          title: "Purchase Complete!",
           description: "Payment completed successfully! Diamonds added to your account."
         });
         

@@ -69,7 +69,7 @@ export const useChat = () => {
             .from('users')
             .select('id, name, profile_picture_url')
             .eq('id', otherUserId)
-            .single();
+            .maybeSingle();
 
           if (userError || !otherUserData) {
             console.error('Error fetching user data:', userError);
