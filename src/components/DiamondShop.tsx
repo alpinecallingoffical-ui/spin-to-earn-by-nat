@@ -238,7 +238,7 @@ const DiamondShop: React.FC = () => {
                   </div>
                 ) : (
                   <div className="flex items-center gap-2">
-                    <img src="/lovable-uploads/esewa-logo-transparent.png" alt="eSewa" className="h-5 w-5" />
+                    <img src="/lovable-uploads/2f720cd6-93b4-4e37-80d4-151d44c27d9f.png" alt="eSewa" className="h-5 w-5 rounded" />
                     Pay with eSewa
                   </div>
                 )}
