@@ -164,33 +164,117 @@ export const WalletDisplayConnected: React.FC<WalletDisplayConnectedProps> = ({
 
       {/* Withdrawal Modal */}
       <Dialog open={isWithdrawOpen} onOpenChange={setIsWithdrawOpen}>
-        <DialogContent className="bg-gradient-to-br from-green-600 to-blue-600 text-white border-none">
-          <DialogHeader>
-            <DialogTitle className="text-2xl font-bold">💰 Instant Withdrawal to eSewa</DialogTitle>
+        <DialogContent className="bg-white text-gray-900 border shadow-2xl max-w-md">
+          <DialogHeader className="border-b pb-4">
+            <div className="flex items-center gap-3">
+              <img 
+                src="/lovable-uploads/2f720cd6-93b4-4e37-80d4-151d44c27d9f.png" 
+                alt="eSewa" 
+                className="w-10 h-10 rounded-full"
+              />
+              <div>
+                <DialogTitle className="text-xl font-bold text-gray-900">Withdraw to eSewa</DialogTitle>
+                <p className="text-sm text-gray-600">Fast & Secure Payment Gateway</p>
+              </div>
+            </div>
           </DialogHeader>
 
-          <form onSubmit={handleWithdraw} className="space-y-4">
-            <div>
-              <label className="text-sm font-medium mb-2 block">eSewa Number</label>
-              <Input type="tel" placeholder="98xxxxxxxx" value={esewaNumber} onChange={e => setEsewaNumber(e.target.value)} required className="bg-white/20 border-white/30 text-white placeholder-white/70" />
-            </div>
-
-            <div>
-              <label className="text-sm font-medium mb-2 block">Amount (Coins)</label>
-              <Input type="number" placeholder={`Min: ${minWithdrawCoins}`} value={withdrawAmount} onChange={e => setWithdrawAmount(e.target.value)} min={minWithdrawCoins} max={coins} required className="bg-white/20 border-white/30 text-white placeholder-white/70" />
-              <p className="text-xs text-white/70 mt-1">
-                {withdrawAmount && `≈ Rs. ${(parseInt(withdrawAmount) / 10).toFixed(2)}`}
+          <form onSubmit={handleWithdraw} className="space-y-6 pt-4">
+            {/* eSewa Info Banner */}
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <img 
+                  src="/lovable-uploads/2f720cd6-93b4-4e37-80d4-151d44c27d9f.png" 
+                  alt="eSewa" 
+                  className="w-6 h-6"
+                />
+                <span className="font-semibold text-green-800">eSewa Digital Wallet</span>
+              </div>
+              <p className="text-sm text-green-700">
+                Instant transfers • Zero fees • Secure transactions
               </p>
             </div>
 
-            <div className="bg-white/20 p-3 rounded-lg">
-              <p className="text-sm">💡 <strong>Exchange Rate:</strong> 10 coins = Rs. 1</p>
-              <p className="text-xs text-white/80">⚡ Instant processing - coins deducted immediately</p>
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm font-semibold text-gray-700 mb-2 block">
+                  eSewa Mobile Number
+                </label>
+                <Input 
+                  type="tel" 
+                  placeholder="98XXXXXXXX" 
+                  value={esewaNumber} 
+                  onChange={e => setEsewaNumber(e.target.value)} 
+                  required 
+                  className="border-gray-300 focus:border-green-500 focus:ring-green-500" 
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Enter your registered eSewa mobile number
+                </p>
+              </div>
+
+              <div>
+                <label className="text-sm font-semibold text-gray-700 mb-2 block">
+                  Withdrawal Amount
+                </label>
+                <Input 
+                  type="number" 
+                  placeholder={`Minimum: ${minWithdrawCoins} coins`}
+                  value={withdrawAmount} 
+                  onChange={e => setWithdrawAmount(e.target.value)} 
+                  min={minWithdrawCoins} 
+                  max={coins} 
+                  required 
+                  className="border-gray-300 focus:border-green-500 focus:ring-green-500" 
+                />
+                <div className="flex justify-between text-xs text-gray-500 mt-1">
+                  <span>Available: {coins.toLocaleString()} coins</span>
+                  {withdrawAmount && (
+                    <span className="font-semibold text-green-600">
+                      ≈ NPR {(parseInt(withdrawAmount) / 10).toFixed(2)}
+                    </span>
+                  )}
+                </div>
+              </div>
             </div>
 
-            <Button type="submit" disabled={loading} className="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3">
-              {loading ? '⏳ Processing...' : '💸 Withdraw Instantly'}
+            {/* Exchange Rate Info */}
+            <div className="bg-gray-50 border rounded-lg p-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-semibold text-gray-700">Exchange Rate</span>
+                <span className="text-sm text-green-600 font-bold">10 Coins = NPR 1</span>
+              </div>
+              <div className="flex items-center justify-between text-xs text-gray-600">
+                <span>Processing Time</span>
+                <span className="font-semibold text-blue-600">Instant</span>
+              </div>
+            </div>
+
+            <Button 
+              type="submit" 
+              disabled={loading || !canWithdraw} 
+              className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2"
+            >
+              {loading ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  Processing...
+                </>
+              ) : (
+                <>
+                  <img 
+                    src="/lovable-uploads/2f720cd6-93b4-4e37-80d4-151d44c27d9f.png" 
+                    alt="eSewa" 
+                    className="w-5 h-5"
+                  />
+                  Withdraw to eSewa
+                </>
+              )}
             </Button>
+
+            <p className="text-xs text-gray-500 text-center">
+              By proceeding, you agree to our terms and conditions
+            </p>
           </form>
         </DialogContent>
       </Dialog>
