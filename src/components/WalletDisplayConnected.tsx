@@ -167,7 +167,7 @@ export const WalletDisplayConnected: React.FC<WalletDisplayConnectedProps> = ({
         <DialogContent className="bg-white text-gray-900 border shadow-2xl max-w-md">
           <DialogHeader className="border-b pb-4">
             <div className="flex items-center gap-3">
-              <img src="/lovable-uploads/2f720cd6-93b4-4e37-80d4-151d44c27d9f.png" alt="eSewa" className="w-10 h-10 rounded-full" />
+              <img src="/lovable-uploads/esewa-logo-transparent.png" alt="eSewa" className="w-10 h-10" />
               <div>
                 <DialogTitle className="text-xl font-bold text-gray-900">Withdraw to eSewa</DialogTitle>
                 <p className="text-sm text-gray-600">Fast & Secure Payment Gateway</p>
@@ -179,7 +179,7 @@ export const WalletDisplayConnected: React.FC<WalletDisplayConnectedProps> = ({
             {/* eSewa Info Banner */}
             <div className="bg-green-50 border border-green-200 rounded-lg p-4">
               <div className="flex items-center gap-2 mb-2">
-                <img src="/lovable-uploads/2f720cd6-93b4-4e37-80d4-151d44c27d9f.png" alt="eSewa" className="w-6 h-6" />
+                <img src="/lovable-uploads/esewa-logo-transparent.png" alt="eSewa" className="w-6 h-6" />
                 <span className="font-semibold text-green-800">eSewa Digital Wallet</span>
               </div>
               <p className="text-sm text-green-700">
@@ -229,7 +229,7 @@ export const WalletDisplayConnected: React.FC<WalletDisplayConnectedProps> = ({
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                   Processing...
                 </> : <>
-                  <img src="/lovable-uploads/2f720cd6-93b4-4e37-80d4-151d44c27d9f.png" alt="eSewa" className="w-5 h-5" />
+                  <img src="/lovable-uploads/esewa-logo-transparent.png" alt="eSewa" className="w-5 h-5" />
                   Withdraw to eSewa
                 </>}
             </Button>
