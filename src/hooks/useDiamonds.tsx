@@ -137,9 +137,21 @@ export const useDiamonds = () => {
       if (error) throw error;
 
       if (data) {
+        // Calculate correct coin equivalent for display
+        let coinEquivalent;
+        switch (diamondAmount) {
+          case 1: coinEquivalent = 400; break;
+          case 2: coinEquivalent = 900; break;
+          case 3: coinEquivalent = 1400; break;
+          case 5: coinEquivalent = 2500; break;
+          case 10: coinEquivalent = 5200; break;
+          case 20: coinEquivalent = 11000; break;
+          default: coinEquivalent = diamondAmount * 400; break;
+        }
+        
         toast({
           title: "Conversion Successful",
-          description: `Converted ${diamondAmount} diamonds to ${diamondAmount * 1000} coins`,
+          description: `Converted ${diamondAmount} diamonds to ${coinEquivalent} coins`,
           variant: "default",
         });
         return true;
