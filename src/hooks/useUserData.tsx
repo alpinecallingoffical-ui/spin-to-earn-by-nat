@@ -9,6 +9,7 @@ interface UserData {
   email?: string;
   phone?: string;
   coins: number;
+  diamonds?: number;
   referral_code: string;
   referred_by?: string;
   created_at: string;
@@ -104,6 +105,7 @@ export const useUserData = () => {
             email: user.email,
             phone: user.phone,
             coins: 0,
+            diamonds: 0,
             daily_spin_limit: 5,
             referral_code: generateReferralCode(),
             referred_by: null

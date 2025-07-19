@@ -145,6 +145,98 @@ export type Database = {
         }
         Relationships: []
       }
+      diamond_packages: {
+        Row: {
+          bonus_percentage: number | null
+          coin_equivalent: number
+          created_at: string
+          description: string | null
+          diamonds: number
+          id: string
+          is_active: boolean | null
+          is_popular: boolean | null
+          name: string
+          price_rs: number
+          updated_at: string
+        }
+        Insert: {
+          bonus_percentage?: number | null
+          coin_equivalent: number
+          created_at?: string
+          description?: string | null
+          diamonds: number
+          id?: string
+          is_active?: boolean | null
+          is_popular?: boolean | null
+          name: string
+          price_rs: number
+          updated_at?: string
+        }
+        Update: {
+          bonus_percentage?: number | null
+          coin_equivalent?: number
+          created_at?: string
+          description?: string | null
+          diamonds?: number
+          id?: string
+          is_active?: boolean | null
+          is_popular?: boolean | null
+          name?: string
+          price_rs?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      diamond_purchases: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          diamonds_purchased: number
+          esewa_payment_id: string | null
+          id: string
+          package_id: string | null
+          payment_method: string
+          payment_status: string
+          price_paid_rs: number
+          transaction_id: string | null
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          diamonds_purchased: number
+          esewa_payment_id?: string | null
+          id?: string
+          package_id?: string | null
+          payment_method?: string
+          payment_status?: string
+          price_paid_rs: number
+          transaction_id?: string | null
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          diamonds_purchased?: number
+          esewa_payment_id?: string | null
+          id?: string
+          package_id?: string | null
+          payment_method?: string
+          payment_status?: string
+          price_paid_rs?: number
+          transaction_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "diamond_purchases_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "diamond_packages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       game_scores: {
         Row: {
           achieved_at: string
@@ -834,6 +926,7 @@ export type Database = {
           coins: number
           created_at: string
           daily_spin_limit: number | null
+          diamonds: number | null
           email: string | null
           id: string
           name: string
@@ -847,6 +940,7 @@ export type Database = {
           coins?: number
           created_at?: string
           daily_spin_limit?: number | null
+          diamonds?: number | null
           email?: string | null
           id: string
           name: string
@@ -860,6 +954,7 @@ export type Database = {
           coins?: number
           created_at?: string
           daily_spin_limit?: number | null
+          diamonds?: number | null
           email?: string | null
           id?: string
           name?: string
@@ -979,6 +1074,10 @@ export type Database = {
       conduct_lottery_draw: {
         Args: { lottery_game_uuid: string }
         Returns: Json
+      }
+      convert_diamonds_to_coins: {
+        Args: { diamond_amount: number }
+        Returns: boolean
       }
       equip_item: {
         Args: { item_uuid: string; should_equip?: boolean }

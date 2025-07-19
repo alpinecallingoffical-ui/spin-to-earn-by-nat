@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { useShop } from '@/hooks/useShop';
 import { useUserData } from '@/hooks/useUserData';
 import LotterySection from '@/components/LotterySection';
+import DiamondShop from '@/components/DiamondShop';
 import { 
   ShoppingCart, 
   Coins, 
@@ -272,8 +273,12 @@ const ShopSection: React.FC = () => {
       </div>
 
       {/* Shop Items */}
-      <Tabs defaultValue="lottery" className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
+      <Tabs defaultValue="diamonds" className="w-full">
+        <TabsList className="grid w-full grid-cols-6">
+          <TabsTrigger value="diamonds" className="flex items-center gap-2">
+            <Crown className="h-4 w-4" />
+            Buy Diamonds
+          </TabsTrigger>
           <TabsTrigger value="lottery" className="flex items-center gap-2">
             <Ticket className="h-4 w-4" />
             Lottery
@@ -285,6 +290,10 @@ const ShopSection: React.FC = () => {
             </TabsTrigger>
           ))}
         </TabsList>
+
+        <TabsContent value="diamonds" className="space-y-4">
+          <DiamondShop />
+        </TabsContent>
 
         <TabsContent value="lottery" className="space-y-4">
           <LotterySection />
