@@ -136,15 +136,12 @@ const Index = () => {
         <AdBanner />
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="max-w-4xl mx-auto">
-          <TabsList className="grid w-full grid-cols-8 bg-white/20 backdrop-blur-sm"> 
+          <TabsList className="grid w-full grid-cols-7 bg-white/20 backdrop-blur-sm">
             <TabsTrigger value="spin" className="text-white data-[state=active]:bg-white/30">
               🎰 Spin
             </TabsTrigger>
             <TabsTrigger value="wallet" className="text-white data-[state=active]:bg-white/30">
               💰 Wallet
-            </TabsTrigger>
-            <TabsTrigger value="shop" className="text-white data-[state=active]:bg-white/30">
-              🛒 Shop
             </TabsTrigger>
             <TabsTrigger value="history" className="text-white data-[state=active]:bg-white/30">
               📊 History
@@ -176,10 +173,6 @@ const Index = () => {
               <SpinHistoryConnected />
             </TabsContent>
 
-            <TabsContent value="shop" className="space-y-6">
-              <ShopSection />
-            </TabsContent>
-            
             <TabsContent value="mores" className="space-y-6">
               <MoreSection />
             </TabsContent>
