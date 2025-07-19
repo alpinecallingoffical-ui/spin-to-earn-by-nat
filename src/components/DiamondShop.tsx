@@ -283,7 +283,20 @@ const DiamondShop: React.FC = () => {
             {convertAmount && parseInt(convertAmount) > 0 && (
               <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
                 <p className="text-sm">
-                  You will receive: <strong>{(parseInt(convertAmount) * 1000).toLocaleString()} coins</strong>
+                  You will receive: <strong>{(() => {
+                    const amount = parseInt(convertAmount);
+                    let coins;
+                    switch (amount) {
+                      case 1: coins = 400; break;
+                      case 2: coins = 900; break;
+                      case 3: coins = 1400; break;
+                      case 5: coins = 2500; break;
+                      case 10: coins = 5200; break;
+                      case 20: coins = 11000; break;
+                      default: coins = amount * 400; break;
+                    }
+                    return coins.toLocaleString();
+                  })()} coins</strong>
                 </p>
               </div>
             )}
