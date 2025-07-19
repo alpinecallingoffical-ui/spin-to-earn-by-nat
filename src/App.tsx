@@ -5,6 +5,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
+import DiamondSuccess from "./pages/DiamondSuccess";
+import DiamondFailure from "./pages/DiamondFailure";
 import { UnreadAdminMessagesProvider } from "@/hooks/UnreadAdminMessagesContext";
 import { EquippedItemsProvider } from "@/hooks/useEquippedItems";
 
@@ -20,6 +22,8 @@ const App = () => (
           <BrowserRouter>
             <Routes>
               <Route path="/" element={<Index />} />
+              <Route path="/diamond-success" element={<DiamondSuccess />} />
+              <Route path="/diamond-failure" element={<DiamondFailure />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
