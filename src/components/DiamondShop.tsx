@@ -8,6 +8,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useDiamonds, DiamondPackage } from '@/hooks/useDiamonds';
 import { useUserData } from '@/hooks/useUserData';
+import { toast } from 'sonner';
+import CryptoJS from 'crypto-js';
 import { 
   Diamond, 
   Coins, 
@@ -35,12 +37,68 @@ const DiamondShop: React.FC = () => {
   const [showConverter, setShowConverter] = useState(false);
   const [convertAmount, setConvertAmount] = useState('');
 
+  const generateSignature = (amount: number, transactionUuid: string, productCode: string) => {
+    const secretKey = "8gBm/:&EnhH.1/q"; // eSewa test secret key
+    const message = `total_amount=${amount},transaction_uuid=${transactionUuid},product_code=${productCode}`;
+    const hash = CryptoJS.HmacSHA256(message, secretKey);
+    return CryptoJS.enc.Base64.stringify(hash);
+  };
+
   const handlePurchase = async (packageId: string) => {
     const purchase = await createPurchase(packageId);
     if (purchase) {
-      // Here you would integrate with eSewa payment gateway
-      // For now, we'll show a placeholder
-      console.log('Redirect to eSewa payment for purchase:', purchase);
+      const selectedPackage = packages.find(p => p.id === packageId);
+      if (!selectedPackage) return;
+
+      try {
+        // Generate transaction UUID
+        const transactionUuid = `DM${Date.now()}${Math.floor(Math.random() * 1000)}`;
+        const amount = selectedPackage.price_rs;
+        const productCode = "EPAYTEST"; // Test product code
+        
+        // Generate signature
+        const signature = generateSignature(amount, transactionUuid, productCode);
+        
+        // Create form and submit to eSewa
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = 'https://rc-epay.esewa.com.np/api/epay/main/v2/form';
+        form.style.display = 'none';
+
+        const fields = {
+          amount: amount.toString(),
+          tax_amount: "0",
+          total_amount: amount.toString(),
+          transaction_uuid: transactionUuid,
+          product_code: productCode,
+          product_service_charge: "0",
+          product_delivery_charge: "0",
+          success_url: `${window.location.origin}/diamond-success?purchase_id=${purchase.id}`,
+          failure_url: `${window.location.origin}/diamond-failure?purchase_id=${purchase.id}`,
+          signed_field_names: "total_amount,transaction_uuid,product_code",
+          signature: signature
+        };
+
+        // Add form fields
+        Object.entries(fields).forEach(([key, value]) => {
+          const input = document.createElement('input');
+          input.type = 'hidden';
+          input.name = key;
+          input.value = value;
+          form.appendChild(input);
+        });
+
+        // Update purchase with transaction details
+        // This would be done in your database
+        
+        document.body.appendChild(form);
+        form.submit();
+        
+        toast.success("Redirecting to eSewa payment gateway...");
+      } catch (error) {
+        console.error('Payment initiation failed:', error);
+        toast.error("Failed to initiate payment. Please try again.");
+      }
     }
   };
 
