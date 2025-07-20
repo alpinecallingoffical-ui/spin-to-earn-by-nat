@@ -10,20 +10,12 @@ import { useDiamonds, DiamondPackage } from '@/hooks/useDiamonds';
 import { useUserData } from '@/hooks/useUserData';
 import { toast } from 'sonner';
 import CryptoJS from 'crypto-js';
-import { 
-  Diamond, 
-  Coins, 
-  CreditCard, 
-  Star, 
-  Gift,
-  History,
-  TrendingUp,
-  Zap,
-  Crown
-} from 'lucide-react';
-
+import { Diamond, Coins, CreditCard, Star, Gift, History, TrendingUp, Zap, Crown } from 'lucide-react';
 const DiamondShop: React.FC = () => {
-  const { userData, refetch: refetchUserData } = useUserData();
+  const {
+    userData,
+    refetch: refetchUserData
+  } = useUserData();
   const {
     packages,
     purchaseHistory,
@@ -33,39 +25,34 @@ const DiamondShop: React.FC = () => {
     convertDiamondsToCoins,
     refetchData
   } = useDiamonds();
-
   const [showHistory, setShowHistory] = useState(false);
   const [showConverter, setShowConverter] = useState(false);
   const [convertAmount, setConvertAmount] = useState('');
-
   const generateSignature = (amount: number, transactionUuid: string, productCode: string) => {
     const secretKey = "8gBm/:&EnhH.1/q"; // eSewa test secret key
     const message = `total_amount=${amount},transaction_uuid=${transactionUuid},product_code=${productCode}`;
     const hash = CryptoJS.HmacSHA256(message, secretKey);
     return CryptoJS.enc.Base64.stringify(hash);
   };
-
   const handlePurchase = async (packageId: string) => {
     const purchase = await createPurchase(packageId);
     if (purchase) {
       const selectedPackage = packages.find(p => p.id === packageId);
       if (!selectedPackage) return;
-
       try {
         // Generate transaction UUID
         const transactionUuid = `DM${Date.now()}${Math.floor(Math.random() * 1000)}`;
         const amount = selectedPackage.price_rs;
         const productCode = "EPAYTEST"; // Test product code
-        
+
         // Generate signature
         const signature = generateSignature(amount, transactionUuid, productCode);
-        
+
         // Create form and submit to eSewa
         const form = document.createElement('form');
         form.method = 'POST';
         form.action = 'https://rc-epay.esewa.com.np/api/epay/main/v2/form';
         form.style.display = 'none';
-
         const fields = {
           amount: amount.toString(),
           tax_amount: "0",
@@ -91,10 +78,9 @@ const DiamondShop: React.FC = () => {
 
         // Update purchase with transaction details
         // This would be done in your database
-        
+
         document.body.appendChild(form);
         form.submit();
-        
         toast.success("Redirecting to eSewa payment gateway...");
       } catch (error) {
         console.error('Payment initiation failed:', error);
@@ -102,7 +88,6 @@ const DiamondShop: React.FC = () => {
       }
     }
   };
-
   const handleConvert = async () => {
     const amount = parseInt(convertAmount);
     if (amount > 0) {
@@ -111,38 +96,28 @@ const DiamondShop: React.FC = () => {
         setConvertAmount('');
         setShowConverter(false);
         // Refresh both user data and diamond data to show updated coins and diamonds
-        await Promise.all([
-          refetchUserData(),
-          refetchData()
-        ]);
+        await Promise.all([refetchUserData(), refetchData()]);
       }
     }
   };
-
   const getPackageIcon = (pack: DiamondPackage) => {
     if (pack.bonus_percentage >= 20) return <Crown className="h-6 w-6 text-yellow-500" />;
     if (pack.bonus_percentage >= 15) return <Star className="h-6 w-6 text-purple-500" />;
     if (pack.bonus_percentage >= 10) return <Zap className="h-6 w-6 text-blue-500" />;
     return <Gift className="h-6 w-6 text-green-500" />;
   };
-
   const getPackageGradient = (pack: DiamondPackage) => {
     if (pack.bonus_percentage >= 20) return 'bg-gradient-to-br from-yellow-400 via-yellow-500 to-orange-500';
     if (pack.bonus_percentage >= 15) return 'bg-gradient-to-br from-purple-400 via-purple-500 to-pink-500';
     if (pack.bonus_percentage >= 10) return 'bg-gradient-to-br from-blue-400 via-blue-500 to-cyan-500';
     return 'bg-gradient-to-br from-green-400 via-green-500 to-emerald-500';
   };
-
   if (loading) {
-    return (
-      <div className="flex items-center justify-center p-8">
+    return <div className="flex items-center justify-center p-8">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
+      </div>;
   }
-
-  return (
-    <div className="space-y-6">
+  return <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -150,9 +125,7 @@ const DiamondShop: React.FC = () => {
             <Diamond className="h-6 w-6 text-blue-400" />
             Diamond Shop
           </h2>
-          <p className="text-muted-foreground">
-            Buy diamonds with real money and convert to coins! 1 Diamond = 1000 Coins = ₹20
-          </p>
+          <p className="text-muted-foreground">Buy diamonds with real money and convert to coins! 1 Diamond = 400 Coins = ₹50</p>
         </div>
         
         <div className="flex items-center gap-4">
@@ -180,20 +153,12 @@ const DiamondShop: React.FC = () => {
 
       {/* Diamond Packages */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {packages.map((pack) => (
-          <Card 
-            key={pack.id} 
-            className={`relative overflow-hidden transition-all duration-200 hover:scale-105 hover:shadow-lg ${
-              pack.is_popular ? 'ring-2 ring-blue-500' : ''
-            }`}
-          >
+        {packages.map(pack => <Card key={pack.id} className={`relative overflow-hidden transition-all duration-200 hover:scale-105 hover:shadow-lg ${pack.is_popular ? 'ring-2 ring-blue-500' : ''}`}>
             <div className={`absolute inset-0 opacity-10 ${getPackageGradient(pack)}`} />
             
-            {pack.is_popular && (
-              <div className="absolute top-0 right-0 bg-blue-500 text-white text-xs px-2 py-1 rounded-bl-lg">
+            {pack.is_popular && <div className="absolute top-0 right-0 bg-blue-500 text-white text-xs px-2 py-1 rounded-bl-lg">
                 Most Popular
-              </div>
-            )}
+              </div>}
             
             <CardHeader className="relative">
               <div className="flex items-center justify-between">
@@ -201,11 +166,9 @@ const DiamondShop: React.FC = () => {
                   {getPackageIcon(pack)}
                   {pack.name}
                 </CardTitle>
-                {pack.bonus_percentage > 0 && (
-                  <Badge className="bg-green-500 text-white">
+                {pack.bonus_percentage > 0 && <Badge className="bg-green-500 text-white">
                     +{pack.bonus_percentage}% Bonus
-                  </Badge>
-                )}
+                  </Badge>}
               </div>
               <CardDescription>{pack.description}</CardDescription>
             </CardHeader>
@@ -226,26 +189,17 @@ const DiamondShop: React.FC = () => {
                 </div>
               </div>
               
-              <Button
-                onClick={() => handlePurchase(pack.id)}
-                disabled={purchasing === pack.id}
-                className="w-full bg-green-600 hover:bg-green-700"
-              >
-                {purchasing === pack.id ? (
-                  <div className="flex items-center gap-2">
+              <Button onClick={() => handlePurchase(pack.id)} disabled={purchasing === pack.id} className="w-full bg-green-600 hover:bg-green-700">
+                {purchasing === pack.id ? <div className="flex items-center gap-2">
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                     Processing...
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-2">
+                  </div> : <div className="flex items-center gap-2">
                     <img src="/lovable-uploads/2f720cd6-93b4-4e37-80d4-151d44c27d9f.png" alt="eSewa" className="h-5 w-5 rounded" />
                     Pay with eSewa
-                  </div>
-                )}
+                  </div>}
               </Button>
             </CardContent>
-          </Card>
-        ))}
+          </Card>)}
       </div>
 
       {/* Convert Dialog */}
@@ -269,43 +223,43 @@ const DiamondShop: React.FC = () => {
             
             <div className="space-y-2">
               <Label htmlFor="convert-amount">Amount to Convert</Label>
-              <Input
-                id="convert-amount"
-                type="number"
-                value={convertAmount}
-                onChange={(e) => setConvertAmount(e.target.value)}
-                placeholder="Enter diamond amount"
-                min="1"
-                max={userData?.diamonds || 0}
-              />
+              <Input id="convert-amount" type="number" value={convertAmount} onChange={e => setConvertAmount(e.target.value)} placeholder="Enter diamond amount" min="1" max={userData?.diamonds || 0} />
             </div>
             
-            {convertAmount && parseInt(convertAmount) > 0 && (
-              <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+            {convertAmount && parseInt(convertAmount) > 0 && <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
                 <p className="text-sm">
                   You will receive: <strong>{(() => {
-                    const amount = parseInt(convertAmount);
-                    let coins;
-                    switch (amount) {
-                      case 1: coins = 400; break;
-                      case 2: coins = 900; break;
-                      case 3: coins = 1400; break;
-                      case 5: coins = 2500; break;
-                      case 10: coins = 5200; break;
-                      case 20: coins = 11000; break;
-                      default: coins = amount * 400; break;
-                    }
-                    return coins.toLocaleString();
-                  })()} coins</strong>
+                  const amount = parseInt(convertAmount);
+                  let coins;
+                  switch (amount) {
+                    case 1:
+                      coins = 400;
+                      break;
+                    case 2:
+                      coins = 900;
+                      break;
+                    case 3:
+                      coins = 1400;
+                      break;
+                    case 5:
+                      coins = 2500;
+                      break;
+                    case 10:
+                      coins = 5200;
+                      break;
+                    case 20:
+                      coins = 11000;
+                      break;
+                    default:
+                      coins = amount * 400;
+                      break;
+                  }
+                  return coins.toLocaleString();
+                })()} coins</strong>
                 </p>
-              </div>
-            )}
+              </div>}
             
-            <Button
-              onClick={handleConvert}
-              disabled={!convertAmount || parseInt(convertAmount) <= 0 || parseInt(convertAmount) > (userData?.diamonds || 0)}
-              className="w-full"
-            >
+            <Button onClick={handleConvert} disabled={!convertAmount || parseInt(convertAmount) <= 0 || parseInt(convertAmount) > (userData?.diamonds || 0)} className="w-full">
               Convert to Coins
             </Button>
           </div>
@@ -326,15 +280,11 @@ const DiamondShop: React.FC = () => {
           </DialogHeader>
           
           <ScrollArea className="h-[60vh]">
-            {purchaseHistory.length === 0 ? (
-              <div className="text-center py-8">
+            {purchaseHistory.length === 0 ? <div className="text-center py-8">
                 <History className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                 <p className="text-muted-foreground">No purchases yet</p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {purchaseHistory.map((purchase) => (
-                  <Card key={purchase.id}>
+              </div> : <div className="space-y-4">
+                {purchaseHistory.map(purchase => <Card key={purchase.id}>
                     <CardContent className="pt-4">
                       <div className="flex items-center justify-between">
                         <div>
@@ -349,25 +299,16 @@ const DiamondShop: React.FC = () => {
                             {new Date(purchase.created_at).toLocaleDateString()} • {purchase.payment_method}
                           </p>
                         </div>
-                        <Badge 
-                          variant={
-                            purchase.payment_status === 'completed' ? 'default' :
-                            purchase.payment_status === 'pending' ? 'secondary' : 'destructive'
-                          }
-                        >
+                        <Badge variant={purchase.payment_status === 'completed' ? 'default' : purchase.payment_status === 'pending' ? 'secondary' : 'destructive'}>
                           {purchase.payment_status}
                         </Badge>
                       </div>
                     </CardContent>
-                  </Card>
-                ))}
-              </div>
-            )}
+                  </Card>)}
+              </div>}
           </ScrollArea>
         </DialogContent>
       </Dialog>
-    </div>
-  );
+    </div>;
 };
-
 export default DiamondShop;
