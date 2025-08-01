@@ -85,7 +85,7 @@ const DiamondSuccess: React.FC = () => {
           .insert({
             user_id: purchase.user_id,
             title: '💎 Diamond Purchase Successful!',
-            message: `Congratulations! You have successfully purchased ${purchase.diamonds_purchased} diamonds for Rs. ${purchase.price_paid_rs}. Your diamonds have been added to your account.`,
+            message: `🎉 Fantastic! You've successfully purchased ${purchase.diamonds_purchased} sparkling diamonds for Rs. ${purchase.price_paid_rs}! Your precious diamonds are now shining in your account. Start converting them to coins and unlock amazing rewards! ✨`,
             type: 'success'
           });
 
@@ -100,8 +100,8 @@ const DiamondSuccess: React.FC = () => {
         ]);
         
         toast({
-          title: "Purchase Complete!",
-          description: "Payment completed successfully! Diamonds added to your account."
+          title: "🎉 Purchase Complete!",
+          description: "Payment completed successfully! Your shining diamonds have been added to your account. Start your amazing journey now!"
         });
         
       } catch (error) {

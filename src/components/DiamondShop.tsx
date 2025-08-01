@@ -194,7 +194,7 @@ const DiamondShop: React.FC = () => {
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                     Processing...
                   </div> : <div className="flex items-center gap-2">
-                    <img src="/lovable-uploads/2f720cd6-93b4-4e37-80d4-151d44c27d9f.png" alt="eSewa" className="h-5 w-5 rounded" />
+                    <img src="/lovable-uploads/6d2e49b8-6015-4603-a887-6dba4d22641d.png" alt="eSewa" className="h-5 w-5 rounded" />
                     Pay with eSewa
                   </div>}
               </Button>
