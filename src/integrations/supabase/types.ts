@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instanciate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "12.2.3 (519615d)"
+    PostgrestVersion: "12.2.12 (cd3cf9e)"
   }
   public: {
     Tables: {
@@ -994,27 +994,39 @@ export type Database = {
       }
       withdrawals: {
         Row: {
+          admin_notes: string | null
           coin_amount: number
           esewa_number: string
           id: string
+          processed_at: string | null
+          processing_fee: number | null
           requested_at: string
           status: string
+          transaction_id: string | null
           user_id: string
         }
         Insert: {
+          admin_notes?: string | null
           coin_amount: number
           esewa_number: string
           id?: string
+          processed_at?: string | null
+          processing_fee?: number | null
           requested_at?: string
           status?: string
+          transaction_id?: string | null
           user_id: string
         }
         Update: {
+          admin_notes?: string | null
           coin_amount?: number
           esewa_number?: string
           id?: string
+          processed_at?: string | null
+          processing_fee?: number | null
           requested_at?: string
           status?: string
+          transaction_id?: string | null
           user_id?: string
         }
         Relationships: [
@@ -1087,6 +1099,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      generate_transaction_id: {
+        Args: { prefix?: string }
+        Returns: string
+      }
       get_or_create_conversation: {
         Args: { other_user_id: string }
         Returns: string
@@ -1135,7 +1151,7 @@ export type Database = {
       }
       send_message: {
         Args: { message: string } | { receiver_id: string; content: string }
-        Returns: undefined
+        Returns: string
       }
       send_message_to_all_users: {
         Args: {

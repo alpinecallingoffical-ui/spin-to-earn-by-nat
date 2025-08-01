@@ -11,6 +11,7 @@ import { useUserData } from '@/hooks/useUserData';
 import { toast } from 'sonner';
 import CryptoJS from 'crypto-js';
 import { Diamond, Coins, CreditCard, Star, Gift, History, TrendingUp, Zap, Crown } from 'lucide-react';
+import { DiamondPurchaseHistory } from '@/components/DiamondPurchaseHistory';
 const DiamondShop: React.FC = () => {
   const {
     userData,
@@ -268,44 +269,19 @@ const DiamondShop: React.FC = () => {
 
       {/* Purchase History Dialog */}
       <Dialog open={showHistory} onOpenChange={setShowHistory}>
-        <DialogContent className="max-w-4xl max-h-[80vh]">
+        <DialogContent className="max-w-6xl max-h-[90vh]">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <History className="h-5 w-5" />
               Diamond Purchase History
             </DialogTitle>
             <DialogDescription>
-              View your diamond purchase history and payment status
+              View detailed diamond purchase bills and payment status
             </DialogDescription>
           </DialogHeader>
           
-          <ScrollArea className="h-[60vh]">
-            {purchaseHistory.length === 0 ? <div className="text-center py-8">
-                <History className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                <p className="text-muted-foreground">No purchases yet</p>
-              </div> : <div className="space-y-4">
-                {purchaseHistory.map(purchase => <Card key={purchase.id}>
-                    <CardContent className="pt-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h4 className="font-semibold flex items-center gap-2">
-                            <Diamond className="h-4 w-4 text-blue-400" />
-                            {purchase.diamond_packages?.name}
-                          </h4>
-                          <p className="text-sm text-muted-foreground">
-                            {purchase.diamonds_purchased} diamonds • ₹{purchase.price_paid_rs}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {new Date(purchase.created_at).toLocaleDateString()} • {purchase.payment_method}
-                          </p>
-                        </div>
-                        <Badge variant={purchase.payment_status === 'completed' ? 'default' : purchase.payment_status === 'pending' ? 'secondary' : 'destructive'}>
-                          {purchase.payment_status}
-                        </Badge>
-                      </div>
-                    </CardContent>
-                  </Card>)}
-              </div>}
+          <ScrollArea className="h-[75vh]">
+            <DiamondPurchaseHistory />
           </ScrollArea>
         </DialogContent>
       </Dialog>

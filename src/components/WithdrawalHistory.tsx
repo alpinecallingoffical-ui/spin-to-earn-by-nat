@@ -9,6 +9,10 @@ interface Withdrawal {
   esewa_number: string;
   status: string;
   requested_at: string;
+  transaction_id?: string;
+  processed_at?: string;
+  admin_notes?: string;
+  processing_fee?: number;
 }
 
 export const WithdrawalHistory: React.FC = () => {
@@ -124,9 +128,10 @@ export const WithdrawalHistory: React.FC = () => {
           {withdrawals.map((withdrawal) => (
             <div
               key={withdrawal.id}
-              className="bg-white/10 rounded-xl p-4"
+              className="bg-white/10 rounded-xl p-4 border border-white/20"
             >
-              <div className="flex items-center justify-between mb-2">
+              {/* Header with amount and status */}
+              <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center space-x-3">
                   <div className="w-10 h-10 bg-gradient-to-br from-green-400 to-blue-500 rounded-full flex items-center justify-center">
                     <span className="text-white font-bold">💸</span>
@@ -146,10 +151,69 @@ export const WithdrawalHistory: React.FC = () => {
                 </div>
               </div>
               
-              <div className="text-white/60 text-sm space-y-1">
-                <p>eSewa: {withdrawal.esewa_number}</p>
-                <p>Requested: {formatDate(withdrawal.requested_at)}</p>
+              {/* Bill Details */}
+              <div className="bg-white/5 rounded-lg p-3 mb-3">
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div>
+                    <p className="text-white/50">Transaction ID</p>
+                    <p className="text-white/80 font-mono text-xs break-all">
+                      {withdrawal.transaction_id || 'N/A'}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-white/50">eSewa Number</p>
+                    <p className="text-white/80">{withdrawal.esewa_number}</p>
+                  </div>
+                  <div>
+                    <p className="text-white/50">Requested</p>
+                    <p className="text-white/80">{formatDate(withdrawal.requested_at)}</p>
+                  </div>
+                  {withdrawal.processed_at && (
+                    <div>
+                      <p className="text-white/50">Processed</p>
+                      <p className="text-white/80">{formatDate(withdrawal.processed_at)}</p>
+                    </div>
+                  )}
+                  {withdrawal.processing_fee && withdrawal.processing_fee > 0 && (
+                    <div>
+                      <p className="text-white/50">Processing Fee</p>
+                      <p className="text-white/80">Rs. {withdrawal.processing_fee}</p>
+                    </div>
+                  )}
+                </div>
+                
+                {/* Amount Breakdown */}
+                <div className="mt-3 pt-3 border-t border-white/10">
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-white/60">Coin Amount:</span>
+                    <span className="text-white">{withdrawal.coin_amount.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-white/60">Rupee Value (1:10):</span>
+                    <span className="text-white">Rs. {(withdrawal.coin_amount / 10).toFixed(2)}</span>
+                  </div>
+                  {withdrawal.processing_fee && withdrawal.processing_fee > 0 && (
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-white/60">Processing Fee:</span>
+                      <span className="text-red-400">-Rs. {withdrawal.processing_fee}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between items-center text-sm font-semibold pt-1 border-t border-white/10">
+                    <span className="text-green-400">Net Amount:</span>
+                    <span className="text-green-400">
+                      Rs. {((withdrawal.coin_amount / 10) - (withdrawal.processing_fee || 0)).toFixed(2)}
+                    </span>
+                  </div>
+                </div>
               </div>
+              
+              {/* Admin Notes */}
+              {withdrawal.admin_notes && (
+                <div className="bg-blue-500/10 border border-blue-400/30 rounded-lg p-2">
+                  <p className="text-blue-300 text-xs font-semibold mb-1">Admin Notes:</p>
+                  <p className="text-blue-200 text-xs">{withdrawal.admin_notes}</p>
+                </div>
+              )}
             </div>
           ))}
         </div>
