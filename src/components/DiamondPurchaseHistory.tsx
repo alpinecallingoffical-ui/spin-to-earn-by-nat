@@ -103,9 +103,9 @@ export const DiamondPurchaseHistory: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-6">
+      <div className="bg-card border border-border rounded-2xl p-6">
         <div className="text-center py-8">
-          <div className="text-white text-lg">Loading purchase history...</div>
+          <div className="text-foreground text-lg">Loading purchase history...</div>
         </div>
       </div>
     );
@@ -122,42 +122,42 @@ export const DiamondPurchaseHistory: React.FC = () => {
   const pendingPurchases = purchases.filter(p => p.payment_status === 'pending').length;
 
   return (
-    <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-6">
-      <h3 className="text-white text-lg font-bold mb-4 flex items-center">
+    <div className="bg-card text-foreground border border-border rounded-2xl p-6">
+      <h3 className="text-foreground text-lg font-bold mb-4 flex items-center">
         💎 Diamond Purchase History
-        <span className="text-sm font-normal text-white/70 ml-2">
+        <span className="text-sm font-normal text-muted-foreground ml-2">
           View your diamond purchase history and payment status
         </span>
       </h3>
 
       {/* Stats Summary */}
       <div className="grid grid-cols-3 gap-4 mb-6">
-        <div className="bg-white/10 rounded-xl p-3 text-center">
-          <p className="text-white/80 text-sm">Total Purchases</p>
-          <p className="text-white font-bold text-lg">{purchases.length}</p>
+        <div className="bg-muted rounded-xl p-3 text-center">
+          <p className="text-muted-foreground text-sm">Total Purchases</p>
+          <p className="text-foreground font-bold text-lg">{purchases.length}</p>
         </div>
-        <div className="bg-white/10 rounded-xl p-3 text-center">
-          <p className="text-white/80 text-sm">Total Spent</p>
-          <p className="text-white font-bold text-lg">Rs. {totalSpent}</p>
+        <div className="bg-muted rounded-xl p-3 text-center">
+          <p className="text-muted-foreground text-sm">Total Spent</p>
+          <p className="text-foreground font-bold text-lg">Rs. {totalSpent}</p>
         </div>
-        <div className="bg-white/10 rounded-xl p-3 text-center">
-          <p className="text-white/80 text-sm">Diamonds Earned</p>
-          <p className="text-white font-bold text-lg">{totalDiamonds}💎</p>
+        <div className="bg-muted rounded-xl p-3 text-center">
+          <p className="text-muted-foreground text-sm">Diamonds Earned</p>
+          <p className="text-foreground font-bold text-lg">{totalDiamonds}💎</p>
         </div>
       </div>
       
       {purchases.length === 0 ? (
         <div className="text-center py-8">
-          <p className="text-white/60 text-lg">💎</p>
-          <p className="text-white/60">No diamond purchases yet!</p>
-          <p className="text-white/40 text-sm">Your diamond purchase history will appear here</p>
+          <p className="text-muted-foreground text-lg">💎</p>
+          <p className="text-muted-foreground">No diamond purchases yet!</p>
+          <p className="text-muted-foreground text-sm">Your diamond purchase history will appear here</p>
         </div>
       ) : (
         <div className="space-y-3 max-h-80 overflow-y-auto">
           {purchases.map((purchase) => (
             <div
               key={purchase.id}
-              className="bg-white/10 rounded-xl p-4 border border-white/20"
+              className="bg-muted rounded-xl p-4 border border-border"
             >
               {/* Header with package info and status */}
               <div className="flex items-center justify-between mb-3">
@@ -166,8 +166,8 @@ export const DiamondPurchaseHistory: React.FC = () => {
                     <span className="text-white font-bold">💎</span>
                   </div>
                   <div>
-                    <p className="text-white font-semibold">{getPackageName(purchase.package_id)}</p>
-                    <p className="text-white/60 text-sm">
+                    <p className="text-foreground font-semibold">{getPackageName(purchase.package_id)}</p>
+                    <p className="text-muted-foreground text-sm">
                       {purchase.diamonds_purchased} diamonds • Rs. {purchase.price_paid_rs}
                     </p>
                   </div>
@@ -181,35 +181,35 @@ export const DiamondPurchaseHistory: React.FC = () => {
               </div>
               
               {/* Bill Details */}
-              <div className="bg-white/5 rounded-lg p-3 mb-3">
+              <div className="bg-muted/50 rounded-lg p-3 mb-3">
                 <div className="grid grid-cols-2 gap-3 text-sm">
                   <div>
-                    <p className="text-white/50">Transaction ID</p>
-                    <p className="text-white/80 font-mono text-xs break-all">
+                    <p className="text-muted-foreground">Transaction ID</p>
+                    <p className="text-foreground font-mono text-xs break-all">
                       {purchase.transaction_id || 'N/A'}
                     </p>
                   </div>
                   <div>
-                    <p className="text-white/50">Payment Method</p>
-                    <p className="text-white/80 flex items-center gap-1">
+                    <p className="text-muted-foreground">Payment Method</p>
+                    <p className="text-foreground flex items-center gap-1">
                       <img src="/lovable-uploads/6d2e49b8-6015-4603-a887-6dba4d22641d.png" alt="eSewa" className="w-4 h-4" />
                       {purchase.payment_method.toUpperCase()}
                     </p>
                   </div>
                   <div>
-                    <p className="text-white/50">Purchase Date</p>
-                    <p className="text-white/80">{formatDate(purchase.created_at)}</p>
+                    <p className="text-muted-foreground">Purchase Date</p>
+                    <p className="text-foreground">{formatDate(purchase.created_at)}</p>
                   </div>
                   {purchase.completed_at && (
                     <div>
-                      <p className="text-white/50">Completed</p>
-                      <p className="text-white/80">{formatDate(purchase.completed_at)}</p>
+                      <p className="text-muted-foreground">Completed</p>
+                      <p className="text-foreground">{formatDate(purchase.completed_at)}</p>
                     </div>
                   )}
                   {purchase.esewa_payment_id && (
                     <div className="col-span-2">
-                      <p className="text-white/50">eSewa Payment ID</p>
-                      <p className="text-white/80 font-mono text-xs break-all">
+                      <p className="text-muted-foreground">eSewa Payment ID</p>
+                      <p className="text-foreground font-mono text-xs break-all">
                         {purchase.esewa_payment_id}
                       </p>
                     </div>
@@ -217,22 +217,22 @@ export const DiamondPurchaseHistory: React.FC = () => {
                 </div>
                 
                 {/* Purchase Breakdown */}
-                <div className="mt-3 pt-3 border-t border-white/10">
+                <div className="mt-3 pt-3 border-t border-border/50">
                   <div className="flex justify-between items-center text-sm">
-                    <span className="text-white/60">Package:</span>
-                    <span className="text-white">{getPackageName(purchase.package_id)}</span>
+                    <span className="text-muted-foreground">Package:</span>
+                    <span className="text-foreground">{getPackageName(purchase.package_id)}</span>
                   </div>
                   <div className="flex justify-between items-center text-sm">
-                    <span className="text-white/60">Diamonds:</span>
+                    <span className="text-muted-foreground">Diamonds:</span>
                     <span className="text-purple-300">{purchase.diamonds_purchased} 💎</span>
                   </div>
                   <div className="flex justify-between items-center text-sm">
-                    <span className="text-white/60">Amount Paid:</span>
-                    <span className="text-white">Rs. {purchase.price_paid_rs}</span>
+                    <span className="text-muted-foreground">Amount Paid:</span>
+                    <span className="text-foreground">Rs. {purchase.price_paid_rs}</span>
                   </div>
-                  <div className="flex justify-between items-center text-sm font-semibold pt-1 border-t border-white/10">
+                  <div className="flex justify-between items-center text-sm font-semibold pt-1 border-t border-border/50">
                     <span className="text-green-400">Status:</span>
-                    <span className={`${purchase.payment_status === 'completed' ? 'text-green-400' : purchase.payment_status === 'pending' ? 'text-yellow-400' : 'text-red-400'}`}>
+                    <span className={`${purchase.payment_status === 'completed' ? 'text-green-600' : purchase.payment_status === 'pending' ? 'text-yellow-600' : 'text-red-600'}`}>
                       {purchase.payment_status.charAt(0).toUpperCase() + purchase.payment_status.slice(1)}
                     </span>
                   </div>
@@ -271,8 +271,8 @@ export const DiamondPurchaseHistory: React.FC = () => {
         </div>
       )}
       
-      <div className="mt-4 bg-white/10 rounded-xl p-3">
-        <p className="text-white/70 text-xs">
+      <div className="mt-4 bg-muted rounded-xl p-3">
+        <p className="text-muted-foreground text-xs">
           💡 <strong>Note:</strong> Diamond purchases are processed instantly upon successful payment verification
         </p>
       </div>

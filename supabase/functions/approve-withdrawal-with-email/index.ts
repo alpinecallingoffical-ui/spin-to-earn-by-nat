@@ -1,12 +1,15 @@
 
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { Resend } from "npm:resend@2.0.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type",
 };
+
+const resend = new Resend(Deno.env.get("RESEND_API_KEY") ?? "");
 
 interface ApprovalRequest {
   withdrawalId: string;
@@ -65,31 +68,69 @@ const handler = async (req: Request): Promise<Response> => {
 
     if (notificationError) throw notificationError;
 
-    // Send email notification using EmailJS
-    const emailData = {
-      to_email: user.email,
-      to_name: user.name,
-      withdrawal_amount: withdrawal.coin_amount.toLocaleString(),
-      rupee_amount: rupeeAmount,
-      esewa_number: withdrawal.esewa_number,
-      date: new Date().toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-      })
-    };
+    // Build and send email using Resend with your HTML template
+    const { data: updatedWithdrawal } = await supabaseAdmin
+      .from('withdrawals')
+      .select('*')
+      .eq('id', withdrawalId)
+      .single();
 
-    // Return success with email data for frontend to handle
-    return new Response(JSON.stringify({ 
-      success: true, 
-      emailData,
-      message: 'Withdrawal approved and notification created' 
+    const txId = updatedWithdrawal?.transaction_id ?? withdrawal.transaction_id ?? 'N/A';
+    const processedAt = updatedWithdrawal?.processed_at ?? new Date().toISOString();
+    const formattedDate = new Date(processedAt).toLocaleString('en-US', {
+      year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
+    });
+
+    const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Withdrawal Successful</title>
+  <style>
+    body { font-family: Arial, sans-serif; background-color: #f3f6f9; padding: 40px; display: flex; justify-content: center; align-items: center; }
+    .success-card { background-color: #ffffff; padding: 30px 40px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); max-width: 500px; width: 100%; }
+    .success-card h2 { color: #28a745; }
+    .details { margin-top: 20px; line-height: 1.8; }
+    .details span { font-weight: bold; }
+  </style>
+</head>
+<body>
+  <div class="success-card">
+    <h2>✅ Withdrawal Successful</h2>
+    <p>Your withdrawal request has been processed successfully.</p>
+    <div class="details">
+      <p><span>Name:</span> ${user.name ?? 'User'}</p>
+      <p><span>eSewa ID:</span> ${withdrawal.esewa_number}</p>
+      <p><span>Amount:</span> Rs. ${rupeeAmount}</p>
+      <p><span>Transaction ID:</span> ${txId}</p>
+      <p><span>Status:</span> Completed</p>
+      <p><span>Date:</span> ${formattedDate}</p>
+    </div>
+    <p style="margin-top:16px;color:#6c757d;">You will receive your money within 24-48 hours.</p>
+  </div>
+</body>
+</html>`;
+
+    let emailResponse: any = null;
+    try {
+      emailResponse = await resend.emails.send({
+        from: 'SpinWin <onboarding@resend.dev>',
+        to: [user.email],
+        subject: 'Withdrawal Successful',
+        html,
+      });
+      console.log('Email sent successfully:', emailResponse);
+    } catch (e) {
+      console.error('Error sending email via Resend:', e);
+    }
+
+    return new Response(JSON.stringify({
+      success: true,
+      message: 'Withdrawal approved, notification created, email sent',
+      email: emailResponse,
     }), {
       status: 200,
-      headers: {
-        "Content-Type": "application/json",
-        ...corsHeaders,
-      },
+      headers: { "Content-Type": "application/json", ...corsHeaders },
     });
 
   } catch (error: any) {
