@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.12 (cd3cf9e)"
@@ -1068,11 +1068,11 @@ export type Database = {
         Returns: boolean
       }
       approve_withdrawal_with_notification: {
-        Args: { withdrawal_id: string; admin_notes?: string }
+        Args: { admin_notes?: string; withdrawal_id: string }
         Returns: boolean
       }
       buy_lottery_ticket: {
-        Args: { lottery_game_uuid: string; chosen_numbers?: Json }
+        Args: { chosen_numbers?: Json; lottery_game_uuid: string }
         Returns: Json
       }
       can_spin_today: {
@@ -1117,23 +1117,23 @@ export type Database = {
       }
       record_game_score: {
         Args: {
-          user_uuid: string
           game_type_param: string
-          score_param: number
           reward_amount: number
+          score_param: number
+          user_uuid: string
         }
         Returns: boolean
       }
       record_spin: {
-        Args: { user_uuid: string; reward_amount: number }
+        Args: { reward_amount: number; user_uuid: string }
         Returns: boolean
       }
       record_video_watch: {
         Args: {
+          reward_amount: number
           user_uuid: string
           video_id_param: string
           video_title_param: string
-          reward_amount: number
         }
         Returns: boolean
       }
@@ -1150,31 +1150,31 @@ export type Database = {
         Returns: boolean
       }
       send_message: {
-        Args: { message: string } | { receiver_id: string; content: string }
+        Args: { content: string; receiver_id: string } | { message: string }
         Returns: string
       }
       send_message_to_all_users: {
         Args: {
-          message_title: string
           message_content: string
+          message_title: string
           message_type?: string
         }
         Returns: boolean
       }
       update_spin_status: {
         Args: {
-          spin_management_id: string
-          new_status: string
           admin_notes?: string
+          new_status: string
+          spin_management_id: string
         }
         Returns: boolean
       }
       update_spin_time: {
-        Args: { spin_management_id: string; new_spin_time: string }
+        Args: { new_spin_time: string; spin_management_id: string }
         Returns: boolean
       }
       update_user_spin_limit: {
-        Args: { target_user_id: string; new_limit: number }
+        Args: { new_limit: number; target_user_id: string }
         Returns: boolean
       }
     }

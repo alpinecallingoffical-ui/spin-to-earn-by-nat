@@ -31,6 +31,13 @@ export const Leaderboard: React.FC = () => {
     setLoading(true);
     const useDate = targetDate || new Date().toISOString().slice(0, 10);
 
+    // Only fetch if user is authenticated
+    if (!user) {
+      setUsers([]);
+      setLoading(false);
+      return;
+    }
+
     const { data, error } = await supabase
       .from("daily_leaderboard")
       .select("user_id, name, profile_picture_url, coins, rank")
@@ -93,7 +100,11 @@ export const Leaderboard: React.FC = () => {
         {snapshotMessage && (
           <div className="text-xs text-white/70 mb-2">{snapshotMessage}</div>
         )}
-        {loading ? (
+        {!user ? (
+          <div className="text-center text-white/60 p-4">
+            Please sign in to view the leaderboard and protect user privacy.
+          </div>
+        ) : loading ? (
           <div className="text-center text-white/60">Loading leaderboard snapshot...</div>
         ) : users.length === 0 ? (
           <div className="text-center text-white/60">No leaderboard for this date yet.</div>
