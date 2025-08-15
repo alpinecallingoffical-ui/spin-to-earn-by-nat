@@ -31,13 +31,6 @@ export const Leaderboard: React.FC = () => {
     setLoading(true);
     const useDate = targetDate || new Date().toISOString().slice(0, 10);
 
-    // Only fetch if user is authenticated
-    if (!user) {
-      setUsers([]);
-      setLoading(false);
-      return;
-    }
-
     const { data, error } = await supabase
       .from("daily_leaderboard")
       .select("user_id, name, profile_picture_url, coins, rank")
@@ -72,8 +65,28 @@ export const Leaderboard: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchLeaderboard(date);
-  }, [date]);
+    if (user) {
+      fetchLeaderboard(date);
+    }
+  }, [date, user]);
+
+  // Show login message if user is not authenticated
+  if (!user) {
+    return (
+      <div className="bg-gradient-to-br from-purple-700/50 to-pink-600/40 p-6 rounded-2xl shadow-xl max-w-2xl mx-auto">
+        <h2 className="text-2xl font-bold text-white mb-4 text-center flex items-center justify-center gap-2">
+          🏆 Daily Leaderboard
+          <Crown className="inline-block text-yellow-400 w-7 h-7 drop-shadow ml-2" />
+        </h2>
+        <div className="text-center text-white/80 py-8">
+          <p className="text-lg mb-2">🔒 Login Required</p>
+          <p className="text-sm text-white/60">
+            Please log in to view the leaderboard and see other players' achievements.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -100,11 +113,7 @@ export const Leaderboard: React.FC = () => {
         {snapshotMessage && (
           <div className="text-xs text-white/70 mb-2">{snapshotMessage}</div>
         )}
-        {!user ? (
-          <div className="text-center text-white/60 p-4">
-            Please sign in to view the leaderboard and protect user privacy.
-          </div>
-        ) : loading ? (
+        {loading ? (
           <div className="text-center text-white/60">Loading leaderboard snapshot...</div>
         ) : users.length === 0 ? (
           <div className="text-center text-white/60">No leaderboard for this date yet.</div>
