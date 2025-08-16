@@ -86,21 +86,7 @@ export type Database = {
             foreignKeyName: "conversations_user1_id_fkey"
             columns: ["user1_id"]
             isOneToOne: false
-            referencedRelation: "user_daily_stats"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "conversations_user1_id_fkey"
-            columns: ["user1_id"]
-            isOneToOne: false
             referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "conversations_user2_id_fkey"
-            columns: ["user2_id"]
-            isOneToOne: false
-            referencedRelation: "user_daily_stats"
             referencedColumns: ["id"]
           },
           {
@@ -511,21 +497,7 @@ export type Database = {
             foreignKeyName: "messages_receiver_id_fkey"
             columns: ["receiver_id"]
             isOneToOne: false
-            referencedRelation: "user_daily_stats"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "messages_receiver_id_fkey"
-            columns: ["receiver_id"]
-            isOneToOne: false
             referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "messages_sender_id_fkey"
-            columns: ["sender_id"]
-            isOneToOne: false
-            referencedRelation: "user_daily_stats"
             referencedColumns: ["id"]
           },
           {
@@ -635,21 +607,7 @@ export type Database = {
             foreignKeyName: "referrals_referred_user_id_fkey"
             columns: ["referred_user_id"]
             isOneToOne: false
-            referencedRelation: "user_daily_stats"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "referrals_referred_user_id_fkey"
-            columns: ["referred_user_id"]
-            isOneToOne: false
             referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "referrals_referrer_id_fkey"
-            columns: ["referrer_id"]
-            isOneToOne: false
-            referencedRelation: "user_daily_stats"
             referencedColumns: ["id"]
           },
           {
@@ -763,21 +721,7 @@ export type Database = {
             foreignKeyName: "spin_management_processed_by_fkey"
             columns: ["processed_by"]
             isOneToOne: false
-            referencedRelation: "user_daily_stats"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "spin_management_processed_by_fkey"
-            columns: ["processed_by"]
-            isOneToOne: false
             referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "spin_management_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "user_daily_stats"
             referencedColumns: ["id"]
           },
           {
@@ -809,13 +753,6 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "spins_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "user_daily_stats"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "spins_user_id_fkey"
             columns: ["user_id"]
@@ -1034,13 +971,6 @@ export type Database = {
             foreignKeyName: "withdrawals_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
-            referencedRelation: "user_daily_stats"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "withdrawals_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
@@ -1048,19 +978,7 @@ export type Database = {
       }
     }
     Views: {
-      user_daily_stats: {
-        Row: {
-          daily_spin_limit: number | null
-          email: string | null
-          id: string | null
-          name: string | null
-          pending_requests: number | null
-          today_coins: number | null
-          today_spins: number | null
-          total_coins: number | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       accept_friend_request: {
@@ -1102,6 +1020,32 @@ export type Database = {
       generate_transaction_id: {
         Args: { prefix?: string }
         Returns: string
+      }
+      get_all_user_daily_stats: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          daily_spin_limit: number
+          email: string
+          id: string
+          name: string
+          pending_requests: number
+          today_coins: number
+          today_spins: number
+          total_coins: number
+        }[]
+      }
+      get_current_user_daily_stats: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          daily_spin_limit: number
+          email: string
+          id: string
+          name: string
+          pending_requests: number
+          today_coins: number
+          today_spins: number
+          total_coins: number
+        }[]
       }
       get_or_create_conversation: {
         Args: { other_user_id: string }
