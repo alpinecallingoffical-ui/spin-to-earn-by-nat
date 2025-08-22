@@ -1027,9 +1027,17 @@ export type Database = {
         Args: { diamond_amount: number }
         Returns: boolean
       }
+      create_extension_if_not_exists: {
+        Args: { extension_name: string }
+        Returns: boolean
+      }
       equip_item: {
         Args: { item_uuid: string; should_equip?: boolean }
         Returns: boolean
+      }
+      exec_sql: {
+        Args: { sql: string }
+        Returns: string
       }
       generate_referral_code: {
         Args: Record<PropertyKey, never>
@@ -1106,6 +1114,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      refresh_daily_stats: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
       reject_friend_request: {
         Args: { request_id: string }
         Returns: boolean
@@ -1128,6 +1140,10 @@ export type Database = {
           message_title: string
           message_type?: string
         }
+        Returns: boolean
+      }
+      update_leaderboard_rankings: {
+        Args: Record<PropertyKey, never>
         Returns: boolean
       }
       update_spin_status: {
