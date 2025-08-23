@@ -86,6 +86,7 @@ async function optimizeDatabase(supabase: any): Promise<{ success: boolean; mess
 async function applySystemUpdates(supabase: any): Promise<{ success: boolean; message: string; data?: any }> {
   try {
     const updates = [];
+    let vipUpdatesCount = 0;
 
     // Check for users who need VIP benefits update
     const { data: vipUsers, error: vipError } = await supabase
@@ -96,9 +97,17 @@ async function applySystemUpdates(supabase: any): Promise<{ success: boolean; me
     if (!vipError && vipUsers) {
       for (const user of vipUsers) {
         let newLimit = 5; // Default
-        if (user.coins >= 3000) newLimit = 999; // Grand Master - unlimited
-        else if (user.coins >= 2000) newLimit = 20; // Elite Master
-        else if (user.coins >= 1000) newLimit = 10; // VIP
+        let levelName = '';
+        if (user.coins >= 3000) {
+          newLimit = 999; // Grand Master - unlimited
+          levelName = 'Grand Master';
+        } else if (user.coins >= 2000) {
+          newLimit = 20; // Elite Master
+          levelName = 'Elite Master';
+        } else if (user.coins >= 1000) {
+          newLimit = 10; // VIP
+          levelName = 'VIP';
+        }
 
         if (user.daily_spin_limit !== newLimit) {
           await supabase
@@ -106,7 +115,18 @@ async function applySystemUpdates(supabase: any): Promise<{ success: boolean; me
             .update({ daily_spin_limit: newLimit })
             .eq('id', user.id);
           
+          // Send personal notification about VIP upgrade
+          await supabase
+            .from('notifications')
+            .insert({
+              user_id: user.id,
+              title: `🏆 ${levelName} Status Updated!`,
+              message: `Congratulations! Your spin limit has been upgraded to ${newLimit === 999 ? 'unlimited' : newLimit} spins per day due to your ${levelName} status.`,
+              type: 'success'
+            });
+          
           updates.push(`Updated spin limit for user ${user.id} to ${newLimit}`);
+          vipUpdatesCount++;
         }
       }
     }
@@ -124,16 +144,51 @@ async function applySystemUpdates(supabase: any): Promise<{ success: boolean; me
       updates.push('Expired old lottery games');
     }
 
+    // Send general system update notification if significant changes were made
+    if (vipUpdatesCount > 0) {
+      await sendMaintenanceNotification(
+        supabase,
+        '⚙️ System Updates Applied',
+        `Daily maintenance completed! ${vipUpdatesCount} users received VIP status updates. Check your profile for any changes to your benefits.`,
+        'info'
+      );
+    }
+
     return {
       success: true,
       message: 'System updates applied successfully',
-      data: { updates_applied: updates }
+      data: { updates_applied: updates, vip_updates: vipUpdatesCount }
     };
   } catch (error) {
     return {
       success: false,
       message: `System updates failed: ${error.message}`
     };
+  }
+}
+
+async function sendMaintenanceNotification(supabase: any, title: string, message: string, type: string = 'info'): Promise<void> {
+  try {
+    const { data: allUsers } = await supabase
+      .from('users')
+      .select('id')
+      .eq('banned', false);
+
+    if (allUsers?.length) {
+      // Send as admin message for important updates
+      await supabase
+        .from('admin_messages')
+        .insert({
+          title,
+          message,
+          type,
+          target_user: null // Broadcast to all users
+        });
+
+      console.log(`📢 Sent maintenance notification: ${title}`);
+    }
+  } catch (error) {
+    console.error('Failed to send maintenance notification:', error);
   }
 }
 
@@ -195,6 +250,14 @@ async function deployNewFeatures(supabase: any): Promise<{ success: boolean; mes
 
       if (!lotteryError) {
         features.push('Auto-created new daily lottery');
+        
+        // Notify users about new lottery
+        await sendMaintenanceNotification(
+          supabase,
+          '🎰 New Lottery Available!',
+          'A fresh daily lottery is now live! Get your tickets now for a chance to win big prizes.',
+          'success'
+        );
       }
     }
 
@@ -351,6 +414,16 @@ serve(async (req) => {
     };
 
     console.log('🎯 Daily maintenance completed:', maintenanceReport.overall_status);
+
+    // Send final maintenance summary notification if there were issues
+    if (maintenanceReport.overall_status !== 'success') {
+      await sendMaintenanceNotification(
+        supabaseClient,
+        '🔧 Maintenance Alert',
+        `Daily maintenance completed with some issues (${maintenanceReport.success_rate} tasks successful). Our team is monitoring the situation.`,
+        'warning'
+      );
+    }
 
     return new Response(
       JSON.stringify({
