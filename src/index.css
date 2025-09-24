@@ -174,6 +174,64 @@
     .fixed {
       position: absolute !important;
     }
+    
+    /* Enhanced animations for mobile */
+    .animate-fade-in {
+      animation: fadeIn 0.3s ease-out;
+    }
+    
+    .animate-slide-up {
+      animation: slideUp 0.3s ease-out;
+    }
+    
+    .animate-bounce-soft {
+      animation: bounceSoft 1s infinite;
+    }
+  }
+  
+  /* Animation keyframes */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  @keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  
+  @keyframes bounceSoft {
+    0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+    40% { transform: translateY(-5px); }
+    60% { transform: translateY(-3px); }
+  }
+  
+  /* Enhanced mobile interactions */
+  @media (max-width: 768px) {
+    .touch-action-pan-x {
+      touch-action: pan-x;
+    }
+    
+    .touch-action-pan-y {
+      touch-action: pan-y;
+    }
+    
+    /* Smooth scrolling for mobile */
+    html {
+      scroll-behavior: smooth;
+      -webkit-overflow-scrolling: touch;
+    }
+    
+    /* Better button interactions */
+    button:active {
+      transform: scale(0.98);
+    }
+    
+    /* Card hover effects for touch */
+    .card-interactive:active {
+      transform: scale(0.98);
+      transition: transform 0.1s ease;
+    }
   }
   
   /* Small mobile devices */
