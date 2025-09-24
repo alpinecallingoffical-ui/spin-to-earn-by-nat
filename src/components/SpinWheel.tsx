@@ -46,21 +46,21 @@ export const SpinWheel: React.FC<SpinWheelProps> = ({ onSpinComplete, canSpin })
   const segmentAngle = 360 / prizes.length;
 
   return (
-    <div className="flex flex-col items-center space-y-6">
+    <div className="flex flex-col items-center space-y-4 sm:space-y-6">
       {/* Wheel Container */}
       <div className="relative">
         {/* Pointer */}
-        <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-2 z-10">
-          <div className="w-0 h-0 border-l-4 border-r-4 border-b-8 border-l-transparent border-r-transparent border-b-white drop-shadow-lg"></div>
+        <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1 sm:-translate-y-2 z-10">
+          <div className="w-0 h-0 border-l-2 border-r-2 border-b-4 sm:border-l-4 sm:border-r-4 sm:border-b-8 border-l-transparent border-r-transparent border-b-white drop-shadow-lg"></div>
         </div>
 
         {/* Wheel */}
-        <div className="relative w-80 h-80">
+        <div className="relative w-64 h-64 sm:w-80 sm:h-80">
           <svg
-            width="320"
-            height="320"
+            width="100%"
+            height="100%"
             viewBox="0 0 320 320"
-            className={`transform transition-transform duration-3000 ease-out drop-shadow-2xl ${
+            className={`transform transition-transform duration-3000 ease-out drop-shadow-2xl w-full h-full ${
               isSpinning ? 'animate-spin' : ''
             }`}
             style={{
@@ -118,7 +118,7 @@ export const SpinWheel: React.FC<SpinWheelProps> = ({ onSpinComplete, canSpin })
                     textAnchor="middle"
                     dominantBaseline="middle"
                     fill="white"
-                    fontSize="16"
+                    fontSize="14"
                     fontWeight="bold"
                     className="drop-shadow-lg"
                     transform={`rotate(${textAngle}, ${textX}, ${textY})`}
@@ -143,7 +143,7 @@ export const SpinWheel: React.FC<SpinWheelProps> = ({ onSpinComplete, canSpin })
               y="165"
               textAnchor="middle"
               fill="#FF6B00"
-              fontSize="12"
+              fontSize="10"
               fontWeight="bold"
             >
               SPIN
@@ -154,23 +154,25 @@ export const SpinWheel: React.FC<SpinWheelProps> = ({ onSpinComplete, canSpin })
 
       {/* Win Display */}
       {lastWin && (
-        <div className="bg-green-500 text-white px-6 py-3 rounded-full text-xl font-bold animate-bounce">
+        <div className="bg-green-500 text-white px-4 py-2 sm:px-6 sm:py-3 rounded-full text-base sm:text-xl font-bold animate-bounce mx-4">
           🎉 You won {lastWin} coins!
         </div>
       )}
 
       {/* Spin Button */}
-      <Button
-        onClick={handleSpin}
-        disabled={!canSpin || isSpinning}
-        className={`w-full py-4 text-lg font-bold rounded-2xl transition-all duration-300 ${
-          canSpin && !isSpinning
-            ? 'bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-white shadow-xl hover:shadow-2xl transform hover:scale-105'
-            : 'bg-gray-400 text-gray-200 cursor-not-allowed'
-        }`}
-      >
-        {isSpinning ? '🎰 Spinning...' : canSpin ? '🎲 SPIN NOW!' : '🚫 No Spins Left'}
-      </Button>
+      <div className="w-full max-w-xs sm:max-w-sm px-4">
+        <Button
+          onClick={handleSpin}
+          disabled={!canSpin || isSpinning}
+          className={`w-full py-3 sm:py-4 text-base sm:text-lg font-bold rounded-2xl transition-all duration-300 ${
+            canSpin && !isSpinning
+              ? 'bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-white shadow-xl hover:shadow-2xl transform hover:scale-105'
+              : 'bg-gray-400 text-gray-200 cursor-not-allowed'
+          }`}
+        >
+          {isSpinning ? '🎰 Spinning...' : canSpin ? '🎲 SPIN NOW!' : '🚫 No Spins Left'}
+        </Button>
+      </div>
     </div>
   );
 };
