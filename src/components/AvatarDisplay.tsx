@@ -53,30 +53,6 @@ export const AvatarDisplay: React.FC<AvatarDisplayProps> = ({
     }
   };
   return <div className={`relative ${className}`}>
-      <div className={`${sizeClasses[size]} relative`}>
-        {/* Rainbow border decoration */}
-        {equippedDecoration?.item_data?.effect === 'rainbow_border' && <div className={`${sizeClasses[size]} absolute inset-0 rounded-full bg-gradient-to-r from-red-500 via-yellow-500 via-green-500 via-blue-500 to-purple-500 animate-spin`} style={{
-        animation: 'spin 3s linear infinite'
-      }} />}
-        
-        {/* Avatar image */}
-        
-        
-        {/* Sparkle decoration overlay */}
-        {equippedDecoration?.item_data?.effect === 'sparkle' && <div className={`${sizeClasses[size]} absolute inset-0 rounded-full`}>
-            <Sparkles className={`${decorationSize[size]} absolute top-0 left-0 text-yellow-400 animate-ping`} style={{
-          animationDelay: '0s'
-        }} />
-            <Sparkles className={`${decorationSize[size]} absolute top-1 right-0 text-blue-400 animate-ping`} style={{
-          animationDelay: '0.5s'
-        }} />
-            <Sparkles className={`${decorationSize[size]} absolute bottom-0 left-1 text-pink-400 animate-ping`} style={{
-          animationDelay: '1s'
-        }} />
-          </div>}
-        
-        {/* Avatar decoration */}
-        {getAvatarDecoration()}
-      </div>
+      
     </div>;
 };
