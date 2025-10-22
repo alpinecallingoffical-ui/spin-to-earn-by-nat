@@ -26,6 +26,10 @@ interface Conversation {
     profile_picture_url: string | null;
   };
   unread_count: number;
+  last_message?: {
+    content: string;
+    sender_id: string;
+  };
 }
 
 export const useChat = () => {
@@ -84,13 +88,23 @@ export const useChat = () => {
             .eq('receiver_id', user.id)
             .eq('read', false);
 
+          // Fetch last message for preview
+          const { data: lastMessageData } = await supabase
+            .from('messages')
+            .select('content, sender_id')
+            .or(`and(sender_id.eq.${user.id},receiver_id.eq.${otherUserId}),and(sender_id.eq.${otherUserId},receiver_id.eq.${user.id})`)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
           return {
             id: conv.id,
             user1_id: conv.user1_id,
             user2_id: conv.user2_id,
             last_message_at: conv.last_message_at,
             other_user: otherUserData,
-            unread_count: count || 0
+            unread_count: count || 0,
+            last_message: lastMessageData || undefined
           };
         })
       );
