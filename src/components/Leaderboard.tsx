@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
-import { Crown, MessageCircle } from "lucide-react";
-import { ChatWindow } from "./ChatWindow";
+import { Crown } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { AvatarDisplay } from "./AvatarDisplay";
 
@@ -20,11 +19,6 @@ export const Leaderboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [date, setDate] = useState<string>(() => new Date().toISOString().slice(0, 10));
   const [snapshotMessage, setSnapshotMessage] = useState<string>("");
-  const [selectedChatUser, setSelectedChatUser] = useState<{
-    id: string;
-    name: string;
-    avatar?: string;
-  } | null>(null);
 
   // Fetch leaderboard snapshot for selected date
   const fetchLeaderboard = async (targetDate?: string) => {
@@ -59,11 +53,6 @@ export const Leaderboard: React.FC = () => {
     }
   };
 
-  const handleChatWithUser = (userId: string, userName: string, avatar?: string) => {
-    if (userId === user?.id) return; // Can't chat with yourself
-    setSelectedChatUser({ id: userId, name: userName, avatar });
-  };
-
   useEffect(() => {
     if (user) {
       fetchLeaderboard(date);
@@ -89,16 +78,7 @@ export const Leaderboard: React.FC = () => {
   }
 
   return (
-    <>
-      {selectedChatUser && (
-        <ChatWindow
-          otherUserId={selectedChatUser.id}
-          otherUserName={selectedChatUser.name}
-          otherUserAvatar={selectedChatUser.avatar}
-          onClose={() => setSelectedChatUser(null)}
-        />
-      )}
-      <div className="bg-gradient-to-br from-purple-700/50 to-pink-600/40 p-6 rounded-2xl shadow-xl max-w-2xl mx-auto">
+    <div className="bg-gradient-to-br from-purple-700/50 to-pink-600/40 p-6 rounded-2xl shadow-xl max-w-2xl mx-auto">
         <h2 className="text-2xl font-bold text-white mb-4 text-center flex items-center justify-center gap-2">
           🏆 Daily Leaderboard
           {/* Crown at the top! */}
@@ -124,7 +104,6 @@ export const Leaderboard: React.FC = () => {
                 <TableHead>#</TableHead>
                 <TableHead>Player</TableHead>
                 <TableHead>Coins</TableHead>
-                <TableHead>Chat</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -146,23 +125,11 @@ export const Leaderboard: React.FC = () => {
                     </span>
                   </TableCell>
                   <TableCell className="font-mono font-semibold">{u.coins.toLocaleString()} 🪙</TableCell>
-                  <TableCell>
-                    {u.user_id !== user?.id && (
-                      <button
-                        onClick={() => handleChatWithUser(u.user_id, u.name, u.profile_picture_url || undefined)}
-                        className="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-lg transition-colors"
-                        title={`Chat with ${u.name}`}
-                      >
-                        <MessageCircle className="w-4 h-4" />
-                      </button>
-                    )}
-                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
         )}
       </div>
-    </>
   );
 };
