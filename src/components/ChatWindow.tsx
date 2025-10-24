@@ -41,10 +41,13 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
       // Then fetch messages and mark as read
       await fetchMessages(otherUserId);
       await markMessagesAsRead(otherUserId);
+      
+      // Refresh conversations list to update unread counts
+      await refetchConversations();
     };
     
     initializeChat();
-  }, [otherUserId]);
+  }, [otherUserId, fetchMessages, markMessagesAsRead, refetchConversations]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -101,6 +104,15 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
 
         {/* Messages */}
         <ScrollArea className="flex-1 p-4">
+          {messages.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-full text-gray-500 dark:text-gray-400 space-y-3">
+              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-white text-3xl font-bold">
+                {otherUserName.charAt(0).toUpperCase()}
+              </div>
+              <p className="text-lg font-medium text-center">Start chatting with {otherUserName}</p>
+              <p className="text-sm text-center">Send a message to begin your conversation</p>
+            </div>
+          ) : (
           <div className="space-y-4">
             {messages.map((message) => {
               const isOwn = message.sender_id === user?.id;
@@ -141,6 +153,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
             })}
             <div ref={messagesEndRef} />
           </div>
+          )}
         </ScrollArea>
 
         {/* Message Input */}

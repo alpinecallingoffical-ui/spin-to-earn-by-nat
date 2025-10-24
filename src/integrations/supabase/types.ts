@@ -467,6 +467,7 @@ export type Database = {
       messages: {
         Row: {
           content: string
+          conversation_id: string | null
           created_at: string
           id: string
           read: boolean
@@ -476,6 +477,7 @@ export type Database = {
         }
         Insert: {
           content: string
+          conversation_id?: string | null
           created_at?: string
           id?: string
           read?: boolean
@@ -485,6 +487,7 @@ export type Database = {
         }
         Update: {
           content?: string
+          conversation_id?: string | null
           created_at?: string
           id?: string
           read?: boolean
@@ -613,6 +616,59 @@ export type Database = {
           {
             foreignKeyName: "referrals_referrer_id_fkey"
             columns: ["referrer_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reports: {
+        Row: {
+          admin_response: string | null
+          created_at: string
+          description: string
+          id: string
+          image_urls: string[] | null
+          priority: string
+          resolved_at: string | null
+          status: string
+          ticket_id: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_response?: string | null
+          created_at?: string
+          description: string
+          id?: string
+          image_urls?: string[] | null
+          priority?: string
+          resolved_at?: string | null
+          status?: string
+          ticket_id: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_response?: string | null
+          created_at?: string
+          description?: string
+          id?: string
+          image_urls?: string[] | null
+          priority?: string
+          resolved_at?: string | null
+          status?: string
+          ticket_id?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reports_user_id_fkey"
+            columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
@@ -996,13 +1052,57 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      user_chat_messages: {
+        Row: {
+          content: string | null
+          conversation_id: string | null
+          created_at: string | null
+          id: string | null
+          read: boolean | null
+          receiver_id: string | null
+          sender_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          content?: string | null
+          conversation_id?: string | null
+          created_at?: string | null
+          id?: string | null
+          read?: boolean | null
+          receiver_id?: string | null
+          sender_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          content?: string | null
+          conversation_id?: string | null
+          created_at?: string | null
+          id?: string | null
+          read?: boolean | null
+          receiver_id?: string | null
+          sender_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_receiver_id_fkey"
+            columns: ["receiver_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
-      accept_friend_request: {
-        Args: { request_id: string }
-        Returns: boolean
-      }
+      accept_friend_request: { Args: { request_id: string }; Returns: boolean }
       approve_withdrawal_with_notification: {
         Args: { admin_notes?: string; withdrawal_id: string }
         Returns: boolean
@@ -1011,14 +1111,8 @@ export type Database = {
         Args: { chosen_numbers?: Json; lottery_game_uuid: string }
         Returns: Json
       }
-      can_spin_today: {
-        Args: { user_uuid: string }
-        Returns: boolean
-      }
-      complete_task: {
-        Args: { task_uuid: string }
-        Returns: boolean
-      }
+      can_spin_today: { Args: { user_uuid: string }; Returns: boolean }
+      complete_task: { Args: { task_uuid: string }; Returns: boolean }
       conduct_lottery_draw: {
         Args: { lottery_game_uuid: string }
         Returns: Json
@@ -1035,20 +1129,12 @@ export type Database = {
         Args: { item_uuid: string; should_equip?: boolean }
         Returns: boolean
       }
-      exec_sql: {
-        Args: { sql: string }
-        Returns: string
-      }
-      generate_referral_code: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
-      generate_transaction_id: {
-        Args: { prefix?: string }
-        Returns: string
-      }
+      exec_sql: { Args: { sql: string }; Returns: string }
+      generate_referral_code: { Args: never; Returns: string }
+      generate_ticket_id: { Args: never; Returns: string }
+      generate_transaction_id: { Args: { prefix?: string }; Returns: string }
       get_all_user_daily_stats: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           daily_spin_limit: number
           email: string
@@ -1061,7 +1147,7 @@ export type Database = {
         }[]
       }
       get_current_user_daily_stats: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           daily_spin_limit: number
           email: string
@@ -1084,10 +1170,9 @@ export type Database = {
         }
         Returns: boolean
       }
-      mark_messages_read: {
-        Args: { sender_id: string }
-        Returns: boolean
-      }
+      mark_messages_read:
+        | { Args: { p_receiver: string; p_sender: string }; Returns: undefined }
+        | { Args: { sender_id: string }; Returns: boolean }
       purchase_item: {
         Args: { item_uuid: string; purchase_quantity?: number }
         Returns: boolean
@@ -1114,26 +1199,16 @@ export type Database = {
         }
         Returns: boolean
       }
-      refresh_daily_stats: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
-      reject_friend_request: {
-        Args: { request_id: string }
-        Returns: boolean
-      }
-      remove_friend: {
-        Args: { friend_user_id: string }
-        Returns: boolean
-      }
+      refresh_daily_stats: { Args: never; Returns: boolean }
+      reject_friend_request: { Args: { request_id: string }; Returns: boolean }
+      remove_friend: { Args: { friend_user_id: string }; Returns: boolean }
       send_friend_request: {
         Args: { target_user_id: string }
         Returns: boolean
       }
-      send_message: {
-        Args: { content: string; receiver_id: string } | { message: string }
-        Returns: string
-      }
+      send_message:
+        | { Args: { content: string; receiver_id: string }; Returns: string }
+        | { Args: { message: string }; Returns: undefined }
       send_message_to_all_users: {
         Args: {
           message_content: string
@@ -1142,10 +1217,7 @@ export type Database = {
         }
         Returns: boolean
       }
-      update_leaderboard_rankings: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
+      update_leaderboard_rankings: { Args: never; Returns: boolean }
       update_spin_status: {
         Args: {
           admin_notes?: string

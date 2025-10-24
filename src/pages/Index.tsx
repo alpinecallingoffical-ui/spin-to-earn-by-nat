@@ -9,6 +9,7 @@ import { SpinHistoryConnected } from '@/components/SpinHistoryConnected';
 import { MoreSection } from '@/components/MoreSection';
 import { AboutSection } from '@/components/AboutSection';
 import { useAuth } from '@/hooks/useAuth';
+import { useAdmin } from '@/hooks/useAdmin';
 import { NotificationCenter } from '@/components/NotificationCenter';
 import { useNotifications } from '@/hooks/useNotifications';
 import { WelcomeAnimation } from '@/components/WelcomeAnimation';
@@ -24,6 +25,8 @@ import { MobileBottomNav } from '@/components/MobileBottomNav';
 import { MobileFeatures } from '@/components/MobileFeatures';
 import { SwipeableContent } from '@/components/SwipeableContent';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { RoleSelector } from '@/components/RoleSelector';
+import { AdminPanel } from '@/components/AdminPanel';
 
 const Index = () => {
   const location = useLocation();
@@ -34,6 +37,8 @@ const Index = () => {
     signOut,
     isNewLogin
   } = useAuth();
+  const { isAdmin, loading: adminLoading } = useAdmin();
+  const [selectedRole, setSelectedRole] = useState<'user' | 'admin' | null>(null);
   const [showAuth, setShowAuth] = useState(false);
   const [referralCode, setReferralCode] = useState<string>('');
   const [activeTab, setActiveTab] = useState('spin');
@@ -92,10 +97,20 @@ const Index = () => {
   // Debug log for notification state
   console.log('[Notification-Debug] unreadCount:', unreadCount);
 
-  if (loading) {
+  if (loading || adminLoading) {
     return <div className="min-h-screen bg-gradient-to-br from-purple-600 via-pink-600 to-orange-500 flex items-center justify-center">
         <div className="text-white text-2xl font-bold">🎰 Loading...</div>
       </div>;
+  }
+
+  // Show role selector for admin users who haven't selected a role
+  if (user && isAdmin && selectedRole === null) {
+    return <RoleSelector onSelectRole={setSelectedRole} />;
+  }
+
+  // Show admin panel if admin role is selected
+  if (user && isAdmin && selectedRole === 'admin') {
+    return <AdminPanel />;
   }
 
   if (!user) {
