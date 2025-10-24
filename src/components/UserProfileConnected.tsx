@@ -406,7 +406,7 @@ export const UserProfileConnected: React.FC<UserProfileConnectedProps> = ({
               {(userData?.coins || 0) >= 2000 && <span className="ml-2 text-blue-300 text-xs">(Priority Support)</span>}
             </h4>
             
-            <Button onClick={handleContactSupport} variant="outline" className="w-full bg-green-500/20 border-green-400/30 text-green-200 hover:bg-green-500/30 py-3 rounded-xl justify-start transition-all duration-300 hover:scale-105">
+            <Button onClick={handleContactSupport} variant="outline" className="w-full bg-green-500/20 border-green-400/30 text-green-200 hover:bg-green-500/30 rounded-xl justify-start transition-all duration-300 hover:scale-105 mx-0 my-0 px-0 py-[12px] text-left font-thin">
               📧 Email: alpinecallingoffical@gmail.com
             </Button>
             
