@@ -17,6 +17,7 @@ interface ChatListProps {
 interface SearchUser {
   id: string;
   name: string;
+  username: string;
   profile_picture_url: string | null;
 }
 
@@ -42,10 +43,10 @@ export const ChatList: React.FC<ChatListProps> = ({ isOpen, onClose }) => {
 
       setSearchLoading(true);
       try {
-        const { data, error } = await supabase
+        const { data, error} = await supabase
           .from('users')
-          .select('id, name, profile_picture_url')
-          .ilike('name', `%${searchQuery}%`)
+          .select('id, name, username, profile_picture_url')
+          .or(`name.ilike.%${searchQuery}%,username.ilike.%${searchQuery}%`)
           .neq('id', user.id) // Exclude current user
           .limit(10);
 
@@ -170,9 +171,12 @@ export const ChatList: React.FC<ChatListProps> = ({ isOpen, onClose }) => {
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h4 className="font-semibold text-gray-900 dark:text-white truncate">
-                        {searchUser.name}
-                      </h4>
+                      <div className="flex items-center gap-2">
+                        <h4 className="font-semibold text-gray-900 dark:text-white truncate">
+                          {searchUser.name}
+                        </h4>
+                        <span className="text-xs text-purple-600 dark:text-purple-400">@{searchUser.username}</span>
+                      </div>
                       <p className="text-sm text-green-600 dark:text-green-400 flex items-center gap-1">
                         <UserPlus className="w-3 h-3" />
                         Click to start chat
@@ -233,13 +237,16 @@ export const ChatList: React.FC<ChatListProps> = ({ isOpen, onClose }) => {
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between mb-1">
-                          <h4 className={`font-semibold truncate ${
-                            conversation.unread_count > 0 
-                              ? 'text-gray-900 dark:text-white' 
-                              : 'text-gray-700 dark:text-gray-300'
-                          }`}>
-                            {conversation.other_user.name}
-                          </h4>
+                          <div className="flex items-center gap-2">
+                            <h4 className={`font-semibold truncate ${
+                              conversation.unread_count > 0 
+                                ? 'text-gray-900 dark:text-white' 
+                                : 'text-gray-700 dark:text-gray-300'
+                            }`}>
+                              {conversation.other_user.name}
+                            </h4>
+                            <span className="text-xs text-gray-500 dark:text-gray-400">@{conversation.other_user.username}</span>
+                          </div>
                           <span className="text-xs text-gray-500 dark:text-gray-400 flex-shrink-0">
                             {format(new Date(conversation.last_message_at), 'MMM d, h:mm a')}
                           </span>

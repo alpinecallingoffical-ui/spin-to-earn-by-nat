@@ -945,6 +945,7 @@ export type Database = {
           profile_picture_url: string | null
           referral_code: string
           referred_by: string | null
+          username: string
         }
         Insert: {
           banned?: boolean
@@ -959,6 +960,7 @@ export type Database = {
           profile_picture_url?: string | null
           referral_code: string
           referred_by?: string | null
+          username: string
         }
         Update: {
           banned?: boolean
@@ -973,6 +975,7 @@ export type Database = {
           profile_picture_url?: string | null
           referral_code?: string
           referred_by?: string | null
+          username?: string
         }
         Relationships: []
       }
@@ -1133,6 +1136,7 @@ export type Database = {
       generate_referral_code: { Args: never; Returns: string }
       generate_ticket_id: { Args: never; Returns: string }
       generate_transaction_id: { Args: { prefix?: string }; Returns: string }
+      generate_username: { Args: { base_name: string }; Returns: string }
       get_all_user_daily_stats: {
         Args: never
         Returns: {

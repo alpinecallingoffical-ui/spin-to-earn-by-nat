@@ -23,12 +23,14 @@ interface Conversation {
   other_user: {
     id: string;
     name: string;
+    username: string;
     profile_picture_url: string | null;
   };
   unread_count: number;
   last_message?: {
     content: string;
     sender_id: string;
+    created_at: string;
   };
 }
 
@@ -71,7 +73,7 @@ export const useChat = () => {
           // Fetch other user data
           const { data: otherUserData, error: userError } = await supabase
             .from('users')
-            .select('id, name, profile_picture_url')
+            .select('id, name, username, profile_picture_url')
             .eq('id', otherUserId)
             .maybeSingle();
 
@@ -91,7 +93,7 @@ export const useChat = () => {
           // Fetch last message for preview
           const { data: lastMessageData } = await supabase
             .from('messages')
-            .select('content, sender_id')
+            .select('content, sender_id, created_at')
             .or(`and(sender_id.eq.${user.id},receiver_id.eq.${otherUserId}),and(sender_id.eq.${otherUserId},receiver_id.eq.${user.id})`)
             .order('created_at', { ascending: false })
             .limit(1)

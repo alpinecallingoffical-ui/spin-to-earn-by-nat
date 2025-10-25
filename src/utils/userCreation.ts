@@ -43,12 +43,16 @@ export const createUserProfile = async (userId: string, userData: {
     // Calculate initial coins (50 if referred, 0 otherwise)
     const initialCoins = userData.referredBy ? 50 : 0;
 
+    // Generate username from name
+    const username = userData.name.toLowerCase().replace(/[^a-z0-9]/g, '');
+
     // Insert user profile
     const { data: newUser, error: insertError } = await supabase
       .from('users')
       .insert({
         id: userId,
         name: userData.name,
+        username: username,
         email: userData.email,
         phone: userData.phone,
         referral_code: referralCode,

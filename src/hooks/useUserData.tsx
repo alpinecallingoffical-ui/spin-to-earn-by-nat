@@ -6,6 +6,7 @@ import { useVipSounds } from './useVipSounds';
 interface UserData {
   id: string;
   name: string;
+  username: string;
   email?: string;
   phone?: string;
   coins: number;
@@ -99,9 +100,11 @@ export const useUserData = () => {
         
         // Create user profile if it doesn't exist
         try {
+          const userName = user.user_metadata?.name || user.user_metadata?.full_name || user.email?.split('@')[0] || 'User';
           const newUserData = {
             id: user.id,
-            name: user.user_metadata?.name || user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
+            name: userName,
+            username: userName.toLowerCase().replace(/[^a-z0-9]/g, ''),
             email: user.email,
             phone: user.phone,
             coins: 0,
