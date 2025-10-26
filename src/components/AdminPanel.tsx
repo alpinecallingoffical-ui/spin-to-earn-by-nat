@@ -10,20 +10,18 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from 'sonner';
 import { 
   Users, 
-  Ban, 
-  Shield, 
   DollarSign, 
   Flag,
   Settings,
   Coins,
   Trophy,
-  ChevronDown,
-  ChevronUp,
   Search,
   Check,
-  X
+  X,
+  RefreshCw
 } from 'lucide-react';
 import { format } from 'date-fns';
+import { AdminUserCard } from './AdminUserCard';
 
 interface User {
   id: string;
@@ -105,7 +103,6 @@ export const AdminPanel: React.FC = () => {
   const [diamondPurchases, setDiamondPurchases] = useState<DiamondPurchase[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [expandedUser, setExpandedUser] = useState<string | null>(null);
   const [stats, setStats] = useState({
     totalUsers: 0,
     totalCoins: 0,
@@ -116,6 +113,53 @@ export const AdminPanel: React.FC = () => {
 
   useEffect(() => {
     fetchAllData();
+
+    // Set up realtime subscriptions for all tables
+    const usersChannel = supabase
+      .channel('admin_users')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'users' }, () => {
+        fetchUsers();
+        fetchStats();
+      })
+      .subscribe();
+
+    const reportsChannel = supabase
+      .channel('admin_reports')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'reports' }, () => {
+        fetchReports();
+        fetchStats();
+      })
+      .subscribe();
+
+    const withdrawalsChannel = supabase
+      .channel('admin_withdrawals')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'withdrawals' }, () => {
+        fetchWithdrawals();
+        fetchStats();
+      })
+      .subscribe();
+
+    const spinsChannel = supabase
+      .channel('admin_spins')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'spin_management' }, () => {
+        fetchSpinRequests();
+      })
+      .subscribe();
+
+    const diamondsChannel = supabase
+      .channel('admin_diamonds')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'diamond_purchases' }, () => {
+        fetchDiamondPurchases();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(usersChannel);
+      supabase.removeChannel(reportsChannel);
+      supabase.removeChannel(withdrawalsChannel);
+      supabase.removeChannel(spinsChannel);
+      supabase.removeChannel(diamondsChannel);
+    };
   }, []);
 
   const fetchAllData = async () => {
@@ -220,33 +264,11 @@ export const AdminPanel: React.FC = () => {
     });
   };
 
-  const toggleBanUser = async (userId: string, currentBanned: boolean) => {
-    const { error } = await supabase.rpc('admin_ban_user', {
-      target_user_id: userId,
-      should_ban: !currentBanned
-    });
-
-    if (error) {
-      toast.error('Failed to update user status');
-    } else {
-      toast.success(`User ${currentBanned ? 'unbanned' : 'banned'} successfully`);
-      fetchUsers();
-    }
-  };
-
-  const updateSpinLimit = async (userId: string, newLimit: number) => {
-    const { error } = await supabase.rpc('admin_update_spin_limit', {
-      target_user_id: userId,
-      new_limit: newLimit
-    });
-
-    if (error) {
-      toast.error('Failed to update spin limit');
-    } else {
-      toast.success('Spin limit updated successfully');
-      fetchUsers();
-    }
-  };
+  const filteredUsers = users.filter(user => 
+    user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    user.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    user.email?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   const updateReportStatus = async (reportId: string, status: string, response: string) => {
     const { error } = await supabase.rpc('admin_update_report_status', {
@@ -301,12 +323,6 @@ export const AdminPanel: React.FC = () => {
       fetchSpinRequests();
     }
   };
-
-  const filteredUsers = users.filter(user => 
-    user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    user.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    user.email?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
 
   if (loading) {
     return (
@@ -393,8 +409,16 @@ export const AdminPanel: React.FC = () => {
         <TabsContent value="users" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>User Management</CardTitle>
-              <CardDescription>Manage all registered users</CardDescription>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>User Management</CardTitle>
+                  <CardDescription>Individual user cards with realtime updates</CardDescription>
+                </div>
+                <Button onClick={fetchUsers} size="sm" variant="outline">
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  Refresh
+                </Button>
+              </div>
               <div className="relative mt-4">
                 <Search className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
                 <Input
@@ -407,85 +431,20 @@ export const AdminPanel: React.FC = () => {
             </CardHeader>
             <CardContent>
               <ScrollArea className="h-[600px]">
-                <div className="space-y-2">
-                  {filteredUsers.map((user) => (
-                    <Card key={user.id} className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                          {user.profile_picture_url ? (
-                            <img src={user.profile_picture_url} alt={user.name} className="w-12 h-12 rounded-full" />
-                          ) : (
-                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-white font-bold">
-                              {user.name.charAt(0)}
-                            </div>
-                          )}
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <p className="font-semibold">{user.name}</p>
-                              <span className="text-sm text-muted-foreground">@{user.username}</span>
-                              {user.banned && <Badge variant="destructive">Banned</Badge>}
-                            </div>
-                            <p className="text-sm text-muted-foreground">{user.email}</p>
-                            <div className="flex gap-4 text-xs text-muted-foreground mt-1">
-                              <span>💰 {user.coins} coins</span>
-                              <span>💎 {user.diamonds} diamonds</span>
-                              <span>🎰 {user.daily_spin_limit} spins/day</span>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="flex gap-2">
-                          <Button
-                            size="sm"
-                            variant={expandedUser === user.id ? "secondary" : "outline"}
-                            onClick={() => setExpandedUser(expandedUser === user.id ? null : user.id)}
-                          >
-                            {expandedUser === user.id ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant={user.banned ? "default" : "destructive"}
-                            onClick={() => toggleBanUser(user.id, user.banned)}
-                          >
-                            {user.banned ? <Shield className="w-4 h-4" /> : <Ban className="w-4 h-4" />}
-                          </Button>
-                        </div>
-                      </div>
-                      
-                      {expandedUser === user.id && (
-                        <div className="mt-4 pt-4 border-t space-y-3">
-                          <div className="grid grid-cols-2 gap-4 text-sm">
-                            <div>
-                              <span className="text-muted-foreground">User ID:</span>
-                              <p className="font-mono text-xs">{user.id}</p>
-                            </div>
-                            <div>
-                              <span className="text-muted-foreground">Joined:</span>
-                              <p>{format(new Date(user.created_at), 'PPP')}</p>
-                            </div>
-                          </div>
-                          <div className="flex gap-2">
-                            <Input
-                              type="number"
-                              placeholder="New spin limit"
-                              id={`spin-limit-${user.id}`}
-                              className="w-32"
-                            />
-                            <Button 
-                              size="sm"
-                              onClick={() => {
-                                const input = document.getElementById(`spin-limit-${user.id}`) as HTMLInputElement;
-                                if (input && input.value) {
-                                  updateSpinLimit(user.id, parseInt(input.value));
-                                }
-                              }}
-                            >
-                              Update Spin Limit
-                            </Button>
-                          </div>
-                        </div>
-                      )}
-                    </Card>
-                  ))}
+                <div className="space-y-4">
+                  {filteredUsers.length === 0 ? (
+                    <div className="text-center py-8 text-muted-foreground">
+                      No users found
+                    </div>
+                  ) : (
+                    filteredUsers.map((user) => (
+                      <AdminUserCard
+                        key={user.id}
+                        user={user}
+                        onUpdate={fetchUsers}
+                      />
+                    ))
+                  )}
                 </div>
               </ScrollArea>
             </CardContent>

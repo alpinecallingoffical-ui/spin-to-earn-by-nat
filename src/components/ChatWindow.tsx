@@ -47,6 +47,31 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
     };
     
     initializeChat();
+
+    // Set up realtime subscription for new messages in this conversation
+    const messageChannel = supabase
+      .channel(`messages_${otherUserId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+          filter: `sender_id=eq.${otherUserId}`
+        },
+        async (payload) => {
+          console.log('New message received:', payload);
+          // Refresh messages and mark as read
+          await fetchMessages(otherUserId);
+          await markMessagesAsRead(otherUserId);
+          await refetchConversations();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(messageChannel);
+    };
   }, [otherUserId, fetchMessages, markMessagesAsRead, refetchConversations]);
 
   useEffect(() => {
