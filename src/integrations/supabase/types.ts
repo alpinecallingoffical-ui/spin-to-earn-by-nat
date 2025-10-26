@@ -1055,57 +1055,42 @@ export type Database = {
       }
     }
     Views: {
-      user_chat_messages: {
-        Row: {
-          content: string | null
-          conversation_id: string | null
-          created_at: string | null
-          id: string | null
-          read: boolean | null
-          receiver_id: string | null
-          sender_id: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          content?: string | null
-          conversation_id?: string | null
-          created_at?: string | null
-          id?: string | null
-          read?: boolean | null
-          receiver_id?: string | null
-          sender_id?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          content?: string | null
-          conversation_id?: string | null
-          created_at?: string | null
-          id?: string | null
-          read?: boolean | null
-          receiver_id?: string | null
-          sender_id?: string | null
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "messages_receiver_id_fkey"
-            columns: ["receiver_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "messages_sender_id_fkey"
-            columns: ["sender_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
+      [_ in never]: never
     }
     Functions: {
       accept_friend_request: { Args: { request_id: string }; Returns: boolean }
+      admin_ban_user: {
+        Args: { should_ban: boolean; target_user_id: string }
+        Returns: boolean
+      }
+      admin_update_report_status: {
+        Args: {
+          admin_response_text?: string
+          new_status: string
+          report_id: string
+        }
+        Returns: boolean
+      }
+      admin_update_spin_limit: {
+        Args: { new_limit: number; target_user_id: string }
+        Returns: boolean
+      }
+      admin_update_spin_status: {
+        Args: {
+          admin_notes_text?: string
+          new_status: string
+          spin_management_id: string
+        }
+        Returns: boolean
+      }
+      admin_update_withdrawal_status: {
+        Args: {
+          admin_notes_text?: string
+          new_status: string
+          withdrawal_id: string
+        }
+        Returns: boolean
+      }
       approve_withdrawal_with_notification: {
         Args: { admin_notes?: string; withdrawal_id: string }
         Returns: boolean
@@ -1206,6 +1191,10 @@ export type Database = {
       refresh_daily_stats: { Args: never; Returns: boolean }
       reject_friend_request: { Args: { request_id: string }; Returns: boolean }
       remove_friend: { Args: { friend_user_id: string }; Returns: boolean }
+      request_withdrawal: {
+        Args: { p_coin_amount: number; p_esewa_number: string }
+        Returns: string
+      }
       send_friend_request: {
         Args: { target_user_id: string }
         Returns: boolean
@@ -1222,14 +1211,6 @@ export type Database = {
         Returns: boolean
       }
       update_leaderboard_rankings: { Args: never; Returns: boolean }
-      update_spin_status: {
-        Args: {
-          admin_notes?: string
-          new_status: string
-          spin_management_id: string
-        }
-        Returns: boolean
-      }
       update_spin_time: {
         Args: { new_spin_time: string; spin_management_id: string }
         Returns: boolean

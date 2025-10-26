@@ -51,33 +51,20 @@ export const WalletDisplayConnected: React.FC<WalletDisplayConnectedProps> = ({
         throw new Error('Insufficient coins');
       }
 
-      // Automatically deduct coins from user account
-      const {
-        error: updateError
-      } = await supabase.from('users').update({
-        coins: coins - coinAmount
-      }).eq('id', user.id);
-      if (updateError) throw updateError;
+      // Use secure server-side function to request withdrawal
+      const { data: withdrawalId, error: withdrawalError } = await supabase.rpc('request_withdrawal', {
+        p_esewa_number: esewaNumber,
+        p_coin_amount: coinAmount
+      });
 
-      // Create withdrawal record with 'pending' status (this will be auto-approved)
-      const {
-        data: withdrawal,
-        error: withdrawalError
-      } = await supabase.from('withdrawals').insert({
-        user_id: user.id,
-        esewa_number: esewaNumber,
-        coin_amount: coinAmount,
-        status: 'pending' // Use 'pending' instead of 'completed'
-      }).select().single();
       if (withdrawalError) throw withdrawalError;
 
       // Immediately approve the withdrawal using the database function
-      const {
-        error: approvalError
-      } = await supabase.rpc('approve_withdrawal_with_notification', {
-        withdrawal_id: withdrawal.id,
+      const { error: approvalError } = await supabase.rpc('approve_withdrawal_with_notification', {
+        withdrawal_id: withdrawalId,
         admin_notes: 'Auto-approved instant withdrawal'
       });
+
       if (approvalError) {
         console.error('Approval error:', approvalError);
         // Don't throw here - the withdrawal was created successfully
@@ -108,6 +95,7 @@ export const WalletDisplayConnected: React.FC<WalletDisplayConnectedProps> = ({
         console.error('Email sending error:', emailError);
         // Don't throw - email failure shouldn't stop the withdrawal
       }
+
       toast({
         title: '✅ Withdrawal Completed!',
         description: `${coinAmount.toLocaleString()} coins (Rs. ${(coinAmount / 10).toFixed(2)}) have been deducted and sent to ${esewaNumber}. You will receive your money under 24-48 hours.`

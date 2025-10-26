@@ -165,10 +165,10 @@ export const SpinManagement: React.FC = () => {
 
   const updateSpinStatus = async (id: string, status: string, notes?: string) => {
     try {
-      const { error } = await supabase.rpc('update_spin_status', {
+      const { error } = await supabase.rpc('admin_update_spin_status', {
         spin_management_id: id,
         new_status: status,
-        admin_notes: notes,
+        admin_notes_text: notes,
       });
 
       if (error) throw error;

@@ -221,10 +221,10 @@ export const AdminPanel: React.FC = () => {
   };
 
   const toggleBanUser = async (userId: string, currentBanned: boolean) => {
-    const { error } = await supabase
-      .from('users')
-      .update({ banned: !currentBanned })
-      .eq('id', userId);
+    const { error } = await supabase.rpc('admin_ban_user', {
+      target_user_id: userId,
+      should_ban: !currentBanned
+    });
 
     if (error) {
       toast.error('Failed to update user status');
@@ -235,10 +235,10 @@ export const AdminPanel: React.FC = () => {
   };
 
   const updateSpinLimit = async (userId: string, newLimit: number) => {
-    const { error } = await supabase
-      .from('users')
-      .update({ daily_spin_limit: newLimit })
-      .eq('id', userId);
+    const { error } = await supabase.rpc('admin_update_spin_limit', {
+      target_user_id: userId,
+      new_limit: newLimit
+    });
 
     if (error) {
       toast.error('Failed to update spin limit');
@@ -249,14 +249,11 @@ export const AdminPanel: React.FC = () => {
   };
 
   const updateReportStatus = async (reportId: string, status: string, response: string) => {
-    const { error } = await supabase
-      .from('reports')
-      .update({ 
-        status, 
-        admin_response: response,
-        resolved_at: status === 'resolved' ? new Date().toISOString() : null
-      })
-      .eq('id', reportId);
+    const { error } = await supabase.rpc('admin_update_report_status', {
+      report_id: reportId,
+      new_status: status,
+      admin_response_text: response
+    });
 
     if (error) {
       toast.error('Failed to update report');
@@ -267,38 +264,34 @@ export const AdminPanel: React.FC = () => {
   };
 
   const updateWithdrawalStatus = async (withdrawalId: string, status: string, notes: string) => {
-    if (status === 'completed') {
-      const { error } = await supabase.rpc('approve_withdrawal_with_notification', {
-        withdrawal_id: withdrawalId,
-        admin_notes: notes
-      });
+    const { error } = await supabase.rpc('admin_update_withdrawal_status', {
+      withdrawal_id: withdrawalId,
+      new_status: status,
+      admin_notes_text: notes
+    });
 
-      if (error) {
-        toast.error('Failed to update withdrawal');
-      } else {
-        toast.success('Withdrawal approved and notification sent');
-        fetchWithdrawals();
-      }
+    if (error) {
+      toast.error('Failed to update withdrawal');
     } else {
-      const { error } = await supabase
-        .from('withdrawals')
-        .update({ status, admin_notes: notes })
-        .eq('id', withdrawalId);
-
-      if (error) {
-        toast.error('Failed to update withdrawal');
+      if (status === 'completed') {
+        // Also trigger approval notification
+        await supabase.rpc('approve_withdrawal_with_notification', {
+          withdrawal_id: withdrawalId,
+          admin_notes: notes
+        });
+        toast.success('Withdrawal approved and notification sent');
       } else {
         toast.success('Withdrawal updated successfully');
-        fetchWithdrawals();
       }
+      fetchWithdrawals();
     }
   };
 
   const updateSpinRequest = async (requestId: string, status: string, notes: string) => {
-    const { error } = await supabase.rpc('update_spin_status', {
+    const { error } = await supabase.rpc('admin_update_spin_status', {
       spin_management_id: requestId,
       new_status: status,
-      admin_notes: notes
+      admin_notes_text: notes
     });
 
     if (error) {
