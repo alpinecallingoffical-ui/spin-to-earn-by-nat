@@ -184,9 +184,19 @@ export const useChat = () => {
     if (!user) return;
 
     try {
-      await supabase.rpc('mark_messages_read', {
+      const { error } = await supabase.rpc('mark_messages_read', {
         sender_id: senderId
       });
+
+      if (error) {
+        console.error('Error marking messages as read:', error);
+      } else {
+        console.log('Messages marked as read successfully');
+        // Refresh conversations to update unread counts
+        setTimeout(() => {
+          fetchConversations();
+        }, 300);
+      }
     } catch (error) {
       console.error('Error marking messages as read:', error);
     }

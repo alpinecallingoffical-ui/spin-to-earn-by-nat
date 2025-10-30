@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Ban, Shield, ChevronDown, ChevronUp, Coins, Trophy, User } from 'lucide-react';
@@ -35,6 +36,7 @@ export const AdminUserCard: React.FC<AdminUserCardProps> = ({ user: initialUser,
     withdrawals: 0,
     reports: 0
   });
+  const [activityLogs, setActivityLogs] = useState<any[]>([]);
 
   // Set up realtime subscription for this specific user
   useEffect(() => {
@@ -105,8 +107,131 @@ export const AdminUserCard: React.FC<AdminUserCardProps> = ({ user: initialUser,
         withdrawals: withdrawals || 0,
         reports: reports || 0
       });
+
+      // Fetch comprehensive activity logs
+      await fetchActivityLogs();
     } catch (error) {
       console.error('Error fetching user stats:', error);
+    }
+  };
+
+  const fetchActivityLogs = async () => {
+    try {
+      const activities = [];
+
+      // Get recent spins
+      const { data: spinsData } = await supabase
+        .from('spins')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('spun_at', { ascending: false })
+        .limit(10);
+      
+      if (spinsData) {
+        activities.push(...spinsData.map(spin => ({
+          type: 'spin',
+          timestamp: spin.spun_at,
+          data: { reward: spin.reward },
+          icon: '🎰',
+          color: 'blue'
+        })));
+      }
+
+      // Get recent withdrawals
+      const { data: withdrawalsData } = await supabase
+        .from('withdrawals')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('requested_at', { ascending: false })
+        .limit(10);
+      
+      if (withdrawalsData) {
+        activities.push(...withdrawalsData.map(withdrawal => ({
+          type: 'withdrawal',
+          timestamp: withdrawal.requested_at,
+          data: { 
+            amount: withdrawal.coin_amount, 
+            status: withdrawal.status,
+            esewa_number: withdrawal.esewa_number 
+          },
+          icon: '💰',
+          color: 'green'
+        })));
+      }
+
+      // Get recent reports
+      const { data: reportsData } = await supabase
+        .from('reports')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(10);
+      
+      if (reportsData) {
+        activities.push(...reportsData.map(report => ({
+          type: 'report',
+          timestamp: report.created_at,
+          data: { 
+            title: report.title, 
+            status: report.status,
+            ticket_id: report.ticket_id 
+          },
+          icon: '⚠️',
+          color: 'red'
+        })));
+      }
+
+      // Get recent purchases
+      const { data: purchasesData } = await supabase
+        .from('diamond_purchases')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(10);
+      
+      if (purchasesData) {
+        activities.push(...purchasesData.map(purchase => ({
+          type: 'purchase',
+          timestamp: purchase.created_at,
+          data: { 
+            diamonds: purchase.diamonds_purchased, 
+            price: purchase.price_paid_rs,
+            status: purchase.payment_status 
+          },
+          icon: '💎',
+          color: 'purple'
+        })));
+      }
+
+      // Get recent messages sent
+      const { data: messagesData } = await supabase
+        .from('messages')
+        .select('*')
+        .eq('sender_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(10);
+      
+      if (messagesData) {
+        activities.push(...messagesData.map(message => ({
+          type: 'message',
+          timestamp: message.created_at,
+          data: { 
+            content: message.content.substring(0, 50) + '...',
+            read: message.read 
+          },
+          icon: '💬',
+          color: 'indigo'
+        })));
+      }
+
+      // Sort all activities by timestamp
+      activities.sort((a, b) => 
+        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+      );
+
+      setActivityLogs(activities.slice(0, 20)); // Show latest 20 activities
+    } catch (error) {
+      console.error('Error fetching activity logs:', error);
     }
   };
 
@@ -257,6 +382,82 @@ export const AdminUserCard: React.FC<AdminUserCardProps> = ({ user: initialUser,
             >
               Update Spin Limit
             </Button>
+          </div>
+
+          {/* Activity Logs */}
+          <div className="mt-4">
+            <h4 className="font-semibold mb-3 text-gray-900 dark:text-white flex items-center gap-2">
+              <span>📋</span> Activity Log
+            </h4>
+            <ScrollArea className="h-64 border rounded-lg p-2 bg-gray-50 dark:bg-gray-800">
+              {activityLogs.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  No activity yet
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {activityLogs.map((log, index) => (
+                    <div 
+                      key={index}
+                      className={`p-3 rounded-lg border-l-4 border-${log.color}-500 bg-white dark:bg-gray-700 shadow-sm hover:shadow-md transition-shadow`}
+                    >
+                      <div className="flex items-start gap-3">
+                        <span className="text-2xl flex-shrink-0">{log.icon}</span>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="font-semibold text-sm capitalize text-gray-900 dark:text-white">
+                              {log.type}
+                            </span>
+                            <span className="text-xs text-gray-500">
+                              {format(new Date(log.timestamp), 'MMM d, h:mm a')}
+                            </span>
+                          </div>
+                          <div className="text-xs text-gray-600 dark:text-gray-300">
+                            {log.type === 'spin' && (
+                              <span className="font-mono">Reward: {log.data.reward} coins</span>
+                            )}
+                            {log.type === 'withdrawal' && (
+                              <div className="space-y-1">
+                                <div className="font-mono">{log.data.amount} coins</div>
+                                <div>eSewa: {log.data.esewa_number}</div>
+                                <Badge variant={log.data.status === 'approved' ? 'default' : 'secondary'}>
+                                  {log.data.status}
+                                </Badge>
+                              </div>
+                            )}
+                            {log.type === 'report' && (
+                              <div className="space-y-1">
+                                <div className="font-medium">{log.data.title}</div>
+                                <div className="text-xs text-gray-500">#{log.data.ticket_id}</div>
+                                <Badge variant={log.data.status === 'resolved' ? 'default' : 'secondary'}>
+                                  {log.data.status}
+                                </Badge>
+                              </div>
+                            )}
+                            {log.type === 'purchase' && (
+                              <div className="space-y-1">
+                                <div className="font-mono">{log.data.diamonds} 💎 for Rs. {log.data.price}</div>
+                                <Badge variant={log.data.status === 'completed' ? 'default' : 'secondary'}>
+                                  {log.data.status}
+                                </Badge>
+                              </div>
+                            )}
+                            {log.type === 'message' && (
+                              <div className="space-y-1">
+                                <div className="italic truncate">{log.data.content}</div>
+                                <Badge variant={log.data.read ? 'default' : 'secondary'}>
+                                  {log.data.read ? 'Read' : 'Unread'}
+                                </Badge>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </ScrollArea>
           </div>
         </CardContent>
       )}

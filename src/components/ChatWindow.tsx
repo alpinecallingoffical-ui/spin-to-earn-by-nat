@@ -48,7 +48,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
     
     initializeChat();
 
-    // Set up realtime subscription for new messages in this conversation
+    // Set up realtime subscription for new messages and updates in this conversation
     const messageChannel = supabase
       .channel(`messages_${otherUserId}`)
       .on(
@@ -64,6 +64,20 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
           // Refresh messages and mark as read
           await fetchMessages(otherUserId);
           await markMessagesAsRead(otherUserId);
+          await refetchConversations();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'messages'
+        },
+        async (payload) => {
+          console.log('Message updated (read status):', payload);
+          // Refresh messages to show updated read status
+          await fetchMessages(otherUserId);
           await refetchConversations();
         }
       )
