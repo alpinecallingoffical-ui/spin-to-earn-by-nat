@@ -7,6 +7,8 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { AdminUserCard } from './AdminUserCard';
+import { AdminSettings } from './AdminSettings';
 import { toast } from 'sonner';
 import { 
   Users, 
@@ -18,10 +20,10 @@ import {
   Search,
   Check,
   X,
-  RefreshCw
+  RefreshCw,
+  AlertCircle
 } from 'lucide-react';
 import { format } from 'date-fns';
-import { AdminUserCard } from './AdminUserCard';
 
 interface User {
   id: string;
@@ -396,14 +398,32 @@ export const AdminPanel: React.FC = () => {
 
       {/* Main Tabs */}
       <Tabs defaultValue="users" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-6">
-          <TabsTrigger value="users">Users</TabsTrigger>
-          <TabsTrigger value="reports">Reports</TabsTrigger>
-          <TabsTrigger value="withdrawals">Withdrawals</TabsTrigger>
-          <TabsTrigger value="spins">Spin Requests</TabsTrigger>
-          <TabsTrigger value="diamonds">Diamonds</TabsTrigger>
-          <TabsTrigger value="settings">Settings</TabsTrigger>
-        </TabsList>
+          <TabsList className="grid w-full grid-cols-7">
+            <TabsTrigger value="users">
+              <Users className="w-4 h-4 mr-2" />
+              Users
+            </TabsTrigger>
+            <TabsTrigger value="reports">
+              <AlertCircle className="w-4 h-4 mr-2" />
+              Reports
+            </TabsTrigger>
+            <TabsTrigger value="withdrawals">
+              <DollarSign className="w-4 h-4 mr-2" />
+              Withdrawals
+            </TabsTrigger>
+            <TabsTrigger value="spins">
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Spins
+            </TabsTrigger>
+            <TabsTrigger value="diamonds">
+              <Coins className="w-4 h-4 mr-2" />
+              Diamonds
+            </TabsTrigger>
+            <TabsTrigger value="settings">
+              <Settings className="w-4 h-4 mr-2" />
+              Settings
+            </TabsTrigger>
+          </TabsList>
 
         {/* Users Tab */}
         <TabsContent value="users" className="space-y-4">
@@ -717,28 +737,7 @@ export const AdminPanel: React.FC = () => {
 
         {/* Settings Tab */}
         <TabsContent value="settings" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Platform Settings</CardTitle>
-              <CardDescription>Configure platform-wide settings</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                <h3 className="font-semibold text-yellow-900">⚠️ Settings Coming Soon</h3>
-                <p className="text-sm text-yellow-700 mt-1">Advanced platform configuration options will be available here.</p>
-              </div>
-              <div className="space-y-2">
-                <h4 className="font-medium">Available Actions:</h4>
-                <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1">
-                  <li>Default spin limits</li>
-                  <li>Withdrawal minimum amounts</li>
-                  <li>Diamond to coin conversion rates</li>
-                  <li>System maintenance mode</li>
-                  <li>Broadcast messages to all users</li>
-                </ul>
-              </div>
-            </CardContent>
-          </Card>
+          <AdminSettings />
         </TabsContent>
       </Tabs>
     </div>

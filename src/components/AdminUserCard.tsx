@@ -4,9 +4,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Textarea } from '@/components/ui/textarea';
+import { Separator } from '@/components/ui/separator';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Ban, Shield, ChevronDown, ChevronUp, Coins, Trophy, User } from 'lucide-react';
+import { Ban, Shield, ChevronDown, ChevronUp, Coins, Trophy, Clock, Calendar, MapPin, MessageSquare, FileText } from 'lucide-react';
 import { format } from 'date-fns';
 
 interface AdminUserCardProps {
@@ -21,6 +23,11 @@ interface AdminUserCardProps {
     daily_spin_limit: number;
     created_at: string;
     profile_picture_url: string | null;
+    terms_accepted_at?: string;
+    terms_version?: string;
+    ip_address?: string;
+    last_login_at?: string;
+    login_count?: number;
   };
   onUpdate: () => void;
 }
@@ -37,8 +44,10 @@ export const AdminUserCard: React.FC<AdminUserCardProps> = ({ user: initialUser,
     reports: 0
   });
   const [activityLogs, setActivityLogs] = useState<any[]>([]);
+  const [userSessions, setUserSessions] = useState<any[]>([]);
+  const [userNotes, setUserNotes] = useState<any[]>([]);
+  const [newNote, setNewNote] = useState('');
 
-  // Set up realtime subscription for this specific user
   useEffect(() => {
     const userChannel = supabase
       .channel(`user_${user.id}`)
@@ -58,43 +67,42 @@ export const AdminUserCard: React.FC<AdminUserCardProps> = ({ user: initialUser,
       )
       .subscribe();
 
-    // Fetch user stats
-    fetchUserStats();
+    if (expanded) {
+      fetchUserStats();
+      fetchActivityLogs();
+      fetchUserSessions();
+      fetchUserNotes();
+    }
 
     return () => {
       supabase.removeChannel(userChannel);
     };
-  }, [user.id]);
+  }, [user.id, expanded]);
 
   const fetchUserStats = async () => {
     try {
-      // Get total spins
       const { count: totalSpins } = await supabase
         .from('spins')
         .select('*', { count: 'exact', head: true })
         .eq('user_id', user.id);
 
-      // Get today's spins
       const { count: todaySpins } = await supabase
         .from('spins')
         .select('*', { count: 'exact', head: true })
         .eq('user_id', user.id)
         .gte('spun_at', new Date().toISOString().split('T')[0]);
 
-      // Get total coins earned from spins
       const { data: spinsData } = await supabase
         .from('spins')
         .select('reward')
         .eq('user_id', user.id);
       const totalCoinsEarned = spinsData?.reduce((sum, spin) => sum + spin.reward, 0) || 0;
 
-      // Get withdrawals count
       const { count: withdrawals } = await supabase
         .from('withdrawals')
         .select('*', { count: 'exact', head: true })
         .eq('user_id', user.id);
 
-      // Get reports count
       const { count: reports } = await supabase
         .from('reports')
         .select('*', { count: 'exact', head: true })
@@ -107,11 +115,62 @@ export const AdminUserCard: React.FC<AdminUserCardProps> = ({ user: initialUser,
         withdrawals: withdrawals || 0,
         reports: reports || 0
       });
-
-      // Fetch comprehensive activity logs
-      await fetchActivityLogs();
     } catch (error) {
       console.error('Error fetching user stats:', error);
+    }
+  };
+
+  const fetchUserSessions = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('user_sessions')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('login_at', { ascending: false })
+        .limit(10);
+
+      if (error) throw error;
+      setUserSessions(data || []);
+    } catch (error) {
+      console.error('Error fetching user sessions:', error);
+    }
+  };
+
+  const fetchUserNotes = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('user_notes')
+        .select('*, admin:admin_id(name)')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setUserNotes(data || []);
+    } catch (error) {
+      console.error('Error fetching user notes:', error);
+    }
+  };
+
+  const addNote = async () => {
+    if (!newNote.trim()) return;
+
+    try {
+      const { error } = await supabase
+        .from('user_notes')
+        .insert({
+          user_id: user.id,
+          admin_id: (await supabase.auth.getUser()).data.user?.id,
+          note: newNote,
+        });
+
+      if (error) throw error;
+      
+      toast.success('Note added successfully');
+      setNewNote('');
+      fetchUserNotes();
+    } catch (error) {
+      console.error('Error adding note:', error);
+      toast.error('Failed to add note');
     }
   };
 
@@ -119,7 +178,6 @@ export const AdminUserCard: React.FC<AdminUserCardProps> = ({ user: initialUser,
     try {
       const activities = [];
 
-      // Get recent spins
       const { data: spinsData } = await supabase
         .from('spins')
         .select('*')
@@ -137,7 +195,6 @@ export const AdminUserCard: React.FC<AdminUserCardProps> = ({ user: initialUser,
         })));
       }
 
-      // Get recent withdrawals
       const { data: withdrawalsData } = await supabase
         .from('withdrawals')
         .select('*')
@@ -159,7 +216,6 @@ export const AdminUserCard: React.FC<AdminUserCardProps> = ({ user: initialUser,
         })));
       }
 
-      // Get recent reports
       const { data: reportsData } = await supabase
         .from('reports')
         .select('*')
@@ -181,7 +237,6 @@ export const AdminUserCard: React.FC<AdminUserCardProps> = ({ user: initialUser,
         })));
       }
 
-      // Get recent purchases
       const { data: purchasesData } = await supabase
         .from('diamond_purchases')
         .select('*')
@@ -203,7 +258,6 @@ export const AdminUserCard: React.FC<AdminUserCardProps> = ({ user: initialUser,
         })));
       }
 
-      // Get recent messages sent
       const { data: messagesData } = await supabase
         .from('messages')
         .select('*')
@@ -224,12 +278,11 @@ export const AdminUserCard: React.FC<AdminUserCardProps> = ({ user: initialUser,
         })));
       }
 
-      // Sort all activities by timestamp
       activities.sort((a, b) => 
         new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
       );
 
-      setActivityLogs(activities.slice(0, 20)); // Show latest 20 activities
+      setActivityLogs(activities.slice(0, 20));
     } catch (error) {
       console.error('Error fetching activity logs:', error);
     }
@@ -352,17 +405,45 @@ export const AdminUserCard: React.FC<AdminUserCardProps> = ({ user: initialUser,
             </div>
           </div>
 
+          <Separator />
+
           {/* User Details */}
-          <div className="grid grid-cols-2 gap-4 text-sm">
-            <div>
-              <span className="text-muted-foreground">User ID:</span>
-              <p className="font-mono text-xs truncate">{user.id}</p>
-            </div>
-            <div>
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 text-sm">
+              <Calendar className="w-4 h-4 text-muted-foreground" />
               <span className="text-muted-foreground">Joined:</span>
-              <p>{format(new Date(user.created_at), 'PPP')}</p>
+              <span className="font-medium">{format(new Date(user.created_at), 'PPP')}</span>
+            </div>
+            {user.terms_accepted_at && (
+              <div className="flex items-center gap-2 text-sm">
+                <Shield className="w-4 h-4 text-muted-foreground" />
+                <span className="text-muted-foreground">Terms Accepted:</span>
+                <span className="font-medium">{format(new Date(user.terms_accepted_at), 'PPP')}</span>
+                <Badge variant="outline">v{user.terms_version || '1.0'}</Badge>
+              </div>
+            )}
+            {user.last_login_at && (
+              <div className="flex items-center gap-2 text-sm">
+                <Clock className="w-4 h-4 text-muted-foreground" />
+                <span className="text-muted-foreground">Last Login:</span>
+                <span className="font-medium">{format(new Date(user.last_login_at), 'PPP')}</span>
+              </div>
+            )}
+            {user.ip_address && (
+              <div className="flex items-center gap-2 text-sm">
+                <MapPin className="w-4 h-4 text-muted-foreground" />
+                <span className="text-muted-foreground">IP Address:</span>
+                <span className="font-mono text-xs">{user.ip_address}</span>
+              </div>
+            )}
+            <div className="flex items-center gap-2 text-sm">
+              <Trophy className="w-4 h-4 text-muted-foreground" />
+              <span className="text-muted-foreground">Login Count:</span>
+              <span className="font-medium">{user.login_count || 0} times</span>
             </div>
           </div>
+
+          <Separator />
 
           {/* Spin Limit Control */}
           <div className="flex gap-2">
@@ -384,14 +465,16 @@ export const AdminUserCard: React.FC<AdminUserCardProps> = ({ user: initialUser,
             </Button>
           </div>
 
+          <Separator />
+
           {/* Activity Logs */}
-          <div className="mt-4">
-            <h4 className="font-semibold mb-3 text-gray-900 dark:text-white flex items-center gap-2">
+          <div>
+            <h4 className="font-semibold mb-3 flex items-center gap-2">
               <span>📋</span> Activity Log
             </h4>
-            <ScrollArea className="h-64 border rounded-lg p-2 bg-gray-50 dark:bg-gray-800">
+            <ScrollArea className="h-64 border rounded-lg p-2">
               {activityLogs.length === 0 ? (
-                <div className="text-center py-8 text-gray-500">
+                <div className="text-center py-8 text-muted-foreground">
                   No activity yet
                 </div>
               ) : (
@@ -399,20 +482,20 @@ export const AdminUserCard: React.FC<AdminUserCardProps> = ({ user: initialUser,
                   {activityLogs.map((log, index) => (
                     <div 
                       key={index}
-                      className={`p-3 rounded-lg border-l-4 border-${log.color}-500 bg-white dark:bg-gray-700 shadow-sm hover:shadow-md transition-shadow`}
+                      className="p-3 rounded-lg border bg-card shadow-sm hover:shadow-md transition-shadow"
                     >
                       <div className="flex items-start gap-3">
                         <span className="text-2xl flex-shrink-0">{log.icon}</span>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between mb-1">
-                            <span className="font-semibold text-sm capitalize text-gray-900 dark:text-white">
+                            <span className="font-semibold text-sm capitalize">
                               {log.type}
                             </span>
-                            <span className="text-xs text-gray-500">
+                            <span className="text-xs text-muted-foreground">
                               {format(new Date(log.timestamp), 'MMM d, h:mm a')}
                             </span>
                           </div>
-                          <div className="text-xs text-gray-600 dark:text-gray-300">
+                          <div className="text-xs text-muted-foreground">
                             {log.type === 'spin' && (
                               <span className="font-mono">Reward: {log.data.reward} coins</span>
                             )}
@@ -428,7 +511,7 @@ export const AdminUserCard: React.FC<AdminUserCardProps> = ({ user: initialUser,
                             {log.type === 'report' && (
                               <div className="space-y-1">
                                 <div className="font-medium">{log.data.title}</div>
-                                <div className="text-xs text-gray-500">#{log.data.ticket_id}</div>
+                                <div className="text-xs">#{log.data.ticket_id}</div>
                                 <Badge variant={log.data.status === 'resolved' ? 'default' : 'secondary'}>
                                   {log.data.status}
                                 </Badge>
@@ -452,6 +535,82 @@ export const AdminUserCard: React.FC<AdminUserCardProps> = ({ user: initialUser,
                             )}
                           </div>
                         </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </ScrollArea>
+          </div>
+
+          <Separator />
+
+          {/* User Sessions */}
+          <div>
+            <div className="flex items-center gap-2 mb-3">
+              <Clock className="w-4 h-4" />
+              <h4 className="font-semibold">Recent Sessions</h4>
+            </div>
+            <ScrollArea className="h-48 border rounded-lg p-2">
+              {userSessions.length === 0 ? (
+                <p className="text-sm text-center py-8 text-muted-foreground">No sessions found</p>
+              ) : (
+                <div className="space-y-2">
+                  {userSessions.map((session) => (
+                    <div key={session.id} className="p-2 rounded bg-muted text-sm">
+                      <div className="flex justify-between">
+                        <span className="font-medium">
+                          {format(new Date(session.login_at), 'PPp')}
+                        </span>
+                        {session.logout_at && (
+                          <Badge variant="outline">Logged out</Badge>
+                        )}
+                      </div>
+                      {session.ip_address && (
+                        <p className="text-xs text-muted-foreground font-mono">{session.ip_address}</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </ScrollArea>
+          </div>
+
+          <Separator />
+
+          {/* Admin Notes */}
+          <div>
+            <div className="flex items-center gap-2 mb-3">
+              <MessageSquare className="w-4 h-4" />
+              <h4 className="font-semibold">Admin Notes</h4>
+            </div>
+            <div className="space-y-2 mb-3">
+              <Textarea
+                value={newNote}
+                onChange={(e) => setNewNote(e.target.value)}
+                placeholder="Add a note about this user..."
+                rows={3}
+              />
+              <Button onClick={addNote} size="sm" className="w-full">
+                <FileText className="w-4 h-4 mr-2" />
+                Add Note
+              </Button>
+            </div>
+            <ScrollArea className="h-48 border rounded-lg p-2">
+              {userNotes.length === 0 ? (
+                <p className="text-sm text-center py-8 text-muted-foreground">No notes yet</p>
+              ) : (
+                <div className="space-y-2">
+                  {userNotes.map((note: any) => (
+                    <div key={note.id} className="p-2 rounded bg-muted text-sm">
+                      <p className="font-medium">{note.note}</p>
+                      <div className="flex justify-between items-center mt-1">
+                        <p className="text-xs text-muted-foreground">
+                          By: {note.admin?.name || 'Admin'}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {format(new Date(note.created_at), 'PPp')}
+                        </p>
                       </div>
                     </div>
                   ))}

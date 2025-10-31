@@ -818,6 +818,41 @@ export type Database = {
           },
         ]
       }
+      system_settings: {
+        Row: {
+          created_at: string | null
+          id: string
+          setting_key: string
+          setting_value: Json
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          setting_key: string
+          setting_value: Json
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          setting_key?: string
+          setting_value?: Json
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "system_settings_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tasks: {
         Row: {
           completed_at: string | null
@@ -913,6 +948,48 @@ export type Database = {
           },
         ]
       }
+      user_notes: {
+        Row: {
+          admin_id: string
+          created_at: string | null
+          id: string
+          note: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          admin_id: string
+          created_at?: string | null
+          id?: string
+          note: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          admin_id?: string
+          created_at?: string | null
+          id?: string
+          note?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_notes_admin_id_fkey"
+            columns: ["admin_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_notes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           id: string
@@ -931,6 +1008,44 @@ export type Database = {
         }
         Relationships: []
       }
+      user_sessions: {
+        Row: {
+          id: string
+          ip_address: string | null
+          login_at: string | null
+          logout_at: string | null
+          session_duration: unknown
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          ip_address?: string | null
+          login_at?: string | null
+          logout_at?: string | null
+          session_duration?: unknown
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          id?: string
+          ip_address?: string | null
+          login_at?: string | null
+          logout_at?: string | null
+          session_duration?: unknown
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_sessions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       users: {
         Row: {
           banned: boolean
@@ -940,11 +1055,16 @@ export type Database = {
           diamonds: number | null
           email: string | null
           id: string
+          ip_address: string | null
+          last_login_at: string | null
+          login_count: number | null
           name: string
           phone: string | null
           profile_picture_url: string | null
           referral_code: string
           referred_by: string | null
+          terms_accepted_at: string | null
+          terms_version: string | null
           username: string
         }
         Insert: {
@@ -955,11 +1075,16 @@ export type Database = {
           diamonds?: number | null
           email?: string | null
           id: string
+          ip_address?: string | null
+          last_login_at?: string | null
+          login_count?: number | null
           name: string
           phone?: string | null
           profile_picture_url?: string | null
           referral_code: string
           referred_by?: string | null
+          terms_accepted_at?: string | null
+          terms_version?: string | null
           username: string
         }
         Update: {
@@ -970,11 +1095,16 @@ export type Database = {
           diamonds?: number | null
           email?: string | null
           id?: string
+          ip_address?: string | null
+          last_login_at?: string | null
+          login_count?: number | null
           name?: string
           phone?: string | null
           profile_picture_url?: string | null
           referral_code?: string
           referred_by?: string | null
+          terms_accepted_at?: string | null
+          terms_version?: string | null
           username?: string
         }
         Relationships: []
