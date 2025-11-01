@@ -27,6 +27,9 @@ import { SwipeableContent } from '@/components/SwipeableContent';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { RoleSelector } from '@/components/RoleSelector';
 import { AdminPanel } from '@/components/AdminPanel';
+import { DailyCheckIn } from '@/components/DailyCheckIn';
+import { PowerUpManager } from '@/components/PowerUpManager';
+import { UserAnalytics } from '@/components/UserAnalytics';
 
 const Index = () => {
   const location = useLocation();
@@ -300,6 +303,9 @@ const Index = () => {
               </TabsContent>
 
               <TabsContent value="profile" className="space-y-6">
+                <DailyCheckIn />
+                <UserAnalytics />
+                <PowerUpManager />
                 <UserProfileConnected onSwitchToHistory={handleSwitchToHistory} />
               </TabsContent>
 
